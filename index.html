@@ -1564,6 +1564,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   border:1px solid var(--cizgi-koyu); border-radius:var(--r-s); padding:9px 11px;
   font:inherit; font-size:13px; color:var(--murekkep); background:var(--yuzey); resize:vertical;
 }
+.siparis-form .satir-2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .siparis-form input:focus, .siparis-form textarea:focus{ outline:2px solid var(--nar); outline-offset:1px; }
 .siparis-form input.hata, .siparis-form textarea.hata{ border-color:var(--nar); }
 .siparis-hata{ display:none; font-size:12px; color:var(--nar); margin:0; }
@@ -1571,6 +1572,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .sepet-not{ font-size:11.5px; color:var(--sisik); }
 .sepet-tamamla{ border:0; background:var(--nar); color:#fff; padding:14px; border-radius:var(--r-s); font-weight:700; font-size:14.5px; cursor:pointer; }
 .sepet-tamamla:hover{ background:var(--nar-koyu); }
+.sepet-tamamla.kart{ background:var(--murekkep); }
+.sepet-tamamla.kart:hover{ background:#000; }
+.odeme-secenekleri{ display:flex; flex-direction:column; gap:8px; }
 
 @media (max-width:980px){
   .izgara{ grid-template-columns:repeat(3,minmax(0,1fr)); }
@@ -1911,11 +1915,25 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
         <input id="siparis-ad" type="text" placeholder="Ad Soyad" autocomplete="name">
         <label class="gizli" for="siparis-adres">Teslimat adresi</label>
         <textarea id="siparis-adres" rows="2" placeholder="Teslimat adresi" autocomplete="street-address"></textarea>
+        <div class="satir-2">
+          <div>
+            <label class="gizli" for="siparis-telefon">Telefon</label>
+            <input id="siparis-telefon" type="tel" placeholder="Telefon (kart için gerekli)" autocomplete="tel">
+          </div>
+          <div>
+            <label class="gizli" for="siparis-eposta">E-posta</label>
+            <input id="siparis-eposta" type="email" placeholder="E-posta (kart için gerekli)" autocomplete="email">
+          </div>
+        </div>
         <p class="siparis-hata" id="siparis-hata">Ad soyad ve adres gerekli.</p>
+        <p class="siparis-hata" id="siparis-hata-kart">Kartla ödeme için ad soyad, adres, telefon ve e-posta gerekli.</p>
       </div>
-      <p class="sepet-not">Ödeme adımımız henüz kurulmadı — sipariş, WhatsApp'ta bize
-        yazdığınız mesajla onaylanır, telefon numaranız WhatsApp'tan otomatik gelir.</p>
-      <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
+      <p class="sepet-not">Kartla öderseniz Shopier'ın güvenli ödeme sayfasına yönlendirilirsiniz,
+        kart bilgileriniz bizim sitemizden hiç geçmez. WhatsApp'tan da sipariş verebilirsiniz.</p>
+      <div class="odeme-secenekleri">
+        <button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>
+        <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2075,6 +2093,66 @@ function siparisiOnaylaWhatsapp(){
   }).filter(Boolean).join('\n');
   const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nToplam: ${fiyatFmt(toplam)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
   window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
+}
+
+// ---- kartla ödeme — Shopier'ın güvenli ödeme sayfasına yönlendirir ----
+// NOT: aşağıdaki adres, ödeme motoru (magaza-odeme/) Cloudflare'a yayınlanınca
+// gerçek adresle değiştirilecek. Değişmeden "Kartla Öde" çalışmaz.
+const ODEME_API = 'https://oxerom-odeme.DOLDURULACAK.workers.dev';
+
+async function siparisiOnaylaShopier(){
+  const adEl = document.getElementById('siparis-ad');
+  const adresEl = document.getElementById('siparis-adres');
+  const telEl = document.getElementById('siparis-telefon');
+  const epostaEl = document.getElementById('siparis-eposta');
+  const ad = adEl.value.trim();
+  const adres = adresEl.value.trim();
+  const telefon = telEl.value.trim();
+  const eposta = epostaEl.value.trim();
+
+  [adEl,adresEl,telEl,epostaEl].forEach((el,i)=>{
+    const dolu = [ad,adres,telefon,eposta][i];
+    el.classList.toggle('hata', !dolu);
+  });
+  const hataEl = document.getElementById('siparis-hata-kart');
+  if(!ad || !adres || !telefon || !eposta){
+    hataEl.classList.add('gorunur');
+    (!ad ? adEl : !adres ? adresEl : !telefon ? telEl : epostaEl).focus();
+    return;
+  }
+  hataEl.classList.remove('gorunur');
+
+  const keys = Object.keys(sepet);
+  if(!keys.length) return;
+  let toplam = 0;
+  const [adSadece, ...soyadParcalari] = ad.split(' ');
+  const soyad = soyadParcalari.join(' ') || adSadece;
+  const urunler = keys.map(key=>{
+    const satir = sepet[key];
+    const u = URUNLER.find(x=>x.id===satir.id);
+    if(!u) return null;
+    toplam += u.p * satir.adet;
+    return { ad: u.t, adet: satir.adet, fiyat: u.p, not: satir.not || '' };
+  }).filter(Boolean);
+
+  const btn = document.getElementById('sepet-kart-btn');
+  btn.disabled = true;
+  btn.textContent = 'Yönlendiriliyor…';
+  try{
+    const res = await fetch(ODEME_API + '/api/siparis-olustur', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ad: adSadece, soyad, telefon, eposta, adres, urunler, toplam }),
+    });
+    const veri = await res.json();
+    if(!res.ok || !veri.id) throw new Error(veri.hata || 'sipariş oluşturulamadı');
+    window.location.href = ODEME_API + '/odeme/' + veri.id;
+  }catch(err){
+    btn.disabled = false;
+    btn.textContent = 'Kartla Öde';
+    hataEl.textContent = 'Kartla ödeme şu an açılamadı, lütfen WhatsApp\'tan sipariş verin.';
+    hataEl.classList.add('gorunur');
+  }
 }
 
 function escHtml(s){
@@ -2367,10 +2445,17 @@ document.getElementById('sayfa-basi-sec').addEventListener('change', e=>{
   cizIzgara();
 });
 document.getElementById('sepet-tamamla-btn').addEventListener('click', siparisiOnaylaWhatsapp);
+document.getElementById('sepet-kart-btn').addEventListener('click', siparisiOnaylaShopier);
 ['siparis-ad','siparis-adres'].forEach(id=>{
   document.getElementById(id).addEventListener('input', e=>{
     e.target.classList.remove('hata');
     document.getElementById('siparis-hata').classList.remove('gorunur');
+  });
+});
+['siparis-ad','siparis-adres','siparis-telefon','siparis-eposta'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', e=>{
+    e.target.classList.remove('hata');
+    document.getElementById('siparis-hata-kart').classList.remove('gorunur');
   });
 });
 
