@@ -1558,6 +1558,8 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .sepet-sil{ border:0; background:transparent; color:var(--sisik); font-size:11px; cursor:pointer; text-decoration:underline; }
 .sepet-bos{ padding:50px 20px; text-align:center; color:var(--soluk); }
 .sepet-alt{ border-top:1px solid var(--cizgi); padding:18px 22px 22px; display:flex; flex-direction:column; gap:12px; }
+.sepet-ara-satir{ display:flex; justify-content:space-between; font-size:13px; color:var(--soluk); }
+.sepet-ara-satir small{ font-size:11px; color:var(--sisik); }
 .sepet-toplam{ display:flex; justify-content:space-between; font-size:16px; font-weight:800; }
 .siparis-form{ display:flex; flex-direction:column; gap:8px; }
 .siparis-form input, .siparis-form textarea{
@@ -1909,6 +1911,8 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
     </div>
     <div class="sepet-liste" id="sepet-liste"></div>
     <div class="sepet-alt">
+      <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
+      <div class="sepet-ara-satir"><span>Kargo <small>(700 TL üzeri bedava)</small></span><span class="num" id="sepet-kargo">—</span></div>
       <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
       <div class="siparis-form">
         <label class="gizli" for="siparis-ad">Ad Soyad</label>
@@ -1928,8 +1932,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
         <p class="siparis-hata" id="siparis-hata">Ad soyad ve adres gerekli.</p>
         <p class="siparis-hata" id="siparis-hata-kart">Kartla ödeme için ad soyad, adres, telefon ve e-posta gerekli.</p>
       </div>
-      <p class="sepet-not">Kartla öderseniz Shopier'ın güvenli ödeme sayfasına yönlendirilirsiniz,
-        kart bilgileriniz bizim sitemizden hiç geçmez. WhatsApp'tan da sipariş verebilirsiniz.</p>
+      <p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart
+        bilgileriniz bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.
+        WhatsApp'tan da sipariş verebilirsiniz.</p>
       <div class="odeme-secenekleri">
         <button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>
         <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
@@ -2030,11 +2035,17 @@ function sepetAdetAyarla(key, adet){
   sepetCiz();
 }
 
+// kargo kuralı: 700 TL altı 39 TL, 700 TL ve üzeri bedava (ödeme motoru da aynı hesabı yapar)
+const KARGO_ESIK = 700, KARGO_UCRET = 39;
+function kargoHesapla(araToplam){ return araToplam >= KARGO_ESIK ? 0 : KARGO_UCRET; }
+
 function sepetCiz(){
   const liste = document.getElementById('sepet-liste');
   const keys = Object.keys(sepet);
   if(!keys.length){
     liste.innerHTML = '<p class="sepet-bos">Sepetiniz boş.</p>';
+    document.getElementById('sepet-ara').textContent = fiyatFmt(0);
+    document.getElementById('sepet-kargo').textContent = '—';
     document.getElementById('sepet-toplam').textContent = fiyatFmt(0);
     return;
   }
@@ -2062,7 +2073,10 @@ function sepetCiz(){
       </div>
     </div>`;
   }).join('');
-  document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam);
+  const kargo = kargoHesapla(toplam);
+  document.getElementById('sepet-ara').textContent = fiyatFmt(toplam);
+  document.getElementById('sepet-kargo').textContent = kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
+  document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam + kargo);
 }
 
 // ---- sipariş — ödeme kurulana kadar ara çözüm: WhatsApp'a sepet içeriğiyle mesaj hazırlar ----
@@ -2091,16 +2105,18 @@ function siparisiOnaylaWhatsapp(){
     if(satir.not) s += `\n  Not: "${satir.not}"`;
     return s;
   }).filter(Boolean).join('\n');
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nToplam: ${fiyatFmt(toplam)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
+  const kargo = kargoHesapla(toplam);
+  const kargoSatir = kargo === 0 ? 'Kargo: Bedava' : `Kargo: ${fiyatFmt(kargo)}`;
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\n${kargoSatir}\nToplam: ${fiyatFmt(toplam + kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
   window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
 }
 
-// ---- kartla ödeme — Shopier'ın güvenli ödeme sayfasına yönlendirir ----
+// ---- kartla ödeme — PayTR'nin güvenli ödeme sayfasına yönlendirir ----
 // NOT: aşağıdaki adres, ödeme motoru (magaza-odeme/) Cloudflare'a yayınlanınca
 // gerçek adresle değiştirilecek. Değişmeden "Kartla Öde" çalışmaz.
 const ODEME_API = 'https://oxerom-odeme.DOLDURULACAK.workers.dev';
 
-async function siparisiOnaylaShopier(){
+async function siparisiOnaylaKartla(){
   const adEl = document.getElementById('siparis-ad');
   const adresEl = document.getElementById('siparis-adres');
   const telEl = document.getElementById('siparis-telefon');
@@ -2124,14 +2140,12 @@ async function siparisiOnaylaShopier(){
 
   const keys = Object.keys(sepet);
   if(!keys.length) return;
-  let toplam = 0;
   const [adSadece, ...soyadParcalari] = ad.split(' ');
   const soyad = soyadParcalari.join(' ') || adSadece;
   const urunler = keys.map(key=>{
     const satir = sepet[key];
     const u = URUNLER.find(x=>x.id===satir.id);
     if(!u) return null;
-    toplam += u.p * satir.adet;
     return { ad: u.t, adet: satir.adet, fiyat: u.p, not: satir.not || '' };
   }).filter(Boolean);
 
@@ -2139,10 +2153,11 @@ async function siparisiOnaylaShopier(){
   btn.disabled = true;
   btn.textContent = 'Yönlendiriliyor…';
   try{
+    // toplam gönderilmez — kargo dahil gerçek tutarı ödeme motoru kendisi hesaplar
     const res = await fetch(ODEME_API + '/api/siparis-olustur', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ad: adSadece, soyad, telefon, eposta, adres, urunler, toplam }),
+      body: JSON.stringify({ ad: adSadece, soyad, telefon, eposta, adres, urunler }),
     });
     const veri = await res.json();
     if(!res.ok || !veri.id) throw new Error(veri.hata || 'sipariş oluşturulamadı');
@@ -2445,7 +2460,7 @@ document.getElementById('sayfa-basi-sec').addEventListener('change', e=>{
   cizIzgara();
 });
 document.getElementById('sepet-tamamla-btn').addEventListener('click', siparisiOnaylaWhatsapp);
-document.getElementById('sepet-kart-btn').addEventListener('click', siparisiOnaylaShopier);
+document.getElementById('sepet-kart-btn').addEventListener('click', siparisiOnaylaKartla);
 ['siparis-ad','siparis-adres'].forEach(id=>{
   document.getElementById(id).addEventListener('input', e=>{
     e.target.classList.remove('hata');
