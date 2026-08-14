@@ -1424,11 +1424,31 @@ html{ scroll-behavior:smooth; }
 /* ---- kategori şeridi ---- */
 
 /* ---- marka filtresi (araç kategorisi içinde) ---- */
+/* ---- güven şeridi (vitrin altı, belirgin) ---- */
+.guven{ margin:26px 0 6px; }
+.guven-izgara{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.guven-kart{
+  display:flex; align-items:flex-start; gap:12px; padding:16px 18px;
+  background:var(--panel); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m);
+  color:inherit; text-decoration:none;
+}
+.guven-kart b{ display:block; font-size:14.5px; letter-spacing:-.01em; margin-bottom:2px; }
+.guven-kart span:not(.guven-ikon){ font-size:12.5px; color:var(--soluk); line-height:1.45; display:block; }
+.guven-kart a{ color:var(--nar); }
+.guven-ikon{ font-size:24px; line-height:1; margin-top:2px; }
+.guven-link:hover{ border-color:var(--nar); }
+.guven-link u{ color:var(--nar); text-underline-offset:2px; }
+@media (max-width:760px){
+  .guven-izgara{ grid-template-columns:1fr; gap:9px; }
+  .guven-kart{ padding:12px 14px; }
+}
+
 .marka-serit{
-  display:none; flex-wrap:wrap; gap:7px; margin:-4px 0 18px;
+  display:none; flex-direction:column; gap:10px; margin:-4px 0 18px;
   padding:14px; background:var(--panel); border-radius:var(--r-m); border:1px solid var(--cizgi);
 }
 .marka-serit.gorunur{ display:flex; }
+.marka-satir{ display:flex; flex-wrap:wrap; gap:7px; }
 .marka-serit .marka-etiket{
   flex:none; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
   color:var(--soluk); display:flex; align-items:center; padding-right:4px;
@@ -1470,6 +1490,8 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   position:absolute; top:9px; left:9px; background:var(--zeytin); color:#fff; font-size:10px; font-weight:800;
   letter-spacing:.05em; text-transform:uppercase; padding:4px 8px; border-radius:3px;
 }
+/* Kişiye özel (isme/yazıya göre basılan) ürün rozeti — "Yeni" ile çakışmasın diye sağda */
+.urun-rozet.ozel{ left:auto; right:9px; background:var(--nar); }
 .urun-govde{ padding:12px 13px 13px; display:flex; flex-direction:column; gap:8px; flex:1; }
 .urun-kat{ font-size:10.5px; color:var(--sisik); text-transform:uppercase; letter-spacing:.05em; }
 .urun-ad{
@@ -1772,7 +1794,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   <div class="kap">
     <div class="duyuru-sol">
       <span class="nozul-nokta" aria-hidden="true"></span>
-      <span>500 TL üzeri kargo ücretsiz.</span>
+      <!-- Kargo eşiği burada YAZILMAZ: Emre eşik hesabını doğrulamadı (14.08.2026).
+           Eski "500 TL üzeri ücretsiz" yazısı yanlıştı — gerçek kural 700 TL. -->
+      <span>Bugün sipariş verin — ertesi iş günü kargoda.</span>
     </div>
   </div>
 </div>
@@ -1963,6 +1987,24 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   </div>
 </section>
 
+<!-- ============ güven şeridi ============ -->
+<section class="guven" aria-label="Alışveriş güvenceleri">
+  <div class="kap guven-izgara">
+    <div class="guven-kart">
+      <span class="guven-ikon" aria-hidden="true">📦</span>
+      <div><b>Ertesi iş günü kargoda</b><span>Bugün sipariş verin, paketiniz yarın yola çıksın.</span></div>
+    </div>
+    <div class="guven-kart">
+      <span class="guven-ikon" aria-hidden="true">↩️</span>
+      <div><b>14 gün gerekçesiz iade</b><span>Beğenmediyseniz sebep sormayız. <a href="yasal/iade.html">Koşullar</a></span></div>
+    </div>
+    <a class="guven-kart guven-link" href="hakkimizda.html">
+      <span class="guven-ikon" aria-hidden="true">🛠️</span>
+      <div><b>Kendi üretimimiz</b><span>Kayseri'deki atölyemizde basıyor, elimizle paketliyoruz. <u>Tanışalım →</u></span></div>
+    </a>
+  </div>
+</section>
+
 <main id="katalog">
   <div class="kap">
     <div class="govde-bas">
@@ -2068,6 +2110,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
     <div class="dip-serit">
       <span>© 2026 OXEROM</span>
       <span class="sag">
+        <a href="hakkimizda.html">Hakkımızda</a>
         <a href="yasal/gizlilik.html">Gizlilik</a>
         <a href="yasal/mesafeli-satis.html">Mesafeli satış</a>
         <a href="yasal/iade.html">Teslimat ve iade</a>
@@ -2082,7 +2125,11 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 let URUNLER = [];
 let GRUPLAR = [];
 let MARKALAR = [];
-let state = { q: '', grup: 'tum', marka: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24 };
+// ARACLAR: marka -> model -> ürün id listesi (araclar.json, trendyol/arac-listesi.py üretir).
+// Modeli başlığından çıkarılamayan ürünler markanın "genel" listesindedir ve
+// hangi model seçilirse seçilsin gösterilir — ürün kaybolmaz.
+let ARACLAR = null;
+let state = { q: '', grup: 'tum', marka: 'tum', model: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24 };
 // ödeme motorunun adresi — motor (magaza-odeme/) Cloudflare'a yayınlanınca
 // gerçek adresle değiştirilecek. Değişene kadar site kendiliğinden misafir
 // WhatsApp siparişine düşer (üyelik/yorum/kart kapalı kalır).
@@ -2760,6 +2807,7 @@ function katBaglarCiz(){
       e.preventDefault();
       state.grup = a.dataset.grup;
       state.marka = 'tum';
+      state.model = 'tum';
       state.sayfa = 1;
       cizHepsi();
       document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
@@ -2776,15 +2824,37 @@ function markaSeridiCiz(){
   }
   el.classList.add('gorunur');
   const aracToplam = URUNLER.filter(x=>x.g==='arac').length;
-  let html = `<span class="marka-etiket">Marka:</span>`;
+  let html = `<div class="marka-satir"><span class="marka-etiket">Marka:</span>`;
   html += `<button type="button" class="marka-cip ${state.marka==='tum'?'aktif':''}" data-marka="tum">Tümü <span class="n num">${aracToplam}</span></button>`;
   MARKALAR.forEach(m=>{
     html += `<button type="button" class="marka-cip ${state.marka===m.ad?'aktif':''}" data-marka="${escHtml(m.ad)}">${escHtml(m.ad)} <span class="n num">${m.n}</span></button>`;
   });
+  html += `</div>`;
+  // Marka seçiliyse ikinci satırda model çipleri (araclar.json yüklendiyse)
+  const mk = ARACLAR && state.marka !== 'tum' ? ARACLAR[state.marka] : null;
+  if(mk && mk.modeller.length){
+    const markaToplam = URUNLER.filter(x=>x.m===state.marka).length;
+    html += `<div class="marka-satir"><span class="marka-etiket">Model:</span>`;
+    html += `<button type="button" class="marka-cip ${state.model==='tum'?'aktif':''}" data-model="tum">Tümü <span class="n num">${markaToplam}</span></button>`;
+    mk.modeller.forEach(md=>{
+      const n = md.ids.length + mk.genel.length; // genel ürünler her modelde görünür
+      html += `<button type="button" class="marka-cip ${state.model===md.ad?'aktif':''}" data-model="${escHtml(md.ad)}">${escHtml(md.ad)} <span class="n num">${n}</span></button>`;
+    });
+    html += `</div>`;
+  }
   el.innerHTML = html;
-  el.querySelectorAll('.marka-cip').forEach(btn=>{
+  el.querySelectorAll('.marka-cip[data-marka]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       state.marka = btn.dataset.marka;
+      state.model = 'tum';
+      state.sayfa = 1;
+      cizIzgara();
+      markaSeridiCiz();
+    });
+  });
+  el.querySelectorAll('.marka-cip[data-model]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.model = btn.dataset.model;
       state.sayfa = 1;
       cizIzgara();
       markaSeridiCiz();
@@ -2802,7 +2872,17 @@ function filtreliListe(){
   } else {
     if(state.grup === 'kisisel') l = l.filter(x=>x.kisisel);
     else if(state.grup !== 'tum') l = l.filter(x=>x.g===state.grup);
-    if(state.grup === 'arac' && state.marka !== 'tum') l = l.filter(x=>x.m===state.marka);
+    if(state.grup === 'arac' && state.marka !== 'tum'){
+      l = l.filter(x=>x.m===state.marka);
+      const mk = ARACLAR ? ARACLAR[state.marka] : null;
+      if(state.model !== 'tum' && mk){
+        const md = mk.modeller.find(x=>x.ad===state.model);
+        const modelIds = new Set(md ? md.ids : []);
+        const genelIds = new Set(mk.genel);
+        // modele uyanlar önce, modeli belirsiz (genel) ürünler arkaya
+        l = [...l.filter(x=>modelIds.has(x.id)), ...l.filter(x=>genelIds.has(x.id))];
+      }
+    }
   }
   if(state.sirala === 'fiyat-artan') l = [...l].sort((a,b)=>a.p-b.p);
   else if(state.sirala === 'fiyat-azalan') l = [...l].sort((a,b)=>b.p-a.p);
@@ -2811,7 +2891,8 @@ function filtreliListe(){
 }
 
 function urunKarti(u){
-  const rozet = u.new ? '<span class="urun-rozet">Yeni</span>' : '';
+  const rozet = (u.new ? '<span class="urun-rozet">Yeni</span>' : '')
+    + (u.kisisel ? '<span class="urun-rozet ozel">✎ Kişiye Özel</span>' : '');
   const ty = '';
   return `<article class="urun" data-id="${u.id}">
     <div class="urun-gorsel">
@@ -3254,6 +3335,13 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   // Paylaşılan ürün linkiyle (#u123) gelindiyse o ürünü aç
   const hashEs = location.hash.match(/^#u(\d+)$/);
   if(hashEs) detayAc(parseInt(hashEs[1]));
+  // Araç model listesi (yüklenemezse marka filtresi model satırı olmadan çalışır)
+  fetch('araclar.json').then(r=>r.ok?r.json():null).then(v=>{
+    if(!v) return;
+    ARACLAR = {};
+    v.markalar.forEach(m=>{ ARACLAR[m.ad] = m; });
+    if(state.grup === 'arac') markaSeridiCiz();
+  }).catch(()=>{});
 }).catch(()=>{
   document.getElementById('izgara').innerHTML =
     '<p style="padding:40px;color:#6E6058">Ürünler yüklenemedi — lütfen sayfayı yenileyin.</p>';
