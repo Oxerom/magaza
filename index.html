@@ -2080,7 +2080,7 @@ let state = { q: '', grup: 'tum', marka: 'tum', sayfa: 1, sirala: 'varsayilan', 
 // ödeme motorunun adresi — motor (magaza-odeme/) Cloudflare'a yayınlanınca
 // gerçek adresle değiştirilecek. Değişene kadar site kendiliğinden misafir
 // WhatsApp siparişine düşer (üyelik/yorum/kart kapalı kalır).
-const ODEME_API = 'https://oxerom-odeme.DOLDURULACAK.workers.dev';
+const ODEME_API = 'https://api.oxerom.com.tr';
 
 let sepet = JSON.parse(localStorage.getItem('oxerom_sepet') || '{}');
 
@@ -2422,8 +2422,10 @@ async function hesabimCiz(sekme){
 // motor erişilemezse eski usül misafir WhatsApp siparişine düşülür. Motor canlıya
 // alındığında bu kendiliğinden üyelikli düzene döner, site dosyasına dokunmak gerekmez.
 let API_DURUM = 'bilinmiyor';
-fetch(ODEME_API + '/api/yorumlar?urun=0').then(r=>{
+let KART_AKTIF = false; // PayTR anahtarları motora girilince kendiliğinden true olur
+fetch(ODEME_API + '/api/durum').then(async r=>{
   API_DURUM = r.ok ? 'var' : 'yok';
+  if(r.ok){ try{ const d = await r.json(); KART_AKTIF = d.kart === true; }catch(e){} }
   siparisBolgeCiz(true);
 }).catch(()=>{ API_DURUM = 'yok'; siparisBolgeCiz(true); });
 
@@ -2508,10 +2510,10 @@ function siparisBolgeCiz(zorla){
 
       <p class="siparis-hata" id="siparis-hata"></p>
     </div>
-    <p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart bilgileriniz
-      bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>
+    ${KART_AKTIF ? `<p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart bilgileriniz
+      bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>` : ''}
     <div class="odeme-secenekleri">
-      <button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>
+      ${KART_AKTIF ? `<button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>` : ''}
       <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
     </div>`;
 
@@ -2533,7 +2535,8 @@ function siparisBolgeCiz(zorla){
   document.getElementById('ft-ayni').onchange = e=>{
     document.getElementById('ft-adres').style.display = e.target.checked ? 'none' : '';
   };
-  document.getElementById('sepet-kart-btn').onclick = siparisiOnaylaKartla;
+  const kartBtn = document.getElementById('sepet-kart-btn');
+  if(kartBtn) kartBtn.onclick = siparisiOnaylaKartla;
   document.getElementById('sepet-tamamla-btn').onclick = siparisiOnaylaWhatsapp;
 }
 
