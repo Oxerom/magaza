@@ -126,6 +126,11 @@
   .v26logo{position:absolute; z-index:6; display:flex; flex-direction:column; align-items:center; gap:18px; color:#f2e8da}
   .v26logo svg{width:clamp(90px,14vw,160px); height:auto}
   .v26logo b{font-size:clamp(30px,6.5vw,58px); letter-spacing:.28em; margin-right:-.28em; font-weight:700}
+  .v26ipucu{display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:10px;
+    font-size:clamp(12px,1.6vw,14.5px); letter-spacing:.08em; opacity:.85}
+  .v26ipucu i{font-style:normal; font-size:22px; line-height:1; animation:v26ipucuZipla 1.6s ease-in-out infinite}
+  @keyframes v26ipucuZipla{0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)}}
+  @media (prefers-reduced-motion: reduce){ .v26ipucu i{animation:none} }
   .v26stage{position:absolute; inset:0; display:flex; align-items:center; justify-content:center}
   .v26zoom{position:relative; transform-origin:50.5% 47.5%; transform:scale(1)}
   .v26fotoSarma{position:relative; width:min(98vw,calc(98vh * 2.3036))}
@@ -1403,11 +1408,14 @@ html{ scroll-behavior:smooth; }
 }
 .arama-temizle.gorunur{ display:flex; }
 .arama-temizle:hover{ background:var(--panel); color:var(--murekkep); }
+.ust-eylem{ display:flex; align-items:center; gap:8px; }
 .sepet-dugme{
   flex:none; display:flex; align-items:center; gap:9px; border:0; background:var(--murekkep); color:var(--kagit);
   padding:11px 16px; border-radius:100px; cursor:pointer; font-weight:600; font-size:14px;
 }
 .sepet-dugme:hover{ background:#3a2e26; }
+.hesap-dugme{ background:transparent; color:var(--murekkep); border:1.5px solid var(--cizgi-koyu); }
+.hesap-dugme:hover{ background:var(--panel); }
 .sepet-rozet{
   background:var(--nar); color:#fff; border-radius:100px; font-size:11px; font-weight:800;
   min-width:19px; height:19px; display:flex; align-items:center; justify-content:center; padding:0 5px;
@@ -1507,6 +1515,36 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-govde .urun-kat{ font-size:11.5px; }
 .detay-govde h2{ font-family:var(--serif); font-size:23px; margin:0; line-height:1.3; }
 .detay-fiyat{ font-size:28px; font-weight:800; }
+.detay-bolumler{ display:flex; flex-direction:column; border-top:1px solid var(--cizgi); margin-top:4px; }
+.detay-bolum{ border-bottom:1px solid var(--cizgi); }
+.detay-bolum summary{
+  cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between;
+  padding:12px 2px; font-size:13.5px; font-weight:700; user-select:none;
+}
+.detay-bolum summary::-webkit-details-marker{ display:none; }
+.detay-bolum summary::after{ content:"+"; font-size:16px; color:var(--sisik); font-weight:400; }
+.detay-bolum[open] summary::after{ content:"−"; }
+.detay-bolum-icerik{ padding:0 2px 14px; font-size:13px; line-height:1.6; color:var(--soluk); }
+.detay-bolum-icerik p{ margin:0 0 8px; }
+.detay-bolum-icerik a{ color:var(--nar); }
+.yorum-sayi{ font-weight:400; font-size:12px; color:var(--uyari, #96610F); margin-left:6px; }
+.yorum{ border:1px solid var(--cizgi); border-radius:var(--r-s); padding:10px 12px; margin-bottom:8px; }
+.yorum-bas{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.yorum-puan{ color:#B8860B; font-size:12px; letter-spacing:1px; }
+.yorum-tarih{ font-size:11px; color:var(--sisik); }
+.yorum-bos{ margin:0 0 8px; }
+.yorum-yaz{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+.yorum-yaz textarea{
+  border:1px solid var(--cizgi-koyu); border-radius:var(--r-s); padding:8px 10px;
+  font:inherit; font-size:13px; background:var(--yuzey); resize:vertical;
+}
+.yorum-puan-sec{ display:flex; gap:4px; }
+.yorum-puan-sec button{ border:0; background:transparent; font-size:22px; cursor:pointer; color:#B8860B; padding:0 2px; }
+.yorum-gonder{
+  border:0; background:var(--murekkep); color:#fff; padding:9px 14px; border-radius:var(--r-s);
+  font-weight:600; font-size:13px; cursor:pointer; align-self:flex-start;
+}
+.yorum-not{ font-size:12px; color:var(--nar); margin:0; }
 .detay-ty{
   display:flex; align-items:center; gap:6px; font-size:13px; color:var(--soluk);
   text-decoration:none; border-top:1px dashed var(--cizgi); padding-top:12px;
@@ -1576,7 +1614,53 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .sepet-tamamla:hover{ background:var(--nar-koyu); }
 .sepet-tamamla.kart{ background:var(--murekkep); }
 .sepet-tamamla.kart:hover{ background:#000; }
+.sepet-tamamla.ikincil{ background:transparent; color:var(--murekkep); border:1.5px solid var(--cizgi-koyu); }
+.sepet-tamamla.ikincil:hover{ background:var(--panel); }
 .odeme-secenekleri{ display:flex; flex-direction:column; gap:8px; }
+.siparis-etiket{ font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--soluk); margin-top:4px; }
+.siparis-form select{
+  border:1px solid var(--cizgi-koyu); border-radius:var(--r-s); padding:9px 11px;
+  font:inherit; font-size:13px; color:var(--murekkep); background:var(--yuzey);
+}
+.onay-satir{ display:flex; align-items:flex-start; gap:8px; font-size:12.5px; line-height:1.5; color:var(--soluk); cursor:pointer; }
+.onay-satir input{ margin-top:2px; flex:none; accent-color:var(--nar); }
+.onay-satir a{ color:var(--nar); }
+.onay-satir.kucuk{ font-size:11.5px; }
+.fatura-tip{ display:flex; gap:16px; font-size:13px; }
+.fatura-tip label{ display:flex; align-items:center; gap:5px; cursor:pointer; }
+.fatura-tip input{ accent-color:var(--nar); }
+#ft-bireysel, #ft-kurumsal{ display:flex; flex-direction:column; gap:8px; }
+#ft-kurumsal .satir-2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.hesap-form{ padding-top:4px; }
+.hesap-gecis{ font-size:12.5px; color:var(--soluk); margin:2px 0 0; }
+.hesap-gecis a{ color:var(--nar); }
+.hesap-sekmeler{ display:flex; gap:4px; margin-bottom:14px; border-bottom:1px solid var(--cizgi); }
+.hesap-sekme{
+  border:0; background:transparent; padding:8px 10px; font:inherit; font-size:13px; font-weight:600;
+  color:var(--soluk); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.hesap-sekme.aktif{ color:var(--murekkep); border-bottom-color:var(--nar); }
+.hesap-bos{ font-size:13px; color:var(--soluk); }
+.hesap-cikis{
+  margin-top:18px; border:0; background:transparent; color:var(--sisik); font-size:12px;
+  text-decoration:underline; cursor:pointer; align-self:flex-start; padding:0;
+}
+.hs-siparis{ border:1px solid var(--cizgi); border-radius:var(--r-s); padding:12px 14px; margin-bottom:10px; font-size:12.5px; }
+.hs-bas{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.hs-durum{ font-weight:700; color:var(--uyari, #96610F); font-size:12px; }
+.hs-durum.iyi{ color:#2e7d32; }
+.hs-durum.kotu{ color:var(--nar); }
+.hs-tarih{ font-size:11px; color:var(--sisik); margin:2px 0 6px; }
+.hs-urunler{ color:var(--soluk); line-height:1.5; margin-bottom:6px; }
+.hs-toplam small{ color:var(--sisik); }
+.hs-kargo{ margin-top:6px; padding-top:6px; border-top:1px dashed var(--cizgi); }
+.hs-adres{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+  border:1px solid var(--cizgi); border-radius:var(--r-s); padding:10px 12px; margin-bottom:8px; font-size:12.5px; }
+.hs-adres span{ color:var(--soluk); }
+.sifre-degistir{ font-size:12.5px; }
+.sifre-degistir summary{ cursor:pointer; color:var(--soluk); margin-bottom:8px; }
+.sifre-degistir input{ width:100%; margin-bottom:8px; border:1px solid var(--cizgi-koyu);
+  border-radius:var(--r-s); padding:9px 11px; font:inherit; font-size:13px; background:var(--yuzey); }
 
 @media (max-width:980px){
   .izgara{ grid-template-columns:repeat(3,minmax(0,1fr)); }
@@ -1657,6 +1741,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
       <div class="v26logo">
         <svg viewBox="0 0 120 120"><use href="#lg-muhur" fill="currentColor"/></svg>
         <b>OXEROM</b>
+        <span class="v26ipucu">Mağazaya girmek için aşağı kaydırın<i>⌄</i></span>
       </div>
       <div class="v26stage">
         <div class="v26zoom">
@@ -1697,10 +1782,15 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
         <input class="arama-girdi" id="arama" type="search" placeholder="1000'den fazla ürün içinde ara…" autocomplete="off">
         <button class="arama-temizle" id="arama-temizle" type="button" aria-label="Aramayı temizle">✕</button>
       </div>
-      <button class="sepet-dugme" id="sepet-ac" type="button">
-        🛒 <span class="metin">Sepetim</span>
-        <span class="sepet-rozet num" id="sepet-rozet">0</span>
-      </button>
+      <div class="ust-eylem">
+        <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button">
+          👤 <span class="metin" id="hesap-dugme-metin">Hesabım</span>
+        </button>
+        <button class="sepet-dugme" id="sepet-ac" type="button">
+          🛒 <span class="metin">Sepetim</span>
+          <span class="sepet-rozet num" id="sepet-rozet">0</span>
+        </button>
+      </div>
     </div>
   </header>
   <nav class="kat-serit" aria-label="Kategoriler">
@@ -1914,32 +2004,18 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
       <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
       <div class="sepet-ara-satir"><span>Kargo <small>(700 TL üzeri bedava)</small></span><span class="num" id="sepet-kargo">—</span></div>
       <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
-      <div class="siparis-form">
-        <label class="gizli" for="siparis-ad">Ad Soyad</label>
-        <input id="siparis-ad" type="text" placeholder="Ad Soyad" autocomplete="name">
-        <label class="gizli" for="siparis-adres">Teslimat adresi</label>
-        <textarea id="siparis-adres" rows="2" placeholder="Teslimat adresi" autocomplete="street-address"></textarea>
-        <div class="satir-2">
-          <div>
-            <label class="gizli" for="siparis-telefon">Telefon</label>
-            <input id="siparis-telefon" type="tel" placeholder="Telefon (kart için gerekli)" autocomplete="tel">
-          </div>
-          <div>
-            <label class="gizli" for="siparis-eposta">E-posta</label>
-            <input id="siparis-eposta" type="email" placeholder="E-posta (kart için gerekli)" autocomplete="email">
-          </div>
-        </div>
-        <p class="siparis-hata" id="siparis-hata">Ad soyad ve adres gerekli.</p>
-        <p class="siparis-hata" id="siparis-hata-kart">Kartla ödeme için ad soyad, adres, telefon ve e-posta gerekli.</p>
-      </div>
-      <p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart
-        bilgileriniz bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.
-        WhatsApp'tan da sipariş verebilirsiniz.</p>
-      <div class="odeme-secenekleri">
-        <button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>
-        <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
-      </div>
+      <div id="siparis-bolge"></div>
     </div>
+  </div>
+</div>
+
+<div class="sepet-ortu" id="hesap-ortu">
+  <div class="sepet-panel">
+    <div class="sepet-bas">
+      <h3 id="hesap-baslik">Hesabım</h3>
+      <button class="sepet-kapat" id="hesap-kapat" type="button" aria-label="Kapat">✕</button>
+    </div>
+    <div class="sepet-liste" id="hesap-govde"></div>
   </div>
 </div>
 
@@ -2000,6 +2076,11 @@ const URUNLER = [{"id":1183594371,"t":"Kitap Okuyan Kitap Tutucu Dekoratif","p":
 const GRUPLAR = [{"slug": "arac", "name": "Araç & Oto Aksesuarları", "n": 843}, {"slug": "yayinci", "name": "Yayıncı & Teknoloji", "n": 114}, {"slug": "ev", "name": "Ev & Dekorasyon", "n": 50}, {"slug": "diger", "name": "Diğer", "n": 45}, {"slug": "hediyelik", "name": "Hediyelik & Aksesuar", "n": 20}, {"slug": "kirtasiye", "name": "Kırtasiye & Ofis", "n": 13}, {"slug": "mutfak", "name": "Mutfak & Düzenleme", "n": 8}];
 const MARKALAR = [{"ad": "Volkswagen", "n": 205}, {"ad": "BMW", "n": 134}, {"ad": "Hyundai", "n": 80}, {"ad": "Honda", "n": 76}, {"ad": "Mercedes", "n": 75}, {"ad": "Skoda", "n": 65}, {"ad": "Opel", "n": 64}, {"ad": "Citroen", "n": 44}, {"ad": "Renault", "n": 37}, {"ad": "Toyota", "n": 18}, {"ad": "Fiat", "n": 10}, {"ad": "Seat", "n": 3}, {"ad": "Genel / Markasız", "n": 32}];
 let state = { q: '', grup: 'tum', marka: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24 };
+// ödeme motorunun adresi — motor (magaza-odeme/) Cloudflare'a yayınlanınca
+// gerçek adresle değiştirilecek. Değişene kadar site kendiliğinden misafir
+// WhatsApp siparişine düşer (üyelik/yorum/kart kapalı kalır).
+const ODEME_API = 'https://oxerom-odeme.DOLDURULACAK.workers.dev';
+
 let sepet = JSON.parse(localStorage.getItem('oxerom_sepet') || '{}');
 
 function fiyatFmt(n){
@@ -2047,6 +2128,7 @@ function sepetCiz(){
     document.getElementById('sepet-ara').textContent = fiyatFmt(0);
     document.getElementById('sepet-kargo').textContent = '—';
     document.getElementById('sepet-toplam').textContent = fiyatFmt(0);
+    siparisBolgeCiz();
     return;
   }
   let toplam = 0;
@@ -2077,96 +2159,514 @@ function sepetCiz(){
   document.getElementById('sepet-ara').textContent = fiyatFmt(toplam);
   document.getElementById('sepet-kargo').textContent = kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
   document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam + kargo);
+  siparisBolgeCiz();
 }
 
-// ---- sipariş — ödeme kurulana kadar ara çözüm: WhatsApp'a sepet içeriğiyle mesaj hazırlar ----
-function siparisiOnaylaWhatsapp(){
-  const adEl = document.getElementById('siparis-ad');
-  const adresEl = document.getElementById('siparis-adres');
-  const ad = adEl.value.trim();
-  const adres = adresEl.value.trim();
-  adEl.classList.toggle('hata', !ad);
-  adresEl.classList.toggle('hata', !adres);
-  if(!ad || !adres){
-    document.getElementById('siparis-hata').classList.add('gorunur');
-    (!ad ? adEl : adresEl).focus();
-    return;
-  }
-  const keys = Object.keys(sepet);
-  if(!keys.length) return;
-  let toplam = 0;
-  const satirlar = keys.map(key=>{
-    const satir = sepet[key];
-    const u = URUNLER.find(x=>x.id===satir.id);
-    if(!u) return '';
-    const satirToplam = u.p * satir.adet;
-    toplam += satirToplam;
-    let s = `• ${u.t} — ${satir.adet} adet — ${fiyatFmt(satirToplam)}`;
-    if(satir.not) s += `\n  Not: "${satir.not}"`;
-    return s;
-  }).filter(Boolean).join('\n');
-  const kargo = kargoHesapla(toplam);
-  const kargoSatir = kargo === 0 ? 'Kargo: Bedava' : `Kargo: ${fiyatFmt(kargo)}`;
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\n${kargoSatir}\nToplam: ${fiyatFmt(toplam + kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
-  window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
+// ═══════════ ÜYELİK / OTURUM ═══════════
+let oturum = JSON.parse(localStorage.getItem('oxerom_oturum') || 'null') || { token:null, kullanici:null };
+
+function oturumKaydet(){
+  localStorage.setItem('oxerom_oturum', JSON.stringify(oturum));
+  hesapDugmeGuncelle();
 }
-
-// ---- kartla ödeme — PayTR'nin güvenli ödeme sayfasına yönlendirir ----
-// NOT: aşağıdaki adres, ödeme motoru (magaza-odeme/) Cloudflare'a yayınlanınca
-// gerçek adresle değiştirilecek. Değişmeden "Kartla Öde" çalışmaz.
-const ODEME_API = 'https://oxerom-odeme.DOLDURULACAK.workers.dev';
-
-async function siparisiOnaylaKartla(){
-  const adEl = document.getElementById('siparis-ad');
-  const adresEl = document.getElementById('siparis-adres');
-  const telEl = document.getElementById('siparis-telefon');
-  const epostaEl = document.getElementById('siparis-eposta');
-  const ad = adEl.value.trim();
-  const adres = adresEl.value.trim();
-  const telefon = telEl.value.trim();
-  const eposta = epostaEl.value.trim();
-
-  [adEl,adresEl,telEl,epostaEl].forEach((el,i)=>{
-    const dolu = [ad,adres,telefon,eposta][i];
-    el.classList.toggle('hata', !dolu);
+function hesapDugmeGuncelle(){
+  document.getElementById('hesap-dugme-metin').textContent =
+    oturum.kullanici ? oturum.kullanici.ad : 'Hesabım';
+}
+async function apiIstek(yol, govde, metod){
+  return fetch(ODEME_API + yol, {
+    method: metod || (govde !== undefined ? 'POST' : 'GET'),
+    headers: {
+      ...(govde !== undefined ? {'Content-Type':'application/json'} : {}),
+      ...(oturum.token ? {'Authorization':'Bearer ' + oturum.token} : {}),
+    },
+    body: govde !== undefined ? JSON.stringify(govde) : undefined,
   });
-  const hataEl = document.getElementById('siparis-hata-kart');
-  if(!ad || !adres || !telefon || !eposta){
-    hataEl.classList.add('gorunur');
-    (!ad ? adEl : !adres ? adresEl : !telefon ? telEl : epostaEl).focus();
+}
+
+function hesapAc(gorunum){
+  hesapCiz(gorunum || (oturum.kullanici ? 'hesabim' : 'giris'));
+  document.getElementById('hesap-ortu').classList.add('acik');
+}
+function hesapKapat(){ document.getElementById('hesap-ortu').classList.remove('acik'); }
+
+function hesapCiz(gorunum){
+  const govde = document.getElementById('hesap-govde');
+  const baslik = document.getElementById('hesap-baslik');
+  if(gorunum === 'giris'){
+    baslik.textContent = 'Giriş yap';
+    govde.innerHTML = `
+      <div class="siparis-form hesap-form">
+        <input id="g-eposta" type="email" placeholder="E-posta" autocomplete="email">
+        <input id="g-sifre" type="password" placeholder="Şifre" autocomplete="current-password">
+        <p class="siparis-hata" id="g-hata"></p>
+        <button class="sepet-tamamla" type="button" id="g-dugme">Giriş yap</button>
+        <p class="hesap-gecis">Üyeliğiniz yok mu? <a href="#" onclick="hesapCiz('kayit'); return false;">Üye olun</a></p>
+      </div>`;
+    document.getElementById('g-dugme').onclick = girisYap;
+    document.getElementById('g-sifre').addEventListener('keydown', e=>{ if(e.key==='Enter') girisYap(); });
+  }else if(gorunum === 'kayit'){
+    baslik.textContent = 'Üye ol';
+    govde.innerHTML = `
+      <div class="siparis-form hesap-form">
+        <div class="satir-2">
+          <div><input id="k-ad" type="text" placeholder="Ad" autocomplete="given-name"></div>
+          <div><input id="k-soyad" type="text" placeholder="Soyad" autocomplete="family-name"></div>
+        </div>
+        <input id="k-eposta" type="email" placeholder="E-posta" autocomplete="email">
+        <input id="k-telefon" type="tel" placeholder="Telefon" autocomplete="tel">
+        <input id="k-sifre" type="password" placeholder="Şifre (en az 6 karakter)" autocomplete="new-password">
+        <label class="onay-satir"><input type="checkbox" id="k-kvkk">
+          <span><a href="yasal/gizlilik.html" target="_blank" rel="noopener">KVKK Aydınlatma Metni</a>'ni okudum, kişisel verilerimin sipariş süreçleri için işlenmesini onaylıyorum. <b>(zorunlu)</b></span></label>
+        <label class="onay-satir"><input type="checkbox" id="k-kampanya">
+          <span>Kampanya ve indirimlerden WhatsApp/SMS ile haberdar olmak istiyorum. (isteğe bağlı)</span></label>
+        <p class="siparis-hata" id="k-hata"></p>
+        <button class="sepet-tamamla" type="button" id="k-dugme">Üye ol</button>
+        <p class="hesap-gecis">Zaten üye misiniz? <a href="#" onclick="hesapCiz('giris'); return false;">Giriş yapın</a></p>
+      </div>`;
+    document.getElementById('k-dugme').onclick = kayitOl;
+  }else{
+    hesabimCiz('siparislerim');
+  }
+}
+
+async function girisYap(){
+  const hata = document.getElementById('g-hata');
+  hata.textContent = '';
+  const eposta = document.getElementById('g-eposta').value.trim();
+  const sifre = document.getElementById('g-sifre').value;
+  if(!eposta || !sifre){ hata.textContent = 'E-posta ve şifre girin.'; hata.classList.add('gorunur'); return; }
+  document.getElementById('g-dugme').textContent = 'Giriş yapılıyor…';
+  try{
+    const res = await apiIstek('/api/giris', { eposta, sifre });
+    const v = await res.json();
+    if(!res.ok) throw new Error(v.hata || 'giriş yapılamadı');
+    oturum = { token: v.token, kullanici: v.kullanici };
+    oturumKaydet();
+    hesapCiz('hesabim');
+    siparisBolgeCiz(true);
+  }catch(e){
+    hata.textContent = e.message === 'Failed to fetch' ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
+    hata.classList.add('gorunur');
+    document.getElementById('g-dugme').textContent = 'Giriş yap';
+  }
+}
+
+async function kayitOl(){
+  const hata = document.getElementById('k-hata');
+  hata.textContent = '';
+  const ad = document.getElementById('k-ad').value.trim();
+  const soyad = document.getElementById('k-soyad').value.trim();
+  const eposta = document.getElementById('k-eposta').value.trim();
+  const telefon = document.getElementById('k-telefon').value.trim();
+  const sifre = document.getElementById('k-sifre').value;
+  const kvkk = document.getElementById('k-kvkk').checked;
+  const kampanya = document.getElementById('k-kampanya').checked;
+  if(!ad || !soyad || !eposta || !telefon || !sifre){
+    hata.textContent = 'Tüm alanları doldurun.'; hata.classList.add('gorunur'); return;
+  }
+  if(!kvkk){ hata.textContent = 'KVKK onayı olmadan üyelik oluşturulamıyor.'; hata.classList.add('gorunur'); return; }
+  document.getElementById('k-dugme').textContent = 'Kaydediliyor…';
+  try{
+    const res = await apiIstek('/api/kayit', { ad, soyad, eposta, telefon, sifre, kvkkOnay:true, kampanyaIzni:kampanya });
+    const v = await res.json();
+    if(!res.ok) throw new Error(v.hata || 'üyelik oluşturulamadı');
+    oturum = { token: v.token, kullanici: v.kullanici };
+    oturumKaydet();
+    hesapCiz('hesabim');
+    siparisBolgeCiz(true);
+  }catch(e){
+    hata.textContent = e.message === 'Failed to fetch' ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
+    hata.classList.add('gorunur');
+    document.getElementById('k-dugme').textContent = 'Üye ol';
+  }
+}
+
+async function cikisYap(){
+  try{ await apiIstek('/api/cikis', {}); }catch(e){}
+  oturum = { token:null, kullanici:null };
+  oturumKaydet();
+  hesapKapat();
+  siparisBolgeCiz(true);
+}
+
+const DURUM_ADI = {
+  bekliyor:'Ödeme bekleniyor', odeme_bekliyor:'Ödeme bekleniyor',
+  odendi:'Ödendi — hazırlanıyor', basarisiz:'Ödeme başarısız', hata:'Hata',
+};
+
+async function hesabimCiz(sekme){
+  const govde = document.getElementById('hesap-govde');
+  const k = oturum.kullanici;
+  document.getElementById('hesap-baslik').textContent = 'Hesabım';
+  govde.innerHTML = `
+    <div class="hesap-sekmeler">
+      ${['siparislerim','adreslerim','bilgilerim'].map(s=>`
+        <button type="button" class="hesap-sekme ${s===sekme?'aktif':''}" data-sekme="${s}">
+          ${s==='siparislerim'?'Siparişlerim':s==='adreslerim'?'Adreslerim':'Bilgilerim'}
+        </button>`).join('')}
+    </div>
+    <div id="hesap-icerik">Yükleniyor…</div>
+    <button class="hesap-cikis" type="button" onclick="cikisYap()">Çıkış yap (${escHtml(k.ad)})</button>`;
+  govde.querySelectorAll('.hesap-sekme').forEach(b=>{
+    b.onclick = ()=> hesabimCiz(b.dataset.sekme);
+  });
+  const icerik = document.getElementById('hesap-icerik');
+
+  if(sekme === 'siparislerim'){
+    try{
+      const res = await apiIstek('/api/siparislerim');
+      if(!res.ok) throw new Error();
+      const liste = await res.json();
+      if(!liste.length){
+        icerik.innerHTML = '<p class="hesap-bos">Henüz siparişiniz yok.</p>';
+        return;
+      }
+      icerik.innerHTML = liste.map(s=>`
+        <div class="hs-siparis">
+          <div class="hs-bas">
+            <b>${escHtml(s.id)}</b>
+            <span class="hs-durum ${s.durum==='odendi'?'iyi':s.durum==='basarisiz'||s.durum==='hata'?'kotu':''}">
+              ${s.kargoBilgi ? 'Kargoda' : (DURUM_ADI[s.durum] || s.durum)}</span>
+          </div>
+          <div class="hs-tarih">${escHtml((s.olusturuldu||'').slice(0,10))}</div>
+          <div class="hs-urunler">${s.urunler.map(u=>`${escHtml(u.ad)} ×${u.adet}${u.not?` <i>("${escHtml(u.not)}")</i>`:''}`).join('<br>')}</div>
+          <div class="hs-toplam">Toplam: <b class="num">${fiyatFmt(s.toplam)}</b>
+            <small>(kargo ${s.kargoUcreti>0?fiyatFmt(s.kargoUcreti):'bedava'})</small></div>
+          ${s.kargoBilgi ? `<div class="hs-kargo">📦 ${escHtml(s.kargoBilgi.firma)} — Takip no: <b>${escHtml(s.kargoBilgi.takip)}</b></div>` : ''}
+        </div>`).join('');
+    }catch(e){
+      icerik.innerHTML = '<p class="hesap-bos">Siparişler şu an yüklenemedi.</p>';
+    }
+  }else if(sekme === 'adreslerim'){
+    const adresler = (oturum.kullanici.adresler || []);
+    icerik.innerHTML = `
+      ${adresler.length ? adresler.map(a=>`
+        <div class="hs-adres">
+          <div><b>${escHtml(a.baslik)}</b><br><span>${escHtml(a.metin)}</span></div>
+          <button type="button" class="sepet-sil" data-sil="${escHtml(a.id)}">sil</button>
+        </div>`).join('') : '<p class="hesap-bos">Kayıtlı adresiniz yok.</p>'}
+      <div class="siparis-form hesap-form">
+        <input id="a-baslik" type="text" placeholder="Adres başlığı (Ev, İş…)">
+        <textarea id="a-metin" rows="2" placeholder="Açık adres"></textarea>
+        <p class="siparis-hata" id="a-hata"></p>
+        <button class="sepet-tamamla" type="button" id="a-ekle">Adres ekle</button>
+      </div>`;
+    icerik.querySelectorAll('[data-sil]').forEach(b=>{
+      b.onclick = async ()=>{
+        const res = await apiIstek('/api/adresler', { sil: b.dataset.sil });
+        if(res.ok){ oturum.kullanici.adresler = await res.json(); oturumKaydet(); hesabimCiz('adreslerim'); }
+      };
+    });
+    document.getElementById('a-ekle').onclick = async ()=>{
+      const metin = document.getElementById('a-metin').value.trim();
+      const hataEl = document.getElementById('a-hata');
+      if(!metin){ hataEl.textContent = 'Adres boş olamaz.'; hataEl.classList.add('gorunur'); return; }
+      const res = await apiIstek('/api/adresler', {
+        baslik: document.getElementById('a-baslik').value.trim() || 'Adres',
+        metin,
+      });
+      if(res.ok){ oturum.kullanici.adresler = await res.json(); oturumKaydet(); hesabimCiz('adreslerim'); }
+      else{ const v = await res.json().catch(()=>({})); hataEl.textContent = v.hata || 'Eklenemedi.'; hataEl.classList.add('gorunur'); }
+    };
+  }else{
+    icerik.innerHTML = `
+      <div class="siparis-form hesap-form">
+        <div class="satir-2">
+          <div><input id="b-ad" type="text" value="${escHtml(k.ad)}" placeholder="Ad"></div>
+          <div><input id="b-soyad" type="text" value="${escHtml(k.soyad)}" placeholder="Soyad"></div>
+        </div>
+        <input id="b-telefon" type="tel" value="${escHtml(k.telefon)}" placeholder="Telefon">
+        <input type="email" value="${escHtml(k.eposta)}" disabled title="E-posta değiştirilemez">
+        <label class="onay-satir"><input type="checkbox" id="b-kampanya" ${k.kampanyaIzni?'checked':''}>
+          <span>Kampanya ve indirimlerden WhatsApp/SMS ile haberdar olmak istiyorum.</span></label>
+        <details class="sifre-degistir"><summary>Şifre değiştir</summary>
+          <input id="b-eski-sifre" type="password" placeholder="Mevcut şifre" autocomplete="current-password">
+          <input id="b-yeni-sifre" type="password" placeholder="Yeni şifre (en az 6 karakter)" autocomplete="new-password">
+        </details>
+        <p class="siparis-hata" id="b-hata"></p>
+        <button class="sepet-tamamla" type="button" id="b-kaydet">Kaydet</button>
+      </div>`;
+    document.getElementById('b-kaydet').onclick = async ()=>{
+      const hataEl = document.getElementById('b-hata');
+      hataEl.textContent = '';
+      const govdeVeri = {
+        ad: document.getElementById('b-ad').value.trim(),
+        soyad: document.getElementById('b-soyad').value.trim(),
+        telefon: document.getElementById('b-telefon').value.trim(),
+        kampanyaIzni: document.getElementById('b-kampanya').checked,
+      };
+      const yeniSifre = document.getElementById('b-yeni-sifre').value;
+      if(yeniSifre){
+        govdeVeri.yeniSifre = yeniSifre;
+        govdeVeri.eskiSifre = document.getElementById('b-eski-sifre').value;
+      }
+      const res = await apiIstek('/api/hesap', govdeVeri);
+      const v = await res.json().catch(()=>({}));
+      if(res.ok){
+        oturum.kullanici = v;
+        oturumKaydet();
+        document.getElementById('b-kaydet').textContent = 'Kaydedildi ✓';
+        setTimeout(()=>{ const b=document.getElementById('b-kaydet'); if(b) b.textContent='Kaydet'; }, 1500);
+      }else{
+        hataEl.textContent = v.hata || 'Kaydedilemedi.';
+        hataEl.classList.add('gorunur');
+      }
+    };
+  }
+}
+
+// ═══════════ SİPARİŞ BÖLGESİ (sepet paneli içi) ═══════════
+// Ödeme motoru (üyelik dahil) henüz yayında değilken site çalışmaya devam etsin diye:
+// motor erişilemezse eski usül misafir WhatsApp siparişine düşülür. Motor canlıya
+// alındığında bu kendiliğinden üyelikli düzene döner, site dosyasına dokunmak gerekmez.
+let API_DURUM = 'bilinmiyor';
+fetch(ODEME_API + '/api/yorumlar?urun=0').then(r=>{
+  API_DURUM = r.ok ? 'var' : 'yok';
+  siparisBolgeCiz(true);
+}).catch(()=>{ API_DURUM = 'yok'; siparisBolgeCiz(true); });
+
+function siparisBolgeCiz(zorla){
+  const bolge = document.getElementById('siparis-bolge');
+  if(!bolge) return;
+  const dolu = Object.keys(sepet).length > 0;
+  const durumAnahtari = (oturum.token ? 'u' : 'z') + (dolu ? 'd' : 'b') + API_DURUM;
+  if(!zorla && bolge.dataset.durum === durumAnahtari) return; // yazılanları silmemek için gereksiz çizim yok
+  bolge.dataset.durum = durumAnahtari;
+
+  if(!dolu){ bolge.innerHTML = ''; return; }
+
+  if(API_DURUM === 'yok'){
+    bolge.innerHTML = `
+      <div class="siparis-form">
+        <label class="gizli" for="mg-ad">Ad Soyad</label>
+        <input id="mg-ad" type="text" placeholder="Ad Soyad" autocomplete="name">
+        <label class="gizli" for="mg-adres">Teslimat adresi</label>
+        <textarea id="mg-adres" rows="2" placeholder="Teslimat adresi" autocomplete="street-address"></textarea>
+        <label class="onay-satir"><input type="checkbox" id="mg-onay">
+          <span><a href="yasal/mesafeli-satis.html" target="_blank" rel="noopener">Ön Bilgilendirme Formu'nu ve
+          Mesafeli Satış Sözleşmesi'ni</a> okudum, onaylıyorum.</span></label>
+        <p class="siparis-hata" id="siparis-hata"></p>
+      </div>
+      <p class="sepet-not">Sipariş, WhatsApp'ta bize yazdığınız mesajla onaylanır —
+        telefon numaranız WhatsApp'tan otomatik gelir.</p>
+      <div class="odeme-secenekleri">
+        <button class="sepet-tamamla" type="button" id="mg-whatsapp">WhatsApp'tan siparişi onayla</button>
+      </div>`;
+    document.getElementById('mg-whatsapp').onclick = misafirWhatsapp;
     return;
   }
-  hataEl.classList.remove('gorunur');
 
-  const keys = Object.keys(sepet);
-  if(!keys.length) return;
-  const [adSadece, ...soyadParcalari] = ad.split(' ');
-  const soyad = soyadParcalari.join(' ') || adSadece;
-  const urunler = keys.map(key=>{
+  if(!oturum.token){
+    bolge.innerHTML = `
+      <p class="sepet-not">Sipariş verebilmek için üyelik gerekiyor — 1 dakika sürer,
+        siparişlerinizi ve kargonuzu buradan takip edersiniz.</p>
+      <div class="odeme-secenekleri">
+        <button class="sepet-tamamla kart" type="button" onclick="hesapAc('kayit')">Üye ol</button>
+        <button class="sepet-tamamla ikincil" type="button" onclick="hesapAc('giris')">Zaten üyeyim — giriş yap</button>
+      </div>`;
+    return;
+  }
+
+  const adresler = (oturum.kullanici.adresler || []);
+  bolge.innerHTML = `
+    <div class="siparis-form">
+      <span class="siparis-etiket">Teslimat adresi</span>
+      ${adresler.length ? `
+        <select id="ts-adres-sec">
+          ${adresler.map(a=>`<option value="${escHtml(a.id)}">${escHtml(a.baslik)} — ${escHtml(a.metin.slice(0,40))}${a.metin.length>40?'…':''}</option>`).join('')}
+          <option value="__yeni">+ Yeni adres gir</option>
+        </select>` : ''}
+      <textarea id="ts-adres-yeni" rows="2" placeholder="Açık teslimat adresi (mahalle, sokak, no, ilçe/il)"
+        ${adresler.length ? 'style="display:none"' : ''}></textarea>
+      <label class="onay-satir kucuk" id="ts-kaydet-satir" ${adresler.length ? 'style="display:none"' : ''}>
+        <input type="checkbox" id="ts-adres-kaydet" checked><span>Bu adresi adres defterime kaydet</span></label>
+
+      <span class="siparis-etiket">Fatura</span>
+      <div class="fatura-tip">
+        <label><input type="radio" name="ft-tip" value="bireysel" checked> Bireysel</label>
+        <label><input type="radio" name="ft-tip" value="kurumsal"> Kurumsal</label>
+      </div>
+      <div id="ft-bireysel">
+        <input id="ft-tckn" type="text" inputmode="numeric" placeholder="TC Kimlik No (fatura için, isteğe bağlı)">
+      </div>
+      <div id="ft-kurumsal" style="display:none">
+        <input id="ft-unvan" type="text" placeholder="Firma unvanı">
+        <div class="satir-2">
+          <div><input id="ft-vd" type="text" placeholder="Vergi dairesi"></div>
+          <div><input id="ft-vkn" type="text" inputmode="numeric" placeholder="Vergi no"></div>
+        </div>
+      </div>
+      <label class="onay-satir kucuk"><input type="checkbox" id="ft-ayni" checked>
+        <span>Fatura adresi teslimat adresiyle aynı</span></label>
+      <textarea id="ft-adres" rows="2" placeholder="Fatura adresi" style="display:none"></textarea>
+
+      <label class="onay-satir"><input type="checkbox" id="sz-onay">
+        <span><a href="yasal/mesafeli-satis.html" target="_blank" rel="noopener">Ön Bilgilendirme Formu'nu ve
+        Mesafeli Satış Sözleşmesi'ni</a> okudum, onaylıyorum.</span></label>
+
+      <p class="siparis-hata" id="siparis-hata"></p>
+    </div>
+    <p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart bilgileriniz
+      bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>
+    <div class="odeme-secenekleri">
+      <button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>
+      <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
+    </div>`;
+
+  const adresSec = document.getElementById('ts-adres-sec');
+  if(adresSec){
+    adresSec.onchange = ()=>{
+      const yeni = adresSec.value === '__yeni';
+      document.getElementById('ts-adres-yeni').style.display = yeni ? '' : 'none';
+      document.getElementById('ts-kaydet-satir').style.display = yeni ? '' : 'none';
+    };
+  }
+  document.querySelectorAll('input[name="ft-tip"]').forEach(r=>{
+    r.onchange = ()=>{
+      const kurumsal = document.querySelector('input[name="ft-tip"]:checked').value === 'kurumsal';
+      document.getElementById('ft-bireysel').style.display = kurumsal ? 'none' : '';
+      document.getElementById('ft-kurumsal').style.display = kurumsal ? '' : 'none';
+    };
+  });
+  document.getElementById('ft-ayni').onchange = e=>{
+    document.getElementById('ft-adres').style.display = e.target.checked ? 'none' : '';
+  };
+  document.getElementById('sepet-kart-btn').onclick = siparisiOnaylaKartla;
+  document.getElementById('sepet-tamamla-btn').onclick = siparisiOnaylaWhatsapp;
+}
+
+function siparisHata(mesaj){
+  const el = document.getElementById('siparis-hata');
+  el.textContent = mesaj;
+  el.classList.add('gorunur');
+}
+
+// formdan teslimat+fatura+onay verilerini toplar; sorun varsa null döner ve hatayı gösterir
+function siparisVerileriniTopla(){
+  const adresSec = document.getElementById('ts-adres-sec');
+  let teslimatAdres = '', kaydet = false, baslik = '';
+  if(adresSec && adresSec.value !== '__yeni'){
+    const a = (oturum.kullanici.adresler || []).find(x=>x.id===adresSec.value);
+    teslimatAdres = a ? a.metin : '';
+  }else{
+    teslimatAdres = document.getElementById('ts-adres-yeni').value.trim();
+    kaydet = document.getElementById('ts-adres-kaydet').checked;
+    baslik = 'Adresim';
+  }
+  if(!teslimatAdres){ siparisHata('Teslimat adresi girin.'); return null; }
+
+  const kurumsal = document.querySelector('input[name="ft-tip"]:checked').value === 'kurumsal';
+  const fatura = { tip: kurumsal ? 'kurumsal' : 'bireysel', ayniAdres: document.getElementById('ft-ayni').checked };
+  if(kurumsal){
+    fatura.unvan = document.getElementById('ft-unvan').value.trim();
+    fatura.vergiDairesi = document.getElementById('ft-vd').value.trim();
+    fatura.vkn = document.getElementById('ft-vkn').value.trim();
+    if(!fatura.unvan || !fatura.vergiDairesi || !fatura.vkn){
+      siparisHata('Kurumsal fatura için unvan, vergi dairesi ve vergi no gerekli.'); return null;
+    }
+  }else{
+    fatura.tckn = document.getElementById('ft-tckn').value.trim();
+  }
+  if(!fatura.ayniAdres){
+    fatura.adres = document.getElementById('ft-adres').value.trim();
+    if(!fatura.adres){ siparisHata('Fatura adresi girin (veya "aynı" seçeneğini işaretleyin).'); return null; }
+  }
+
+  if(!document.getElementById('sz-onay').checked){
+    siparisHata('Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi onaylanmadan sipariş verilemez.');
+    return null;
+  }
+  document.getElementById('siparis-hata').classList.remove('gorunur');
+  return { teslimat: { adres: teslimatAdres, kaydet, baslik }, fatura, sozlesmeOnay: true };
+}
+
+function sepetUrunleri(){
+  return Object.keys(sepet).map(key=>{
     const satir = sepet[key];
     const u = URUNLER.find(x=>x.id===satir.id);
     if(!u) return null;
-    return { ad: u.t, adet: satir.adet, fiyat: u.p, not: satir.not || '' };
+    return { id: u.id, ad: u.t, adet: satir.adet, fiyat: u.p, not: satir.not || '' };
   }).filter(Boolean);
+}
+
+// misafir WhatsApp siparişi — sadece ödeme motoru yayında değilken kullanılır
+function misafirWhatsapp(){
+  const adEl = document.getElementById('mg-ad');
+  const adresEl = document.getElementById('mg-adres');
+  const ad = adEl.value.trim();
+  const adres = adresEl.value.trim();
+  if(!ad || !adres){ siparisHata('Ad soyad ve adres gerekli.'); (!ad?adEl:adresEl).focus(); return; }
+  if(!document.getElementById('mg-onay').checked){
+    siparisHata('Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi onaylanmadan sipariş verilemez.');
+    return;
+  }
+  document.getElementById('siparis-hata').classList.remove('gorunur');
+  const urunler = sepetUrunleri();
+  if(!urunler.length) return;
+  let toplam = 0;
+  const satirlar = urunler.map(u=>{
+    const st = u.fiyat * u.adet;
+    toplam += st;
+    let s = `• ${u.ad} — ${u.adet} adet — ${fiyatFmt(st)}`;
+    if(u.not) s += `\n  Not: "${u.not}"`;
+    return s;
+  }).join('\n');
+  const kargo = kargoHesapla(toplam);
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}\nToplam: ${fiyatFmt(toplam+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
+  window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
+}
+
+function siparisiOnaylaWhatsapp(){
+  const veri = siparisVerileriniTopla();
+  if(!veri) return;
+  const urunler = sepetUrunleri();
+  if(!urunler.length) return;
+  let toplam = 0;
+  const satirlar = urunler.map(u=>{
+    const st = u.fiyat * u.adet;
+    toplam += st;
+    let s = `• ${u.ad} — ${u.adet} adet — ${fiyatFmt(st)}`;
+    if(u.not) s += `\n  Not: "${u.not}"`;
+    return s;
+  }).join('\n');
+  const kargo = kargoHesapla(toplam);
+  const k = oturum.kullanici;
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}\nToplam: ${fiyatFmt(toplam+kargo)}\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
+  window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
+}
+
+async function siparisiOnaylaKartla(){
+  const veri = siparisVerileriniTopla();
+  if(!veri) return;
+  const urunler = sepetUrunleri();
+  if(!urunler.length) return;
 
   const btn = document.getElementById('sepet-kart-btn');
   btn.disabled = true;
   btn.textContent = 'Yönlendiriliyor…';
   try{
-    // toplam gönderilmez — kargo dahil gerçek tutarı ödeme motoru kendisi hesaplar
-    const res = await fetch(ODEME_API + '/api/siparis-olustur', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ad: adSadece, soyad, telefon, eposta, adres, urunler }),
+    // tutar gönderilmez — kargo dahil gerçek tutarı ödeme motoru kendisi hesaplar
+    const res = await apiIstek('/api/siparis-olustur', {
+      urunler,
+      teslimat: veri.teslimat,
+      fatura: veri.fatura,
+      sozlesmeOnay: true,
     });
-    const veri = await res.json();
-    if(!res.ok || !veri.id) throw new Error(veri.hata || 'sipariş oluşturulamadı');
-    window.location.href = ODEME_API + '/odeme/' + veri.id;
+    const v = await res.json();
+    if(res.status === 401){
+      oturum = { token:null, kullanici:null };
+      oturumKaydet();
+      siparisBolgeCiz(true);
+      return;
+    }
+    if(!res.ok || !v.id) throw new Error(v.hata || 'sipariş oluşturulamadı');
+    window.location.href = ODEME_API + '/odeme/' + v.id;
   }catch(err){
     btn.disabled = false;
     btn.textContent = 'Kartla Öde';
-    hataEl.textContent = 'Kartla ödeme şu an açılamadı, lütfen WhatsApp\'tan sipariş verin.';
-    hataEl.classList.add('gorunur');
+    siparisHata(err.message === 'Failed to fetch'
+      ? 'Bağlantı kurulamadı — lütfen WhatsApp\'tan sipariş verin.' : err.message);
   }
 }
 
@@ -2337,6 +2837,14 @@ function detayAc(id){
         <textarea id="detay-not-metin" rows="2" placeholder="Örn: Ahmet, 14.02.2026"></textarea>
         <p class="detay-not-hata" id="detay-not-hata">Bu ürün kişiye özel — sepete eklemeden önce ne yazılacağını girmen lazım.</p>
       </div>` : '';
+  const iadeIcerik = u.kisisel
+    ? `<b>Bu ürün kişiye özeldir, iadesi yoktur.</b> Üstüne isim/yazı bastırılan ürünler sadece
+       sizin için üretildiğinden yasal olarak cayma hakkı kapsamı dışındadır (Mesafeli Sözleşmeler
+       Yönetmeliği m.15/1-a). Sipariş vermeden önce yazdırdığınız bilgiyi kontrol edin. Üretim
+       hatası (kırık, yanlış yazı) elbette değiştirilir. <a href="yasal/iade.html" target="_blank" rel="noopener">İade koşulları</a>`
+    : `Teslim aldıktan sonra <b>14 gün içinde</b> gerekçesiz iade hakkınız var. Ürün kullanılmamış
+       ve orijinal ambalajında olmalı. Kırık/hasarlı gelen ürünü fotoğrafıyla bize iletin, ücretsiz
+       yenisini basıp gönderiyoruz. <a href="yasal/iade.html" target="_blank" rel="noopener">İade koşulları</a>`;
   document.getElementById('detay-govde').innerHTML = `
     <button class="detay-kapat" type="button" onclick="detayKapat()">✕</button>
     <div class="detay-gorsel"><img src="${u.img}" alt="${escHtml(u.t)}"></div>
@@ -2352,7 +2860,31 @@ function detayAc(id){
       </div>
       <button class="detay-sepet" type="button" id="detay-sepet-ekle">Sepete ekle</button>
       ${ty}
+      <div class="detay-bolumler">
+        <details class="detay-bolum" open>
+          <summary>Ürün açıklaması</summary>
+          <div class="detay-bolum-icerik" id="detay-aciklama">Yükleniyor…</div>
+        </details>
+        <details class="detay-bolum">
+          <summary>Ödeme seçenekleri</summary>
+          <div class="detay-bolum-icerik">
+            Kredi/banka kartı ile güvenli ödeme (PayTR altyapısı — taksit seçenekleri ödeme
+            ekranında görünür) veya WhatsApp üzerinden sipariş. Kart bilgileriniz sitemizden
+            hiç geçmez. <b>700 TL ve üzeri siparişlerde kargo bedava</b>, altında 39 TL.
+          </div>
+        </details>
+        <details class="detay-bolum">
+          <summary>Teslimat ve iade</summary>
+          <div class="detay-bolum-icerik">${iadeIcerik}</div>
+        </details>
+        <details class="detay-bolum" id="detay-yorum-bolum">
+          <summary>Yorumlar <span class="yorum-sayi" id="detay-yorum-sayi"></span></summary>
+          <div class="detay-bolum-icerik" id="detay-yorumlar">Yükleniyor…</div>
+        </details>
+      </div>
     </div>`;
+  urunAciklamaYukle(u.id);
+  yorumlariYukle(u.id);
   let adet = 1;
   const notElBaslangic = document.getElementById('detay-not-metin');
   if(notElBaslangic){
@@ -2381,6 +2913,106 @@ function detayAc(id){
 function detayKapat(){
   document.getElementById('detay-ortu').classList.remove('acik');
   document.body.style.overflow = '';
+}
+
+// ---- ürün açıklamaları — ayrı dosyadan bir kere çekilir (sayfayı şişirmemek için) ----
+let ACIKLAMALAR = null;
+async function urunAciklamaYukle(id){
+  const hedef = document.getElementById('detay-aciklama');
+  if(!hedef) return;
+  try{
+    if(!ACIKLAMALAR){
+      const res = await fetch('aciklama.json');
+      ACIKLAMALAR = await res.json();
+    }
+    const metin = ACIKLAMALAR[String(id)];
+    if(!hedef.isConnected) return;
+    if(metin){
+      hedef.innerHTML = metin.split(/;\s*|\n+/).map(s=>s.trim()).filter(Boolean)
+        .map(s=>`<p>${escHtml(s)}</p>`).join('');
+    }else{
+      hedef.textContent = 'Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.';
+    }
+  }catch(e){
+    if(hedef.isConnected) hedef.textContent = 'Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.';
+  }
+}
+
+// ---- yorumlar ----
+function yildizlar(puan){
+  return '★'.repeat(puan) + '☆'.repeat(5-puan);
+}
+async function yorumlariYukle(id){
+  const hedef = document.getElementById('detay-yorumlar');
+  const sayiEl = document.getElementById('detay-yorum-sayi');
+  if(!hedef) return;
+  let yorumlar = [];
+  let apiVar = true;
+  try{
+    const res = await fetch(ODEME_API + '/api/yorumlar?urun=' + id);
+    if(res.ok) yorumlar = await res.json();
+    else apiVar = false;
+  }catch(e){ apiVar = false; }
+  if(!hedef.isConnected) return;
+
+  let icerik = '';
+  if(yorumlar.length){
+    const ort = yorumlar.reduce((t,y)=>t+y.puan,0) / yorumlar.length;
+    if(sayiEl) sayiEl.textContent = `(${yorumlar.length}) ${yildizlar(Math.round(ort))}`;
+    icerik = yorumlar.map(y=>`
+      <div class="yorum">
+        <div class="yorum-bas"><b>${escHtml(y.ad)}</b><span class="yorum-puan">${yildizlar(y.puan)}</span></div>
+        <p>${escHtml(y.metin)}</p>
+        <span class="yorum-tarih">${escHtml(y.tarih||'')}</span>
+      </div>`).join('');
+  }else{
+    if(sayiEl) sayiEl.textContent = '';
+    icerik = `<p class="yorum-bos">${apiVar ? 'Bu ürüne henüz yorum yapılmamış.' : 'Yorumlar yakında açılıyor.'}</p>`;
+  }
+
+  // yorum yazma: sadece giriş yapmış ve bu ürünü satın almış üyeler (sunucu da kontrol eder)
+  if(apiVar && oturum.token){
+    icerik += `
+    <div class="yorum-yaz">
+      <div class="yorum-puan-sec" id="yorum-puan-sec">
+        ${[1,2,3,4,5].map(n=>`<button type="button" data-puan="${n}">☆</button>`).join('')}
+      </div>
+      <textarea id="yorum-metin" rows="2" placeholder="Ürün hakkında düşünceniz…"></textarea>
+      <button class="yorum-gonder" type="button" id="yorum-gonder">Yorumu gönder</button>
+      <p class="yorum-not" id="yorum-not"></p>
+    </div>`;
+  }else if(apiVar){
+    icerik += `<p class="yorum-bos">Yorum yazmak için <a href="#" onclick="hesapAc(); return false;">giriş yapın</a> — satın aldığınız ürünlere yorum yapabilirsiniz.</p>`;
+  }
+  hedef.innerHTML = icerik;
+
+  if(apiVar && oturum.token){
+    let secilenPuan = 0;
+    const puanKutu = document.getElementById('yorum-puan-sec');
+    puanKutu.querySelectorAll('button').forEach(b=>{
+      b.onclick = ()=>{
+        secilenPuan = parseInt(b.dataset.puan);
+        puanKutu.querySelectorAll('button').forEach(x=>{
+          x.textContent = parseInt(x.dataset.puan) <= secilenPuan ? '★' : '☆';
+        });
+      };
+    });
+    document.getElementById('yorum-gonder').onclick = async ()=>{
+      const metin = document.getElementById('yorum-metin').value.trim();
+      const notEl = document.getElementById('yorum-not');
+      if(!secilenPuan){ notEl.textContent = 'Önce yıldız verin.'; return; }
+      if(!metin){ notEl.textContent = 'Birkaç kelime yazın.'; return; }
+      notEl.textContent = 'Gönderiliyor…';
+      try{
+        const res = await apiIstek('/api/yorum-ekle', { urunId: id, puan: secilenPuan, metin });
+        if(res.ok){ yorumlariYukle(id); }
+        else{
+          const v = await res.json().catch(()=>({}));
+          notEl.textContent = v.hata || 'Gönderilemedi.';
+        }
+      }catch(e){ notEl.textContent = 'Bağlantı sorunu, tekrar deneyin.'; }
+    };
+  }
 }
 document.getElementById('detay-ortu').addEventListener('click', e=>{
   if(e.target.id === 'detay-ortu') detayKapat();
@@ -2459,20 +3091,27 @@ document.getElementById('sayfa-basi-sec').addEventListener('change', e=>{
   state.sayfa = 1;
   cizIzgara();
 });
-document.getElementById('sepet-tamamla-btn').addEventListener('click', siparisiOnaylaWhatsapp);
-document.getElementById('sepet-kart-btn').addEventListener('click', siparisiOnaylaKartla);
-['siparis-ad','siparis-adres'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', e=>{
-    e.target.classList.remove('hata');
-    document.getElementById('siparis-hata').classList.remove('gorunur');
-  });
+// ---- hesap paneli aç/kapat ----
+document.getElementById('hesap-ac').addEventListener('click', ()=> hesapAc());
+document.getElementById('hesap-kapat').addEventListener('click', hesapKapat);
+document.getElementById('hesap-ortu').addEventListener('click', e=>{
+  if(e.target.id === 'hesap-ortu') hesapKapat();
 });
-['siparis-ad','siparis-adres','siparis-telefon','siparis-eposta'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', e=>{
-    e.target.classList.remove('hata');
-    document.getElementById('siparis-hata-kart').classList.remove('gorunur');
-  });
-});
+hesapDugmeGuncelle();
+
+// oturum hâlâ geçerli mi kontrol et (sunucu tarafı süresi dolmuş olabilir)
+if(oturum.token){
+  apiIstek('/api/hesap').then(async res=>{
+    if(res.status === 401){
+      oturum = { token:null, kullanici:null };
+      oturumKaydet();
+      siparisBolgeCiz(true);
+    }else if(res.ok){
+      oturum.kullanici = await res.json();
+      oturumKaydet();
+    }
+  }).catch(()=>{});
+}
 
 // ---- başlangıç ----
 sepetSayacGuncelle();
