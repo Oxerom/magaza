@@ -1515,6 +1515,12 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-govde .urun-kat{ font-size:11.5px; }
 .detay-govde h2{ font-family:var(--serif); font-size:23px; margin:0; line-height:1.3; }
 .detay-fiyat{ font-size:28px; font-weight:800; }
+.detay-kargo{ font-size:13px; color:#2E7D4F; background:#EBF6EF; border-radius:8px; padding:8px 12px; margin:2px 0 4px; }
+.detay-linki{ align-self:flex-start; background:none; border:1px dashed var(--cizgi); border-radius:8px; padding:5px 10px; font-size:12px; color:var(--soluk); cursor:pointer; margin-bottom:4px; }
+.detay-linki:hover{ color:var(--nar); border-color:var(--nar); }
+.detay-galeri{ display:flex; gap:6px; margin-top:8px; overflow-x:auto; padding-bottom:2px; }
+.detay-galeri img{ width:52px; height:52px; object-fit:cover; border-radius:8px; border:2px solid transparent; cursor:pointer; flex:0 0 auto; }
+.detay-galeri img.secili{ border-color:var(--nar); }
 .detay-bolumler{ display:flex; flex-direction:column; border-top:1px solid var(--cizgi); margin-top:4px; }
 .detay-bolum{ border-bottom:1px solid var(--cizgi); }
 .detay-bolum summary{
@@ -2460,19 +2466,23 @@ function siparisBolgeCiz(zorla){
     return;
   }
 
-  if(!oturum.token){
-    bolge.innerHTML = `
-      <p class="sepet-not">Sipariş verebilmek için üyelik gerekiyor — 1 dakika sürer,
-        siparişlerinizi ve kargonuzu buradan takip edersiniz.</p>
-      <div class="odeme-secenekleri">
-        <button class="sepet-tamamla kart" type="button" onclick="hesapAc('kayit')">Üye ol</button>
-        <button class="sepet-tamamla ikincil" type="button" onclick="hesapAc('giris')">Zaten üyeyim — giriş yap</button>
-      </div>`;
-    return;
-  }
-
-  const adresler = (oturum.kullanici.adresler || []);
+  const uyeli = !!oturum.token;
+  const adresler = uyeli ? (oturum.kullanici.adresler || []) : [];
   bolge.innerHTML = `
+    ${uyeli ? '' : `
+    <p class="sepet-not">Üyeliksiz sipariş verebilirsiniz.
+      <a href="#" onclick="hesapAc('giris');return false">Giriş yapar</a> veya
+      <a href="#" onclick="hesapAc('kayit');return false">üye olursanız</a> siparişinizi ve
+      kargonuzu buradan takip edebilirsiniz.</p>
+    <div class="siparis-form">
+      <span class="siparis-etiket">İletişim</span>
+      <div class="satir-2">
+        <div><input id="mz-ad" type="text" placeholder="Ad" autocomplete="given-name"></div>
+        <div><input id="mz-soyad" type="text" placeholder="Soyad" autocomplete="family-name"></div>
+      </div>
+      <input id="mz-telefon" type="tel" placeholder="Telefon" autocomplete="tel">
+      <input id="mz-eposta" type="email" placeholder="E-posta (isteğe bağlı)" autocomplete="email">
+    </div>`}
     <div class="siparis-form">
       <span class="siparis-etiket">Teslimat adresi</span>
       ${adresler.length ? `
@@ -2482,8 +2492,8 @@ function siparisBolgeCiz(zorla){
         </select>` : ''}
       <textarea id="ts-adres-yeni" rows="2" placeholder="Açık teslimat adresi (mahalle, sokak, no, ilçe/il)"
         ${adresler.length ? 'style="display:none"' : ''}></textarea>
-      <label class="onay-satir kucuk" id="ts-kaydet-satir" ${adresler.length ? 'style="display:none"' : ''}>
-        <input type="checkbox" id="ts-adres-kaydet" checked><span>Bu adresi adres defterime kaydet</span></label>
+      <label class="onay-satir kucuk" id="ts-kaydet-satir" ${(uyeli && !adresler.length) ? '' : 'style="display:none"'}>
+        <input type="checkbox" id="ts-adres-kaydet" ${uyeli ? 'checked' : ''}><span>Bu adresi adres defterime kaydet</span></label>
 
       <span class="siparis-etiket">Fatura</span>
       <div class="fatura-tip">
@@ -2512,6 +2522,7 @@ function siparisBolgeCiz(zorla){
     </div>
     ${KART_AKTIF ? `<p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart bilgileriniz
       bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>` : ''}
+    <p class="sepet-not">📦 Siparişler ertesi iş günü kargoya verilir.</p>
     <div class="odeme-secenekleri">
       ${KART_AKTIF ? `<button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>` : ''}
       <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
@@ -2548,6 +2559,18 @@ function siparisHata(mesaj){
 
 // formdan teslimat+fatura+onay verilerini toplar; sorun varsa null döner ve hatayı gösterir
 function siparisVerileriniTopla(){
+  // Misafirse önce iletişim bilgileri (ad + telefon zorunlu)
+  let misafir = null;
+  if(!oturum.token){
+    misafir = {
+      ad: document.getElementById('mz-ad').value.trim(),
+      soyad: document.getElementById('mz-soyad').value.trim(),
+      telefon: document.getElementById('mz-telefon').value.trim(),
+      eposta: document.getElementById('mz-eposta').value.trim(),
+    };
+    if(!misafir.ad || !misafir.telefon){ siparisHata('Ad ve telefon girin — siparişiniz için size ulaşacağız.'); return null; }
+  }
+
   const adresSec = document.getElementById('ts-adres-sec');
   let teslimatAdres = '', kaydet = false, baslik = '';
   if(adresSec && adresSec.value !== '__yeni'){
@@ -2582,7 +2605,8 @@ function siparisVerileriniTopla(){
     return null;
   }
   document.getElementById('siparis-hata').classList.remove('gorunur');
-  return { teslimat: { adres: teslimatAdres, kaydet, baslik }, fatura, sozlesmeOnay: true };
+  return { teslimat: { adres: teslimatAdres, kaydet, baslik }, fatura, sozlesmeOnay: true,
+    ...(misafir ? { misafir } : {}) };
 }
 
 function sepetUrunleri(){
@@ -2643,8 +2667,9 @@ async function siparisiOnaylaWhatsapp(){
       fatura: veri.fatura,
       sozlesmeOnay: true,
       odemeTuru: 'whatsapp',
+      ...(veri.misafir ? { misafir: veri.misafir } : {}),
     });
-    if(res.status === 401){
+    if(res.status === 401 && oturum.token){ // oturum düşmüş — formu tazele
       if(pencere) pencere.close();
       btn.disabled = false;
       oturum = { token:null, kullanici:null };
@@ -2666,7 +2691,7 @@ async function siparisiOnaylaWhatsapp(){
     return s;
   }).join('\n');
   const kargo = kargoHesapla(toplam);
-  const k = oturum.kullanici;
+  const k = oturum.kullanici || veri.misafir;
   const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}\nToplam: ${fiyatFmt(toplam+kargo)}`
     + (sipNo ? `\nSipariş No: ${sipNo}` : '')
     + `\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
@@ -2681,6 +2706,10 @@ async function siparisiOnaylaKartla(){
   const urunler = sepetUrunleri();
   if(!urunler.length) return;
 
+  if(veri.misafir && !veri.misafir.eposta){
+    siparisHata('Kartla ödeme için e-posta adresi gerekli (ödeme makbuzu için).');
+    return;
+  }
   const btn = document.getElementById('sepet-kart-btn');
   btn.disabled = true;
   btn.textContent = 'Yönlendiriliyor…';
@@ -2691,9 +2720,11 @@ async function siparisiOnaylaKartla(){
       teslimat: veri.teslimat,
       fatura: veri.fatura,
       sozlesmeOnay: true,
+      odemeTuru: 'kart',
+      ...(veri.misafir ? { misafir: veri.misafir } : {}),
     });
     const v = await res.json();
-    if(res.status === 401){
+    if(res.status === 401 && oturum.token){
       oturum = { token:null, kullanici:null };
       oturumKaydet();
       siparisBolgeCiz(true);
@@ -2886,11 +2917,14 @@ function detayAc(id){
        yenisini basıp gönderiyoruz. <a href="yasal/iade.html" target="_blank" rel="noopener">İade koşulları</a>`;
   document.getElementById('detay-govde').innerHTML = `
     <button class="detay-kapat" type="button" onclick="detayKapat()">✕</button>
-    <div class="detay-gorsel"><img src="${u.img}" alt="${escHtml(u.t)}"></div>
+    <div class="detay-gorsel"><img src="${u.img}" alt="${escHtml(u.t)}">
+      <div class="detay-galeri" id="detay-galeri" style="display:none"></div></div>
     <div class="detay-govde">
       <span class="urun-kat">${escHtml(grupAdi(u.g))}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h2>${escHtml(u.t)}</h2>
       <div class="detay-fiyat num">${fiyatFmt(u.p)}</div>
+      <div class="detay-kargo">📦 Bugün sipariş verin, <b>ertesi iş günü kargoda</b>.</div>
+      <button class="detay-linki" type="button" id="detay-linki">🔗 Ürün linkini kopyala</button>
       ${notAlani}
       <div class="detay-adet">
         <button class="adet-dugme" type="button" id="detay-eksi">−</button>
@@ -2923,7 +2957,22 @@ function detayAc(id){
       </div>
     </div>`;
   urunAciklamaYukle(u.id);
+  galeriYukle(u.id);
   yorumlariYukle(u.id);
+
+  // Ürünün kendi linki: paylaşılabilir #u<id> adresi (Instagram/WhatsApp'a atılabilir)
+  if(location.hash !== '#u' + u.id){
+    history.pushState({urun: u.id}, '', '#u' + u.id);
+  }
+  const linkBtn = document.getElementById('detay-linki');
+  linkBtn.onclick = ()=>{
+    const adres = location.origin + location.pathname + '#u' + u.id;
+    (navigator.clipboard ? navigator.clipboard.writeText(adres) : Promise.reject())
+      .then(()=>{ linkBtn.textContent = '✓ Link kopyalandı'; })
+      .catch(()=>{ prompt('Ürün linki:', adres); });
+    setTimeout(()=>{ linkBtn.textContent = '🔗 Ürün linkini kopyala'; }, 2500);
+  };
+
   let adet = 1;
   const notElBaslangic = document.getElementById('detay-not-metin');
   if(notElBaslangic){
@@ -2949,9 +2998,45 @@ function detayAc(id){
   document.getElementById('detay-ortu').classList.add('acik');
   document.body.style.overflow = 'hidden';
 }
-function detayKapat(){
+function detayKapat(geriden){
   document.getElementById('detay-ortu').classList.remove('acik');
   document.body.style.overflow = '';
+  // Adres çubuğundaki #u... izini temizle (geri tuşundan geldiysek zaten temiz)
+  if(!geriden && /^#u\d+$/.test(location.hash)){
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+}
+
+// Telefonda geri tuşu pencereyi kapatsın; paylaşılan #u linkiyle gelince pencere açılsın
+window.addEventListener('popstate', ()=>{
+  const es = location.hash.match(/^#u(\d+)$/);
+  if(es) detayAc(parseInt(es[1]));
+  else detayKapat(true);
+});
+
+// ---- ürün galerisi — ayrı dosyadan bir kere çekilir ----
+let GORSELLER = null;
+async function galeriYukle(id){
+  try{
+    if(!GORSELLER){
+      const res = await fetch('gorseller.json');
+      GORSELLER = res.ok ? await res.json() : {};
+    }
+  }catch(e){ GORSELLER = {}; return; }
+  const liste = GORSELLER[String(id)];
+  const kutu = document.getElementById('detay-galeri');
+  const ana = document.querySelector('.detay-gorsel > img');
+  if(!liste || liste.length < 2 || !kutu || !ana) return;
+  kutu.innerHTML = liste.map((adr,i)=>
+    `<img src="${adr}" class="${i===0?'secili':''}" alt="" loading="lazy">`).join('');
+  kutu.style.display = 'flex';
+  kutu.querySelectorAll('img').forEach(img=>{
+    img.onclick = ()=>{
+      ana.src = img.src;
+      kutu.querySelectorAll('img').forEach(x=>x.classList.remove('secili'));
+      img.classList.add('secili');
+    };
+  });
 }
 
 // ---- ürün açıklamaları — ayrı dosyadan bir kere çekilir (sayfayı şişirmemek için) ----
@@ -3166,6 +3251,9 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   cizHepsi();
   fisKategorilerCiz();
   cokSatanBagla();
+  // Paylaşılan ürün linkiyle (#u123) gelindiyse o ürünü aç
+  const hashEs = location.hash.match(/^#u(\d+)$/);
+  if(hashEs) detayAc(parseInt(hashEs[1]));
 }).catch(()=>{
   document.getElementById('izgara').innerHTML =
     '<p style="padding:40px;color:#6E6058">Ürünler yüklenemedi — lütfen sayfayı yenileyin.</p>';
