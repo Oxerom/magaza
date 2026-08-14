@@ -2621,11 +2621,42 @@ function misafirWhatsapp(){
   window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
 }
 
-function siparisiOnaylaWhatsapp(){
+async function siparisiOnaylaWhatsapp(){
   const veri = siparisVerileriniTopla();
   if(!veri) return;
   const urunler = sepetUrunleri();
   if(!urunler.length) return;
+
+  // Yeni pencereyi tıklamayla AYNI anda aç — ağ beklemesinden sonra açılan
+  // pencereyi tarayıcılar reklam sanıp engelliyor.
+  const pencere = window.open('', '_blank');
+
+  // Önce siparişi sisteme kaydet (Hesabım/kargo takibi/yorum hakkı/bildirim bunun
+  // üzerinden). Kayıt başarısız olsa bile WhatsApp yolu kapanmaz — satış kaybolmaz.
+  const btn = document.getElementById('sepet-tamamla-btn');
+  btn.disabled = true;
+  let sipNo = '';
+  try{
+    const res = await apiIstek('/api/siparis-olustur', {
+      urunler,
+      teslimat: veri.teslimat,
+      fatura: veri.fatura,
+      sozlesmeOnay: true,
+      odemeTuru: 'whatsapp',
+    });
+    if(res.status === 401){
+      if(pencere) pencere.close();
+      btn.disabled = false;
+      oturum = { token:null, kullanici:null };
+      oturumKaydet();
+      siparisBolgeCiz(true);
+      return;
+    }
+    const v = await res.json();
+    if(res.ok && v.id) sipNo = v.id;
+  }catch(err){ /* kayıt düşmedi — WhatsApp'la devam */ }
+  btn.disabled = false;
+
   let toplam = 0;
   const satirlar = urunler.map(u=>{
     const st = u.fiyat * u.adet;
@@ -2636,8 +2667,12 @@ function siparisiOnaylaWhatsapp(){
   }).join('\n');
   const kargo = kargoHesapla(toplam);
   const k = oturum.kullanici;
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}\nToplam: ${fiyatFmt(toplam+kargo)}\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
-  window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}\nToplam: ${fiyatFmt(toplam+kargo)}`
+    + (sipNo ? `\nSipariş No: ${sipNo}` : '')
+    + `\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
+  const adres = 'https://wa.me/905514823223?text=' + encodeURIComponent(mesaj);
+  if(pencere) pencere.location = adres;
+  else window.location.href = adres; // pencere engellendiyse aynı sekmede aç
 }
 
 async function siparisiOnaylaKartla(){
