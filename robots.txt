@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://oxerom.com.tr/u/sitemap.xml

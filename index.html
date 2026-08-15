@@ -1607,6 +1607,27 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-not textarea.hata{ border-color:var(--nar); }
 .detay-not-hata{ display:none; font-size:12px; color:var(--nar); margin:0; }
 .detay-not-hata.gorunur{ display:block; }
+.detay-onay{ display:flex; gap:8px; align-items:flex-start; font-size:12.5px; margin-top:6px; cursor:pointer; }
+.detay-onay input{ margin-top:2px; }
+.detay-onay small{ color:var(--sisik); }
+.detay-renk{ display:flex; flex-direction:column; gap:6px; margin:6px 0 4px; }
+.detay-renk label{ font-size:12.5px; font-weight:700; }
+.detay-renk .opsiyonel{ font-weight:400; color:var(--sisik); }
+.renk-secenek{ display:flex; flex-wrap:wrap; gap:6px; }
+.renk-d{ font:inherit; font-size:12.5px; padding:5px 11px; border-radius:999px; border:1px solid var(--cizgi); background:var(--yuzey); color:var(--murekkep); cursor:pointer; }
+.renk-d.secili{ border-color:var(--nar); background:color-mix(in srgb, var(--nar) 10%, transparent); font-weight:700; }
+.renk-diger{ border-style:dashed; }
+#detay-renk-diger{ font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--yuzey); color:var(--murekkep); max-width:260px; }
+.ozellik-tablo{ border-collapse:collapse; width:100%; font-size:12.5px; }
+.ozellik-tablo th{ text-align:left; font-weight:700; color:var(--murekkep); padding:6px 10px 6px 0; width:36%; vertical-align:top; border-bottom:1px solid var(--cizgi); }
+.ozellik-tablo td{ padding:6px 0; border-bottom:1px solid var(--cizgi); vertical-align:top; }
+.ozellik-tablo tr:last-child th, .ozellik-tablo tr:last-child td{ border-bottom:0; }
+.benzer{ margin-top:36px; }
+.benzer-baslik{ font-size:17px; margin:0 0 14px; }
+.benzer-izgara .urun{ animation:none; }
+.sepet-not-alani{ display:flex; flex-direction:column; gap:5px; font-size:12.5px; font-weight:700; margin:12px 0 4px; }
+.sepet-not-alani .opsiyonel{ font-weight:400; color:var(--sisik); }
+.sepet-not-alani textarea{ font:inherit; font-size:13px; font-weight:400; padding:8px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--yuzey); color:var(--murekkep); resize:vertical; }
 .detay-adet{ display:flex; align-items:center; gap:10px; }
 .adet-dugme{ width:32px; height:32px; border-radius:50%; border:1px solid var(--cizgi-koyu); background:var(--yuzey); cursor:pointer; font-size:16px; }
 .detay-sepet{
@@ -2075,6 +2096,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   <div class="kap">
     <a class="sayfa-geri" href="#" onclick="katalogaDon(); return false;">← Ürünlere dön</a>
     <div class="detay" id="detay-govde" style="position:relative;"></div>
+    <div class="benzer" id="detay-benzer"></div>
   </div>
 </section>
 
@@ -2089,6 +2111,9 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
         <div class="sepet-ara-satir"><span>Kargo <small id="sepet-kargo-etiket">(sabit)</small></span><span class="num" id="sepet-kargo">—</span></div>
         <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
+        <label class="sepet-not-alani">Sipariş notu <span class="opsiyonel">(isteğe bağlı)</span>
+          <textarea id="siparis-notu" rows="2" maxlength="300" placeholder="Örn: hediye, fiyat yazmasın · kapıya bırakın"></textarea>
+        </label>
         <div id="siparis-bolge"></div>
       </aside>
     </div>
@@ -2132,6 +2157,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             <li class="fis-satir"><a href="https://instagram.com/emre_erden__" target="_blank" rel="noopener noreferrer">Instagram</a><span class="nk"></span><span class="sag">@emre_erden__</span></li>
             <li class="fis-satir"><a href="https://wa.me/905514823223" target="_blank" rel="noopener noreferrer">WhatsApp</a><span class="nk"></span><span class="sag">0551 482 32 23</span></li>
             <li class="fis-satir"><a href="mailto:oxerom9@gmail.com">E-posta</a><span class="nk"></span><span class="sag">oxerom9@gmail.com</span></li>
+            <li class="fis-satir"><a href="hakkimizda.html">Atölye</a><span class="nk"></span><span class="sag">Kayseri, Türkiye</span></li>
+            <li class="fis-satir"><a href="sss.html">Sık sorulan sorular</a><span class="nk"></span><span class="sag">SSS</span></li>
           </ul>
         </div>
       </div>
@@ -2142,6 +2169,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <span>© 2026 OXEROM</span>
       <span class="sag">
         <a href="hakkimizda.html">Hakkımızda</a>
+        <a href="sss.html">SSS</a>
         <a href="yasal/gizlilik.html">Gizlilik</a>
         <a href="yasal/mesafeli-satis.html">Mesafeli satış</a>
         <a href="yasal/iade.html">Teslimat ve iade</a>
@@ -2180,16 +2208,20 @@ function sepetSayacGuncelle(){
   const adet = Object.values(sepet).reduce((a,x)=>a+x.adet, 0);
   document.getElementById('sepet-rozet').textContent = adet;
 }
-function sepeteEkle(id, adet, not){
+function sepeteEkle(id, adet, not, renk){
   adet = adet || 1;
   const u = URUNLER.find(x=>x.id===id);
   if(!u) return;
+  renk = (renk || '').trim();
+  const fark = !!(renk && !RENKLER.some(r=>r.toLocaleLowerCase('tr')===renk.toLocaleLowerCase('tr')));
   // kişiye özel üründe her ekleme kendi notuyla ayrı satır olur — aksi halde ikinci
-  // eklenen ürünün notu birincininkinin üstüne yazıp onu silerdi.
-  const key = (u.kisisel && not) ? (id + '::' + Date.now() + '_' + Math.random().toString(36).slice(2,8)) : String(id);
+  // eklenen ürünün notu birincininkinin üstüne yazıp onu silerdi. Farklı renk de ayrı satır.
+  const key = (u.kisisel && not) ? (id + '::' + Date.now() + '_' + Math.random().toString(36).slice(2,8))
+            : (renk && renk !== RENKLER[0]) ? (id + '::r:' + renk.toLocaleLowerCase('tr')) : String(id);
   if(sepet[key]) sepet[key].adet += adet;
   else sepet[key] = { id, adet };
   if(not) sepet[key].not = not;
+  if(renk){ sepet[key].renk = renk; if(fark) sepet[key].fark = true; }
   kaydetSepet();
   sepetCiz();
 }
@@ -2205,14 +2237,28 @@ function sepetAdetAyarla(key, adet){
 // sepet en az 250 TL (indirimli tutar) · kargo sabit 69,99 · bedava kargo eşiği YOK.
 // Ödeme motoru (magaza-odeme) aynı üç sayıyı kendi tarafında da uygular; değişirse ikisi birden.
 // Bunlar VARSAYILAN; canlı değerler urunler.json → ayarlar (panelden değiştirilir), açılışta yüklenir.
-let INDIRIM = 0.20, MIN_SEPET = 250, KARGO_UCRET = 69.99, BEDAVA_ESIK = 750;
+let INDIRIM = 0.20, MIN_SEPET = 250, KARGO_UCRET = 69.99, BEDAVA_ESIK = 500;
+// Renk seçimi (Emre, 15.08.2026): elde hep olan renkler ücretsiz, başka renk +RENK_FARK TL/adet.
+let RENK_ACIK = true, RENKLER = ['Siyah','Beyaz','Kırmızı','Gri'], RENK_FARK = 10;
 function ayarlariUygula(a){
   if(!a) return;
   if(Number.isFinite(+a.indirim)) INDIRIM = (+a.indirim) / 100;
   if(Number.isFinite(+a.min_sepet)) MIN_SEPET = +a.min_sepet;
   if(Number.isFinite(+a.kargo)) KARGO_UCRET = +a.kargo;
   if(Number.isFinite(+a.bedava_esik)) BEDAVA_ESIK = +a.bedava_esik;
+  if(a.renk_acik != null) RENK_ACIK = !!(+a.renk_acik);
+  if(Number.isFinite(+a.renk_fark)) RENK_FARK = +a.renk_fark;
+  if(typeof a.renkler === 'string' && a.renkler.trim()) RENKLER = a.renkler.split(',').map(x=>x.trim()).filter(Boolean);
   duyuruYaz();
+}
+// Sepet satırının birim fiyatı: ürün fiyatı + (standart dışı renk seçildiyse renk farkı)
+function satirBirimFiyat(u, satir){ return satisFiyati(u) + ((satir && satir.fark) ? RENK_FARK : 0); }
+// Emre'ye giden satır notu: renk (standart dışı veya varsayılan olmayan) + kişiye özel yazı
+function satirNotu(satir){
+  const par = [];
+  if(satir.renk && satir.renk !== RENKLER[0]) par.push('Renk: ' + satir.renk + (satir.fark ? ' (+' + RENK_FARK + ' TL)' : ''));
+  if(satir.not) par.push((satir.renk && satir.renk !== RENKLER[0] ? 'Yazı: ' : '') + satir.not);
+  return par.join(' · ');
 }
 function duyuruYaz(){
   const el = document.getElementById('duyuru-metin'); if(!el) return;
@@ -2246,13 +2292,14 @@ function sepetCiz(){
     const satir = sepet[key];
     const u = URUNLER.find(x=>x.id===satir.id);
     if(!u) return '';
-    const satirToplam = satisFiyati(u) * satir.adet;
+    const satirToplam = satirBirimFiyat(u, satir) * satir.adet;
     toplam += satirToplam;
     return `<div class="sepet-satir">
       <a href="#u${u.id}" onclick="detayAc(${u.id}); return false;"><img src="${u.img}" alt="" loading="lazy"></a>
       <div class="sepet-satir-govde">
         <a class="sepet-satir-ad" href="#u${u.id}" onclick="detayAc(${u.id}); return false;">${escHtml(u.t)}</a>
-        ${satir.not ? `<div class="sepet-satir-not">Not: "${escHtml(satir.not)}"</div>` : ''}
+        ${satir.renk ? `<div class="sepet-satir-not">Renk: ${escHtml(satir.renk)}${satir.fark ? ` <small>(+${fiyatFmt(RENK_FARK)}/adet)</small>` : ''}</div>` : ''}
+        ${satir.not ? `<div class="sepet-satir-not">Yazı: "${escHtml(satir.not)}"</div>` : ''}
         <div class="sepet-satir-alt">
           <div class="sepet-adet">
             <button type="button" onclick="sepetAdetAyarla('${key}', ${satir.adet-1})">−</button>
@@ -2733,9 +2780,10 @@ function sepetUrunleri(){
     const satir = sepet[key];
     const u = URUNLER.find(x=>x.id===satir.id);
     if(!u) return null;
-    return { id: u.id, ad: u.t, adet: satir.adet, fiyat: satisFiyati(u), not: satir.not || '' };
+    return { id: u.id, ad: u.t, adet: satir.adet, fiyat: satirBirimFiyat(u, satir), not: satirNotu(satir) };
   }).filter(Boolean);
 }
+function siparisNotu(){ const el = document.getElementById('siparis-notu'); return el ? el.value.trim().slice(0,300) : ''; }
 
 // misafir WhatsApp siparişi — sadece ödeme motoru yayında değilken kullanılır
 function misafirWhatsapp(){
@@ -2785,6 +2833,7 @@ async function siparisiOnaylaWhatsapp(){
       teslimat: veri.teslimat,
       fatura: veri.fatura,
       sozlesmeOnay: true,
+      siparisNotu: siparisNotu(),
       odemeTuru: 'whatsapp',
       ...(veri.misafir ? { misafir: veri.misafir } : {}),
     });
@@ -2839,6 +2888,7 @@ async function siparisiOnaylaKartla(){
       teslimat: veri.teslimat,
       fatura: veri.fatura,
       sozlesmeOnay: true,
+      siparisNotu: siparisNotu(),
       odemeTuru: 'kart',
       ...(veri.misafir ? { misafir: veri.misafir } : {}),
     });
@@ -3060,6 +3110,18 @@ function detayAc(id){
         <label for="detay-not-metin">Siparişe ne yazalım? <span class="opsiyonel">(isim, tarih, istediğin yazı) — zorunlu</span></label>
         <textarea id="detay-not-metin" rows="2" placeholder="Örn: Ahmet, 14.02.2026"></textarea>
         <p class="detay-not-hata" id="detay-not-hata">Bu ürün kişiye özel — sepete eklemeden önce ne yazılacağını girmen lazım.</p>
+        <label class="detay-onay"><input type="checkbox" id="detay-not-onay"> Yazdığım bilgileri kontrol ettim, doğru. <small>(Kişiye özel ürün iade edilemez; yazım hatası sonradan düzeltilemez.)</small></label>
+        <p class="detay-not-hata" id="detay-onay-hata">Devam etmek için yazdığını kontrol edip kutuyu işaretle.</p>
+      </div>` : '';
+  const renkAlani = RENK_ACIK ? `
+      <div class="detay-renk">
+        <label>Renk <span class="opsiyonel">(standart renkler ücretsiz, başka renk +${fiyatFmt(RENK_FARK)}/adet)</span></label>
+        <div class="renk-secenek" id="detay-renkler">
+          ${RENKLER.map((r,i)=>`<button type="button" class="renk-d${i===0?' secili':''}" data-renk="${escHtml(r)}">${escHtml(r)}</button>`).join('')}
+          <button type="button" class="renk-d renk-diger" data-renk="">Başka renk +${fiyatFmt(RENK_FARK)}</button>
+        </div>
+        <input type="text" id="detay-renk-diger" maxlength="30" placeholder="Hangi renk? (örn. Mavi, Turuncu)" hidden>
+        <p class="detay-not-hata" id="detay-renk-hata">Başka renk seçtin — hangi renk olduğunu yaz.</p>
       </div>` : '';
   const iadeIcerik = u.kisisel
     ? `<b>Bu ürün kişiye özeldir, iadesi yoktur.</b> Üstüne isim/yazı bastırılan ürünler sadece
@@ -3085,6 +3147,7 @@ function detayAc(id){
         <button class="paylas-d ig" type="button" id="paylas-ig" title="Instagram: linki kopyalar, hikâyene/DM'e yapıştır">Instagram</button>
         <button class="detay-linki" type="button" id="detay-linki">🔗 Linki kopyala</button>
       </div>
+      ${renkAlani}
       ${notAlani}
       <div class="detay-adet">
         <button class="adet-dugme" type="button" id="detay-eksi">−</button>
@@ -3107,6 +3170,10 @@ function detayAc(id){
           </div>
         </details>
         <details class="detay-bolum">
+          <summary>Ürün özellikleri</summary>
+          <div class="detay-bolum-icerik" id="detay-ozellikler">Yükleniyor…</div>
+        </details>
+        <details class="detay-bolum">
           <summary>Teslimat ve iade</summary>
           <div class="detay-bolum-icerik">${iadeIcerik}</div>
         </details>
@@ -3119,13 +3186,17 @@ function detayAc(id){
   urunAciklamaYukle(u.id);
   galeriYukle(u.id);
   yorumlariYukle(u.id);
+  ozellikleriYukle(u);
+  benzerleriCiz(u);
 
   // Ürünün kendi linki: paylaşılabilir #u<id> adresi (Instagram/WhatsApp'a atılabilir)
   if(location.hash !== '#u' + u.id){
     history.pushState({urun: u.id}, '', '#u' + u.id);
   }
   const linkBtn = document.getElementById('detay-linki');
-  const urunAdresi = 'https://oxerom.com.tr/#u' + u.id;
+  // Paylaşım adresi /u/<id>: WhatsApp/Instagram/Facebook bu adresten fotoğraf + ad okur
+  // (api motorundaki önizleme sayfası), insan anında ürün sayfasına yönlenir.
+  const urunAdresi = 'https://oxerom.com.tr/u/' + u.id;
   const kopyala = (btn, eskiMetin)=>{
     (navigator.clipboard ? navigator.clipboard.writeText(urunAdresi) : Promise.reject())
       .then(()=>{ btn.textContent = '✓ Kopyalandı'; })
@@ -3154,6 +3225,26 @@ function detayAc(id){
   }
   document.getElementById('detay-eksi').onclick = ()=>{ if(adet>1){ adet--; document.getElementById('detay-adet-sayi').textContent=adet; } };
   document.getElementById('detay-arti').onclick = ()=>{ adet++; document.getElementById('detay-adet-sayi').textContent=adet; };
+  // Renk seçimi
+  let seciliRenk = RENK_ACIK ? RENKLER[0] : '';
+  const renkKutu = document.getElementById('detay-renkler');
+  const renkDiger = document.getElementById('detay-renk-diger');
+  if(renkKutu){
+    renkKutu.querySelectorAll('.renk-d').forEach(b=>{
+      b.onclick = ()=>{
+        renkKutu.querySelectorAll('.renk-d').forEach(x=>x.classList.remove('secili'));
+        b.classList.add('secili');
+        const diger = b.classList.contains('renk-diger');
+        renkDiger.hidden = !diger;
+        document.getElementById('detay-renk-hata').classList.remove('gorunur');
+        seciliRenk = diger ? '' : b.dataset.renk;
+        if(diger) renkDiger.focus();
+      };
+    });
+    renkDiger.addEventListener('input', ()=>{ document.getElementById('detay-renk-hata').classList.remove('gorunur'); });
+  }
+  const onayEl = document.getElementById('detay-not-onay');
+  if(onayEl) onayEl.addEventListener('change', ()=>{ if(onayEl.checked) document.getElementById('detay-onay-hata').classList.remove('gorunur'); });
   document.getElementById('detay-sepet-ekle').onclick = ()=>{
     const notEl = document.getElementById('detay-not-metin');
     const not = notEl ? notEl.value.trim() : '';
@@ -3163,7 +3254,17 @@ function detayAc(id){
       notEl.focus();
       return;
     }
-    sepeteEkle(u.id, adet, not);
+    if(u.kisisel && onayEl && !onayEl.checked){
+      document.getElementById('detay-onay-hata').classList.add('gorunur');
+      onayEl.focus();
+      return;
+    }
+    let renk = seciliRenk;
+    if(renkKutu && !renkDiger.hidden){
+      renk = renkDiger.value.trim();
+      if(!renk){ document.getElementById('detay-renk-hata').classList.add('gorunur'); renkDiger.focus(); return; }
+    }
+    sepeteEkle(u.id, adet, not, renk);
     document.getElementById('detay-sepet-ekle').textContent = 'Sepete eklendi ✓';
     let git = document.getElementById('detay-sepete-git');
     if(!git){
@@ -3178,6 +3279,70 @@ function detayAc(id){
   document.title = u.t + ' — OXEROM';
 }
 function detayKapat(){ katalogaDon(); }
+
+// "Aynı araca ait diğer ürünler" / "Benzer ürünler" şeridi (3. tur kıyas, 15.08.2026):
+// araç ürününde önce aynı MODEL, sonra aynı marka; diğerlerinde aynı kategori. En çok 8 kart.
+function benzerleriCiz(u){
+  const kutu = document.getElementById('detay-benzer'); if(!kutu) return;
+  let aday = [], baslik = 'Benzer ürünler';
+  if(u.g === 'arac' && u.m && u.m !== 'Genel / Markasız'){
+    const marka = ARACLAR && ARACLAR[u.m];
+    if(marka){
+      const modeller = marka.modeller.filter(md=>md.ids.includes(u.id));
+      const modelIds = new Set(); modeller.forEach(md=>md.ids.forEach(i=>modelIds.add(i)));
+      aday = URUNLER.filter(x=>x.id!==u.id && modelIds.has(x.id));
+      baslik = modeller.length ? 'Aynı araç için diğer parçalar' + (modeller.length===1 ? ' — ' + u.m + ' ' + modeller[0].ad : '') : baslik;
+    }
+    if(aday.length < 4){
+      const ek = URUNLER.filter(x=>x.id!==u.id && x.g==='arac' && x.m===u.m && !aday.includes(x));
+      const modelVar = aday.length > 0;
+      aday = aday.concat(ek);
+      if(!aday.length) baslik = 'Benzer ürünler'; else if(!modelVar) baslik = u.m + ' için diğer ürünler';
+    }
+  }
+  if(aday.length < 4){
+    const ek = URUNLER.filter(x=>x.id!==u.id && x.g===u.g && !aday.includes(x));
+    aday = aday.concat(ek);
+  }
+  aday = aday.slice(0, 8);
+  if(!aday.length){ kutu.innerHTML=''; return; }
+  kutu.innerHTML = `<h3 class="benzer-baslik">${escHtml(baslik)}</h3><div class="izgara benzer-izgara">${aday.map(x=>urunKarti({...x, g_ad: grupAdi(x.g)})).join('')}</div>`;
+  kutu.querySelectorAll('.urun').forEach(el=>{ el.addEventListener('click', ()=> detayAc(parseInt(el.dataset.id))); });
+  kutu.querySelectorAll('.sepet-ekle').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.id);
+      const x = URUNLER.find(y=>y.id===id);
+      if(x && x.kisisel){ detayAc(id); return; }
+      sepeteEkle(id, 1);
+      btn.textContent = 'Eklendi ✓'; btn.classList.add('eklendi');
+      setTimeout(()=>{ btn.textContent='Sepete ekle'; btn.classList.remove('eklendi'); }, 1100);
+    });
+  });
+}
+
+// Ürün özellikleri tablosu: sabit satırlar + ozellikler.json (Trendyol'daki ürün nitelikleri,
+// PC'deki program üretir) + araç uyumu (araclar.json). Bilinmeyen satır yazılmaz, uydurulmaz.
+let OZELLIKLER = null;
+async function ozellikleriYukle(u){
+  const kutu = document.getElementById('detay-ozellikler'); if(!kutu) return;
+  if(!OZELLIKLER){
+    try{ const r = await fetch('ozellikler.json'); OZELLIKLER = r.ok ? await r.json() : {}; }catch(e){ OZELLIKLER = {}; }
+  }
+  if(document.getElementById('detay-ozellikler') !== kutu) return; // bu arada başka ürüne geçildi
+  const satirlar = [];
+  if(u.g === 'arac' && u.m && u.m !== 'Genel / Markasız'){
+    const marka = ARACLAR && ARACLAR[u.m];
+    const modeller = marka ? marka.modeller.filter(md=>md.ids.includes(u.id)).map(md=>md.ad) : [];
+    satirlar.push(['Uyumlu araç', u.m + (modeller.length ? ' ' + modeller.join(', ') : '') + ' <small>(başlıktaki model/yıl esastır)</small>']);
+  }
+  (OZELLIKLER[String(u.id)] || []).forEach(([k,v])=>{ if(k && v) satirlar.push([escHtml(k), escHtml(v)]); });
+  satirlar.push(['Üretim', '3D baskı — Kayseri, Türkiye, sipariş üzerine']);
+  if(RENK_ACIK) satirlar.push(['Renk', RENKLER.join(', ') + ' (ücretsiz) · başka renk +' + fiyatFmt(RENK_FARK) + '/adet']);
+  satirlar.push(['Kişiye özel', u.kisisel ? 'Evet — üstüne yazı/isim basılır, iade edilemez' : 'Hayır']);
+  satirlar.push(['Kargo', 'Ertesi iş günü kargoda']);
+  kutu.innerHTML = '<table class="ozellik-tablo">' + satirlar.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('') + '</table>';
+}
 
 // ═══════════ SAYFA YÖNLENDİRİCİ ═══════════
 // Üç tam sayfa görünüm: katalog (varsayılan) · ürün (#u123) · sepet (#sepet).
@@ -3448,6 +3613,9 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
     ARACLAR = {};
     v.markalar.forEach(m=>{ ARACLAR[m.ad] = m; });
     if(state.grup === 'arac') markaSeridiCiz();
+    // Paylaşılan linkle doğrudan ürün sayfası açıldıysa araç verisi geç geldi — şeridi/tabloyu tazele
+    const es = location.hash.match(/^#u(\d+)$/);
+    if(es){ const u = URUNLER.find(x=>x.id===parseInt(es[1])); if(u){ benzerleriCiz(u); ozellikleriYukle(u); } }
   }).catch(()=>{});
 }).catch(()=>{
   document.getElementById('izgara').innerHTML =

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sık Sorulan Sorular — OXEROM</title>
+<meta name="description" content="OXEROM sık sorulan sorular: kargo, teslimat süresi, asgari sipariş, renk seçimi, kişiye özel ürünler, iade, araç uyumu, ödeme.">
+<style>
+:root{
+  --kagit:#FCF8F4; --panel:#F4EAE1; --murekkep:#2A211C; --soluk:#6E6058;
+  --sisik:#9C8D83; --cizgi:#E7DBCF; --nar:#9C2F33; --zeytin:#5B6B3C;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--kagit); color:var(--murekkep);
+  font-family:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px; line-height:1.65;
+}
+.kap{ max-width:720px; margin:0 auto; padding:0 24px; }
+header{ border-bottom:1px solid var(--cizgi); padding:18px 0; margin-bottom:8px; }
+header .kap{ display:flex; align-items:center; justify-content:space-between; }
+.logo{ font-weight:700; font-size:18px; letter-spacing:.04em; text-decoration:none; color:var(--murekkep); }
+.geri{ font-size:14px; color:var(--soluk); text-decoration:none; }
+.geri:hover{ color:var(--nar); }
+h1{ font-size:clamp(26px,4.5vw,34px); margin:40px 0 4px; letter-spacing:-.02em; }
+.alt{ color:var(--sisik); font-size:15px; margin-bottom:26px; }
+h2{ font-size:14px; text-transform:uppercase; letter-spacing:.08em; color:var(--sisik); margin:34px 0 8px; }
+details{ border-bottom:1px solid var(--cizgi); }
+summary{
+  cursor:pointer; list-style:none; padding:14px 0; font-weight:700; font-size:16px;
+  display:flex; justify-content:space-between; gap:12px; align-items:center;
+}
+summary::-webkit-details-marker{ display:none; }
+summary::after{ content:"+"; color:var(--sisik); font-weight:400; font-size:18px; }
+details[open] summary::after{ content:"−"; }
+details p{ margin:0 0 14px; color:var(--soluk); }
+details p b{ color:var(--murekkep); }
+a{ color:var(--nar); }
+.wa{
+  display:inline-block; margin-top:26px; padding:10px 16px; border-radius:10px; background:#25D366;
+  color:#fff; font-weight:700; text-decoration:none;
+}
+footer{ margin-top:60px; padding:24px 0 50px; border-top:1px solid var(--cizgi); color:var(--sisik); font-size:13px; }
+</style>
+</head>
+<body>
+<header><div class="kap">
+  <a class="logo" href="index.html">OXEROM</a>
+  <a class="geri" href="index.html">← Mağazaya dön</a>
+</div></header>
+
+<main class="kap">
+  <h1>Sık sorulan sorular</h1>
+  <p class="alt">Cevabını bulamadığın soru için WhatsApp'tan yaz, kendimiz cevaplıyoruz.</p>
+
+  <h2>Sipariş ve kargo</h2>
+  <details>
+    <summary>Ne zaman kargoya verilir, ne zaman elime geçer?</summary>
+    <p>Bugün verilen sipariş <b>ertesi iş günü kargoya</b> verilir; ürünler sipariş üzerine basılır, o yüzden hafta sonu ve resmî tatilde kargo çıkmaz. Kargo firmasının teslim süresi bulunduğun şehre göre değişir; kargo takip numarası size iletilir.</p>
+  </details>
+  <details>
+    <summary>Kargo ücreti ne kadar? Ücretsiz kargo var mı?</summary>
+    <p>Kargo ücreti ve ücretsiz kargo sınırı <b>sepette</b> ve sayfanın üstündeki şeritte yazar. Sınırı geçen siparişlerde kargo bizden.</p>
+  </details>
+  <details>
+    <summary>Neden asgari sipariş tutarı var?</summary>
+    <p>Fiyatlarımız Trendyol'daki fiyatımızın altında; küçük tutarlı tek paket göndermek kargo maliyeti yüzünden zarar ettiriyor. Asgari tutar sepette yazar; sepet o tutarın altındaysa ne kadar kaldığını gösteren çubuk çıkar.</p>
+  </details>
+  <details>
+    <summary>Sipariş verdikten sonra fikrimi değiştirirsem?</summary>
+    <p>Kargoya verilmeden önce WhatsApp'tan yaz, iptal ederiz. Kişiye özel (üstüne isim/yazı basılan) ürün üretime girdiyse iptal edilemez.</p>
+  </details>
+
+  <h2>Ürünler</h2>
+  <details>
+    <summary>Ürünler neyden yapılıyor, nasıl üretiliyor?</summary>
+    <p>Bütün ürünler Kayseri'deki atölyemizde <b>3D yazıcıyla, sipariş üzerine</b> basılır. Ürüne özel bilgiler (malzeme, ölçü, parça sayısı) varsa ürün sayfasındaki "Ürün özellikleri" bölümünde yazar; orada olmayan bir bilgiyi WhatsApp'tan sorabilirsiniz.</p>
+  </details>
+  <details>
+    <summary>Renk seçebilir miyim?</summary>
+    <p>Evet. Ürün sayfasında <b>standart renkler</b> (elimizde her zaman olan renkler) ücretsizdir; başka bir renk istersen "Başka renk" seçip rengi yazarsın, adet başına küçük bir renk farkı eklenir — tutar ürün sayfasında yazar. Bir şey seçmezsen ürün siyah gönderilir.</p>
+  </details>
+  <details>
+    <summary>Aracıma uyar mı?</summary>
+    <p>Araç ürünlerinde <b>başlıktaki marka, model ve yıl</b> esastır ("Aracına göre bul" seçici de aynı bilgiye göre süzer). Emin değilsen aracının model yılını WhatsApp'tan yaz, bakalım.</p>
+  </details>
+  <details>
+    <summary>Sıcakta erir mi, güneşte durur mu?</summary>
+    <p>Bu, ürünün basıldığı malzemeye göre değişir; ürün sayfasında malzeme yazıyorsa ona göre söyleyebiliriz. Kesin bilgi için ürünü ve nerede kullanacağını WhatsApp'tan yaz — uydurma cevap vermeyiz.</p>
+  </details>
+  <details>
+    <summary>Sitede olmayan bir parça bastırabilir miyim?</summary>
+    <p>Sorabilirsin. Fotoğraf/ölçü ile WhatsApp'tan yaz; yapılabiliyorsa fiyat ve süre veririz.</p>
+  </details>
+
+  <h2>Kişiye özel ürünler</h2>
+  <details>
+    <summary>İsim/yazı nasıl giriliyor?</summary>
+    <p>Kişiye özel ürünün sayfasında yazı kutusu vardır; ne yazılacağını oraya girip <b>"kontrol ettim"</b> kutusunu işaretlemeden sepete eklenemez. Yazım hatası sonradan düzeltilemez — noktalama ve büyük/küçük harfe dikkat.</p>
+  </details>
+  <details>
+    <summary>Kişiye özel ürünü iade edebilir miyim?</summary>
+    <p>Hayır. Üstüne isim, tarih veya özel yazı basılan ürün sadece sizin için üretildiğinden yasal olarak iade kapsamı dışındadır. Üretim hatasıyla gelirse (kırık, yanlış yazı) elbette yenisini basarız.</p>
+  </details>
+
+  <h2>İade ve ödeme</h2>
+  <details>
+    <summary>İade nasıl oluyor?</summary>
+    <p>Teslim aldıktan sonra <b>14 gün içinde</b> iade hakkınız var; ürün kullanılmamış ve orijinal ambalajında olmalı. WhatsApp veya e-posta ile bize yazın, iade adresini iletelim. Ayrıntı: <a href="yasal/iade.html">Teslimat ve iade</a>.</p>
+  </details>
+  <details>
+    <summary>Ürün kırık veya yanlış geldi.</summary>
+    <p>Teslim aldığınız gün fotoğrafıyla WhatsApp'tan yazın; ücretsiz yenisini basıp gönderiyoruz.</p>
+  </details>
+  <details>
+    <summary>Nasıl ödeme yapabilirim?</summary>
+    <p>Sepette gördüğünüz seçenekler geçerlidir. Kart ödemesi ödeme kuruluşunun güvenli sayfasında yapılır, kart bilgisi bize hiç gelmez. WhatsApp siparişinde ödeme adımlarını mesajla iletiriz.</p>
+  </details>
+  <details>
+    <summary>Fatura kesiliyor mu?</summary>
+    <p>Evet, her siparişe fatura kesilir. Şirket adına fatura için sepette "kurumsal" seçip unvan, vergi dairesi ve vergi numaranızı girin.</p>
+  </details>
+
+  <a class="wa" href="https://wa.me/905514823223" target="_blank" rel="noopener">WhatsApp'tan sor: 0551 482 32 23</a>
+</main>
+
+<footer><div class="kap">© 2026 OXEROM — Kayseri · <a href="hakkimizda.html">Hakkımızda</a> · <a href="yasal/iade.html">Teslimat ve iade</a></div></footer>
+</body>
+</html>
