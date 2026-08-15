@@ -477,28 +477,23 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   position:relative;
 }
 .kat-serit .kap{ display:flex; align-items:center; gap:4px; }
-/* sağda daha kategori var — kaydırılabildiği belli olsun diye soluklaşan kenar */
-.kat-serit::after{
-  content:""; position:absolute; top:0; right:0; bottom:0; width:44px;
-  background:linear-gradient(to right, transparent, var(--kagit) 75%);
-  pointer-events:none;
-}
 .kat-baglar{
-  display:flex; align-items:center; gap:2px;
+  display:flex; align-items:center; gap:2px 4px;
   flex:1 1 auto; min-width:0;
-  overflow-x:auto; overflow-y:hidden;
-  scrollbar-width:thin; scrollbar-color:var(--cizgi-koyu) transparent;
+  flex-wrap:wrap; padding:3px 0;
 }
-.kat-baglar::-webkit-scrollbar{ height:5px; }
-.kat-baglar::-webkit-scrollbar-thumb{ background:var(--cizgi-koyu); border-radius:3px; }
 .kat-bag{
   position:relative;
-  padding:12px 14px; font-size:14px; color:var(--murekkep); white-space:nowrap;
+  padding:11px 16px; font-size:15px; color:var(--murekkep); white-space:nowrap;
   transition:color .18s var(--e-cik);
 }
+/* seçili kategori belli olsun (JS 'aktif' sınıfını basıyordu ama karşılığı yoktu) */
+.kat-bag.aktif{ color:var(--nar); font-weight:600; }
+.kat-bag.aktif::after{ transform:scaleX(1); }
+.kat-bag .n{ color:var(--sisik); font-size:12px; margin-left:2px; }
 /* alt çizgi ortadan açılır — kalıp değil, çizilmiş his */
 .kat-bag::after{
-  content:""; position:absolute; left:14px; right:14px; bottom:0; height:2px;
+  content:""; position:absolute; left:16px; right:16px; bottom:0; height:2px;
   background:var(--nar); transform:scaleX(0); transform-origin:50% 50%;
   transition:transform .26s var(--e-cik);
 }
@@ -510,6 +505,23 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   margin-left:8px; font-family:var(--kalem); font-size:12px;
   color:var(--zeytin); letter-spacing:.02em;
   display:inline-block; transform:rotate(-3deg);
+}
+/* Telefon: 9 kategori alt alta sarılınca ekranın üçte birini yiyor — orada parmakla
+   yana kaydırma kalıyor, sağdaki soluklaşan kenar kaydırılabildiğini gösteriyor. */
+@media (max-width:660px){
+  .kat-baglar{
+    flex-wrap:nowrap; padding:0;
+    overflow-x:auto; overflow-y:hidden;
+    scrollbar-width:thin; scrollbar-color:var(--cizgi-koyu) transparent;
+  }
+  .kat-baglar::-webkit-scrollbar{ height:5px; }
+  .kat-baglar::-webkit-scrollbar-thumb{ background:var(--cizgi-koyu); border-radius:3px; }
+  .kat-bag{ padding:12px 14px; font-size:14px; }
+  .kat-serit::after{
+    content:""; position:absolute; top:0; right:0; bottom:0; width:44px;
+    background:linear-gradient(to right, transparent, var(--kagit) 75%);
+    pointer-events:none;
+  }
 }
 
 .mega-sarmal{ position:relative; margin-right:12px; flex:none; }
