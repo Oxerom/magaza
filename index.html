@@ -117,6 +117,7 @@
      actually a risk; this rule only ever caused harm. Root-caused
      10.08.2026 after Emre reported "perde falan gitti, aşağı iniyor". */
   .sahneDis{position:relative}
+  .sahneDis[hidden]{display:none}
   .sahneIc{position:sticky; top:0; height:100vh; display:flex; align-items:center; justify-content:center;
     overflow:hidden}
   .sahneIc svg{display:block}
@@ -1517,13 +1518,14 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .sayfalama button:disabled{ opacity:.35; cursor:default; }
 
 /* ---- ürün detay (modal) ---- */
-.ortu{
-  position:fixed; inset:0; background:rgba(30,22,17,.5); z-index:200; display:none;
-  align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto;
-}
-.ortu.acik{ display:flex; }
+/* ---- tam sayfa görünümler: ürün sayfası ve sepet sayfası ---- */
+.sayfa{ padding:22px 0 60px; }
+.sayfa[hidden]{ display:none; }
+.sayfa-geri{ display:inline-block; font-size:13.5px; color:var(--soluk); text-decoration:none; margin-bottom:16px; }
+.sayfa-geri:hover{ color:var(--nar); }
+.sayfa-baslik{ font-family:var(--serif); font-size:28px; margin:0 0 18px; }
 .detay{
-  background:var(--kagit); border-radius:var(--r-l); max-width:920px; width:100%; box-shadow:var(--g3);
+  background:var(--yuzey); border-radius:var(--r-l); width:100%; border:1px solid var(--cizgi);
   display:grid; grid-template-columns:1fr 1fr; overflow:hidden;
 }
 .detay-kapat{
@@ -1532,7 +1534,8 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   z-index:5;
 }
 .detay-gorsel{ background:var(--panel); position:relative; }
-.detay-gorsel img{ width:100%; height:100%; object-fit:cover; display:block; min-height:320px; }
+.detay-gorsel > img{ width:100%; height:auto; max-height:600px; object-fit:contain; display:block; min-height:320px; }
+.detay-gorsel{ align-self:start; }
 .detay-govde{ padding:34px 32px; display:flex; flex-direction:column; gap:14px; }
 .detay-govde .urun-kat{ font-size:11.5px; }
 .detay-govde h2{ font-family:var(--serif); font-size:23px; margin:0; line-height:1.3; }
@@ -1599,8 +1602,10 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   font-weight:700; font-size:14.5px; cursor:pointer;
 }
 .detay-sepet:hover{ background:#3a2e26; }
+.detay-sepete-git{ display:inline-block; margin-top:8px; font-size:14px; font-weight:700; color:var(--nar); }
 
 /* ---- sepet çekmecesi ---- */
+/* hesap paneli hâlâ yandan açılır (sepet ve ürün artık tam sayfa) */
 .sepet-ortu{ position:fixed; inset:0; background:rgba(30,22,17,.45); z-index:210; display:none; }
 .sepet-ortu.acik{ display:block; }
 .sepet-panel{
@@ -1609,6 +1614,15 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   transform:translateX(100%); transition:transform .28s var(--e-cik);
 }
 .sepet-ortu.acik .sepet-panel{ transform:translateX(0); }
+/* sepet sayfası: solda satırlar, sağda özet + sipariş formu */
+.sepet-sayfa{ display:grid; grid-template-columns:1fr 420px; gap:26px; align-items:start; }
+.sepet-sayfa .sepet-liste{ padding:0; gap:16px; overflow:visible; }
+.sepet-sayfa .sepet-satir{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:14px; }
+.sepet-sayfa .sepet-satir img{ width:84px; height:84px; }
+.sepet-sayfa .sepet-satir-ad{ font-size:14px; }
+.sepet-sayfa .sepet-sil{ align-self:flex-start; padding:0; }
+.sepet-ozet{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:18px 20px; position:sticky; top:150px; }
+@media (max-width:900px){ .sepet-sayfa{ grid-template-columns:1fr; } .sepet-ozet{ position:static; } }
 .sepet-bas{ display:flex; align-items:center; justify-content:space-between; padding:20px 22px; border-bottom:1px solid var(--cizgi); }
 .sepet-bas h3{ margin:0; font-size:16px; }
 .sepet-kapat{ border:0; background:transparent; font-size:18px; cursor:pointer; color:var(--soluk); }
@@ -1804,7 +1818,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 <div class="ust-sabit">
   <header class="ust">
     <div class="kap ust-govde">
-      <a class="logo" href="#" aria-label="OXEROM ana sayfa" onclick="window.scrollTo({top:0, behavior:'smooth'}); return false;">
+      <a class="logo" href="#" aria-label="OXEROM ana sayfa" onclick="katalogaDon(); window.scrollTo({top:0, behavior:'smooth'}); return false;">
         <svg viewBox="0 0 535.2 120" role="img" aria-hidden="true"><use href="#lg-yatay"/></svg>
       </a>
       <div class="arama-sarmal">
@@ -1830,6 +1844,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   </nav>
 </div>
 
+<div id="sayfa-katalog">
 <section class="vitrin">
   <div class="kap">
     <div class="tabla">
@@ -2036,26 +2051,32 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
     <div class="sayfalama" id="sayfalama"></div>
   </div>
 </main>
+</div><!-- /sayfa-katalog -->
 
-<div class="ortu" id="detay-ortu">
-  <div class="detay" id="detay-govde" style="position:relative;"></div>
-</div>
+<!-- ============ ÜRÜN SAYFASI (tam sayfa, #u123) ============ -->
+<section class="sayfa" id="sayfa-urun" hidden>
+  <div class="kap">
+    <a class="sayfa-geri" href="#" onclick="katalogaDon(); return false;">← Ürünlere dön</a>
+    <div class="detay" id="detay-govde" style="position:relative;"></div>
+  </div>
+</section>
 
-<div class="sepet-ortu" id="sepet-ortu">
-  <div class="sepet-panel">
-    <div class="sepet-bas">
-      <h3>Sepetim</h3>
-      <button class="sepet-kapat" id="sepet-kapat" type="button" aria-label="Kapat">✕</button>
-    </div>
-    <div class="sepet-liste" id="sepet-liste"></div>
-    <div class="sepet-alt">
-      <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
-      <div class="sepet-ara-satir"><span>Kargo <small>(700 TL üzeri bedava)</small></span><span class="num" id="sepet-kargo">—</span></div>
-      <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
-      <div id="siparis-bolge"></div>
+<!-- ============ SEPET SAYFASI (tam sayfa, #sepet) ============ -->
+<section class="sayfa" id="sayfa-sepet" hidden>
+  <div class="kap">
+    <a class="sayfa-geri" href="#" onclick="katalogaDon(); return false;">← Alışverişe devam et</a>
+    <h1 class="sayfa-baslik">Sepetim</h1>
+    <div class="sepet-sayfa">
+      <div class="sepet-liste" id="sepet-liste"></div>
+      <aside class="sepet-ozet">
+        <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
+        <div class="sepet-ara-satir"><span>Kargo <small>(700 TL üzeri bedava)</small></span><span class="num" id="sepet-kargo">—</span></div>
+        <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
+        <div id="siparis-bolge"></div>
+      </aside>
     </div>
   </div>
-</div>
+</section>
 
 <div class="sepet-ortu" id="hesap-ortu">
   <div class="sepet-panel">
@@ -2810,6 +2831,7 @@ function katBaglarCiz(){
       state.model = 'tum';
       state.sayfa = 1;
       cizHepsi();
+      if(document.getElementById('sayfa-katalog').hidden) katalogaDon();
       document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
@@ -2997,7 +3019,6 @@ function detayAc(id){
        ve orijinal ambalajında olmalı. Kırık/hasarlı gelen ürünü fotoğrafıyla bize iletin, ücretsiz
        yenisini basıp gönderiyoruz. <a href="yasal/iade.html" target="_blank" rel="noopener">İade koşulları</a>`;
   document.getElementById('detay-govde').innerHTML = `
-    <button class="detay-kapat" type="button" onclick="detayKapat()">✕</button>
     <div class="detay-gorsel"><img src="${u.img}" alt="${escHtml(u.t)}">
       <div class="detay-galeri" id="detay-galeri" style="display:none"></div></div>
     <div class="detay-govde">
@@ -3075,25 +3096,57 @@ function detayAc(id){
     }
     sepeteEkle(u.id, adet, not);
     document.getElementById('detay-sepet-ekle').textContent = 'Sepete eklendi ✓';
+    let git = document.getElementById('detay-sepete-git');
+    if(!git){
+      git = document.createElement('a');
+      git.id = 'detay-sepete-git'; git.href = '#sepet'; git.className = 'detay-sepete-git';
+      git.textContent = 'Sepete git →';
+      git.onclick = e=>{ e.preventDefault(); sepeteGit(); };
+      document.getElementById('detay-sepet-ekle').insertAdjacentElement('afterend', git);
+    }
   };
-  document.getElementById('detay-ortu').classList.add('acik');
-  document.body.style.overflow = 'hidden';
+  sayfaGoster('urun');
+  document.title = u.t + ' — OXEROM';
 }
-function detayKapat(geriden){
-  document.getElementById('detay-ortu').classList.remove('acik');
-  document.body.style.overflow = '';
-  // Adres çubuğundaki #u... izini temizle (geri tuşundan geldiysek zaten temiz)
-  if(!geriden && /^#u\d+$/.test(location.hash)){
-    history.replaceState(null, '', location.pathname + location.search);
+function detayKapat(){ katalogaDon(); }
+
+// ═══════════ SAYFA YÖNLENDİRİCİ ═══════════
+// Üç tam sayfa görünüm: katalog (varsayılan) · ürün (#u123) · sepet (#sepet).
+// Adres çubuğu her zaman doğru sayfayı söyler; geri tuşu ve paylaşılan link çalışır.
+function sayfaGoster(ad){
+  // Perde açılışı sadece katalogda; ürün/sepet sayfası perdesiz, üstten başlar
+  const perde = document.querySelector('.sahneDis');
+  if(perde) perde.hidden = ad !== 'katalog';
+  document.getElementById('sayfa-katalog').hidden = ad !== 'katalog';
+  document.getElementById('sayfa-urun').hidden    = ad !== 'urun';
+  document.getElementById('sayfa-sepet').hidden   = ad !== 'sepet';
+  if(ad !== 'urun') document.title = 'OXEROM';
+  window.scrollTo({top:0, behavior:'instant'});
+}
+function katalogaDon(){
+  // Ürün/sepet sayfasından katalog'a: adresi temizle, kataloğun olduğu yere dön
+  if(location.hash && location.hash !== '#katalog') history.pushState(null, '', location.pathname + location.search);
+  sayfaGoster('katalog');
+  document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
+}
+function sepeteGit(){
+  if(location.hash !== '#sepet') history.pushState({sepet:true}, '', '#sepet');
+  sepetCiz();
+  sayfaGoster('sepet');
+}
+function yolCoz(){
+  const h = location.hash;
+  const es = h.match(/^#u(\d+)$/);
+  if(es){ detayAc(parseInt(es[1])); return; }
+  if(h === '#sepet'){ sepetCiz(); sayfaGoster('sepet'); return; }
+  sayfaGoster('katalog');
+  if(h === '#katalog' || h === '#iletisim'){
+    const hedef = document.getElementById(h.slice(1));
+    if(hedef) hedef.scrollIntoView({behavior:'smooth', block:'start'});
   }
 }
-
-// Telefonda geri tuşu pencereyi kapatsın; paylaşılan #u linkiyle gelince pencere açılsın
-window.addEventListener('popstate', ()=>{
-  const es = location.hash.match(/^#u(\d+)$/);
-  if(es) detayAc(parseInt(es[1]));
-  else detayKapat(true);
-});
+window.addEventListener('popstate', yolCoz);
+window.addEventListener('hashchange', yolCoz);
 
 // ---- ürün galerisi — ayrı dosyadan bir kere çekilir ----
 let GORSELLER = null;
@@ -3219,21 +3272,8 @@ async function yorumlariYukle(id){
     };
   }
 }
-document.getElementById('detay-ortu').addEventListener('click', e=>{
-  if(e.target.id === 'detay-ortu') detayKapat();
-});
-
-// ---- sepet paneli aç/kapat ----
-document.getElementById('sepet-ac').addEventListener('click', ()=>{
-  sepetCiz();
-  document.getElementById('sepet-ortu').classList.add('acik');
-});
-document.getElementById('sepet-kapat').addEventListener('click', ()=>{
-  document.getElementById('sepet-ortu').classList.remove('acik');
-});
-document.getElementById('sepet-ortu').addEventListener('click', e=>{
-  if(e.target.id === 'sepet-ortu') document.getElementById('sepet-ortu').classList.remove('acik');
-});
+// ---- sepet sayfası ----
+document.getElementById('sepet-ac').addEventListener('click', sepeteGit);
 
 // ---- arama ----
 const aramaGirdi = document.getElementById('arama');
@@ -3333,8 +3373,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   fisKategorilerCiz();
   cokSatanBagla();
   // Paylaşılan ürün linkiyle (#u123) gelindiyse o ürünü aç
-  const hashEs = location.hash.match(/^#u(\d+)$/);
-  if(hashEs) detayAc(parseInt(hashEs[1]));
+  yolCoz();
   // Araç model listesi (yüklenemezse marka filtresi model satırı olmadan çalışır)
   fetch('araclar.json').then(r=>r.ok?r.json():null).then(v=>{
     if(!v) return;
