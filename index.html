@@ -1500,6 +1500,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
 .urun-fiyat{ font-size:17px; font-weight:700; margin-top:auto; }
+.eski-fiyat{ font-size:12px; font-weight:400; color:var(--sisik); margin-left:4px; }
+.detay-fiyat .eski-fiyat{ font-size:15px; }
+.indirim-rozet{ display:inline-block; font-size:11px; font-weight:700; color:#2E7D4F; background:#EBF6EF; border-radius:6px; padding:3px 8px; margin-left:8px; vertical-align:middle; }
 .ty-satir{ font-size:11px; color:var(--sisik); display:flex; align-items:center; gap:4px; }
 .sepet-ekle{
   border:0; background:var(--panel-2); color:var(--murekkep); padding:9px 10px; border-radius:var(--r-s);
@@ -1615,11 +1618,15 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 }
 .sepet-ortu.acik .sepet-panel{ transform:translateX(0); }
 /* sepet sayfası: solda satırlar, sağda özet + sipariş formu */
+.kap-dar{ max-width:720px; }
+.hesap-sayfa{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:22px 24px; display:flex; flex-direction:column; gap:14px; }
 .sepet-sayfa{ display:grid; grid-template-columns:1fr 420px; gap:26px; align-items:start; }
 .sepet-sayfa .sepet-liste{ padding:0; gap:16px; overflow:visible; }
 .sepet-sayfa .sepet-satir{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:14px; }
 .sepet-sayfa .sepet-satir img{ width:84px; height:84px; }
 .sepet-sayfa .sepet-satir-ad{ font-size:14px; }
+a.sepet-satir-ad{ color:inherit; text-decoration:none; }
+a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 .sepet-sayfa .sepet-sil{ align-self:flex-start; padding:0; }
 .sepet-ozet{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:18px 20px; position:sticky; top:150px; }
 @media (max-width:900px){ .sepet-sayfa{ grid-template-columns:1fr; } .sepet-ozet{ position:static; } }
@@ -1637,6 +1644,10 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .sepet-adet button{ width:22px; height:22px; border-radius:50%; border:1px solid var(--cizgi-koyu); background:var(--yuzey); cursor:pointer; font-size:12px; }
 .sepet-sil{ border:0; background:transparent; color:var(--sisik); font-size:11px; cursor:pointer; text-decoration:underline; }
 .sepet-bos{ padding:50px 20px; text-align:center; color:var(--soluk); }
+.min-sepet{ margin-top:14px; padding:14px 16px; background:#FBF1EC; border:1px solid #EAD1C6; border-radius:var(--r-s); font-size:13px; display:flex; flex-direction:column; gap:8px; }
+.min-sepet-cubuk{ height:6px; background:#EAD1C6; border-radius:3px; overflow:hidden; }
+.min-sepet-cubuk i{ display:block; height:100%; background:var(--nar); }
+.min-sepet a{ color:var(--nar); font-weight:700; }
 .sepet-alt{ border-top:1px solid var(--cizgi); padding:18px 22px 22px; display:flex; flex-direction:column; gap:12px; }
 .sepet-ara-satir{ display:flex; justify-content:space-between; font-size:13px; color:var(--soluk); }
 .sepet-ara-satir small{ font-size:11px; color:var(--sisik); }
@@ -2070,7 +2081,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
       <div class="sepet-liste" id="sepet-liste"></div>
       <aside class="sepet-ozet">
         <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
-        <div class="sepet-ara-satir"><span>Kargo <small>(700 TL üzeri bedava)</small></span><span class="num" id="sepet-kargo">—</span></div>
+        <div class="sepet-ara-satir"><span>Kargo <small>(sabit)</small></span><span class="num" id="sepet-kargo">—</span></div>
         <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
         <div id="siparis-bolge"></div>
       </aside>
@@ -2078,15 +2089,14 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   </div>
 </section>
 
-<div class="sepet-ortu" id="hesap-ortu">
-  <div class="sepet-panel">
-    <div class="sepet-bas">
-      <h3 id="hesap-baslik">Hesabım</h3>
-      <button class="sepet-kapat" id="hesap-kapat" type="button" aria-label="Kapat">✕</button>
-    </div>
-    <div class="sepet-liste" id="hesap-govde"></div>
+<!-- ============ HESABIM SAYFASI (tam sayfa, #hesap) ============ -->
+<section class="sayfa" id="sayfa-hesap" hidden>
+  <div class="kap kap-dar">
+    <a class="sayfa-geri" href="#" onclick="katalogaDon(); return false;">← Alışverişe dön</a>
+    <h1 class="sayfa-baslik" id="hesap-baslik">Hesabım</h1>
+    <div class="hesap-sayfa" id="hesap-govde"></div>
   </div>
-</div>
+</section>
 
 
 
@@ -2191,9 +2201,15 @@ function sepetAdetAyarla(key, adet){
   sepetCiz();
 }
 
-// kargo kuralı: 700 TL altı 39 TL, 700 TL ve üzeri bedava (ödeme motoru da aynı hesabı yapar)
-const KARGO_ESIK = 700, KARGO_UCRET = 39;
-function kargoHesapla(araToplam){ return araToplam >= KARGO_ESIK ? 0 : KARGO_UCRET; }
+// FİYAT KURALLARI (Emre, 15.08.2026 — deneme): Trendyol fiyatının %20 altı ·
+// sepet en az 250 TL (indirimli tutar) · kargo sabit 69,99 · bedava kargo eşiği YOK.
+// Ödeme motoru (magaza-odeme) aynı üç sayıyı kendi tarafında da uygular; değişirse ikisi birden.
+const INDIRIM = 0.20, MIN_SEPET = 250, KARGO_UCRET = 69.99;
+function satisFiyati(u){
+  const oran = (u.indirim != null) ? u.indirim : INDIRIM; // ürün bazlı oran (panelden) yoksa genel
+  return Math.round(u.p * (1 - oran) * 100) / 100;
+}
+function kargoHesapla(araToplam){ return KARGO_UCRET; }
 
 function sepetCiz(){
   const liste = document.getElementById('sepet-liste');
@@ -2211,12 +2227,12 @@ function sepetCiz(){
     const satir = sepet[key];
     const u = URUNLER.find(x=>x.id===satir.id);
     if(!u) return '';
-    const satirToplam = u.p * satir.adet;
+    const satirToplam = satisFiyati(u) * satir.adet;
     toplam += satirToplam;
     return `<div class="sepet-satir">
-      <img src="${u.img}" alt="" loading="lazy">
+      <a href="#u${u.id}" onclick="detayAc(${u.id}); return false;"><img src="${u.img}" alt="" loading="lazy"></a>
       <div class="sepet-satir-govde">
-        <div class="sepet-satir-ad">${escHtml(u.t)}</div>
+        <a class="sepet-satir-ad" href="#u${u.id}" onclick="detayAc(${u.id}); return false;">${escHtml(u.t)}</a>
         ${satir.not ? `<div class="sepet-satir-not">Not: "${escHtml(satir.not)}"</div>` : ''}
         <div class="sepet-satir-alt">
           <div class="sepet-adet">
@@ -2234,8 +2250,10 @@ function sepetCiz(){
   document.getElementById('sepet-ara').textContent = fiyatFmt(toplam);
   document.getElementById('sepet-kargo').textContent = kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
   document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam + kargo);
+  SEPET_ARA_TOPLAM = toplam;
   siparisBolgeCiz();
 }
+let SEPET_ARA_TOPLAM = 0;
 
 // ═══════════ ÜYELİK / OTURUM ═══════════
 let oturum = JSON.parse(localStorage.getItem('oxerom_oturum') || 'null') || { token:null, kullanici:null };
@@ -2261,9 +2279,10 @@ async function apiIstek(yol, govde, metod){
 
 function hesapAc(gorunum){
   hesapCiz(gorunum || (oturum.kullanici ? 'hesabim' : 'giris'));
-  document.getElementById('hesap-ortu').classList.add('acik');
+  if(location.hash !== '#hesap') history.pushState({hesap:true}, '', '#hesap');
+  sayfaGoster('hesap');
 }
-function hesapKapat(){ document.getElementById('hesap-ortu').classList.remove('acik'); }
+function hesapKapat(){ katalogaDon(); }
 
 function hesapCiz(gorunum){
   const govde = document.getElementById('hesap-govde');
@@ -2507,11 +2526,24 @@ function siparisBolgeCiz(zorla){
   const bolge = document.getElementById('siparis-bolge');
   if(!bolge) return;
   const dolu = Object.keys(sepet).length > 0;
-  const durumAnahtari = (oturum.token ? 'u' : 'z') + (dolu ? 'd' : 'b') + API_DURUM;
-  if(!zorla && bolge.dataset.durum === durumAnahtari) return; // yazılanları silmemek için gereksiz çizim yok
+  const azTutar = dolu && SEPET_ARA_TOPLAM < MIN_SEPET;
+  const durumAnahtari = (oturum.token ? 'u' : 'z') + (dolu ? 'd' : 'b') + (azTutar ? 'a' : 't') + API_DURUM;
+  if(!zorla && bolge.dataset.durum === durumAnahtari && !azTutar) return; // yazılanları silmemek için gereksiz çizim yok
   bolge.dataset.durum = durumAnahtari;
 
   if(!dolu){ bolge.innerHTML = ''; return; }
+  if(azTutar){
+    const kalan = MIN_SEPET - SEPET_ARA_TOPLAM;
+    const yuzde = Math.min(100, Math.round(SEPET_ARA_TOPLAM / MIN_SEPET * 100));
+    bolge.innerHTML = `
+      <div class="min-sepet">
+        <b>Asgari sipariş tutarı ${fiyatFmt(MIN_SEPET)}</b>
+        <div class="min-sepet-cubuk"><i style="width:${yuzde}%"></i></div>
+        <span>Sipariş verebilmek için sepetinize <b>${fiyatFmt(kalan)}</b> daha ekleyin.</span>
+        <a href="#" onclick="katalogaDon(); return false;">Alışverişe devam et →</a>
+      </div>`;
+    return;
+  }
 
   if(API_DURUM === 'yok'){
     bolge.innerHTML = `
@@ -2682,7 +2714,7 @@ function sepetUrunleri(){
     const satir = sepet[key];
     const u = URUNLER.find(x=>x.id===satir.id);
     if(!u) return null;
-    return { id: u.id, ad: u.t, adet: satir.adet, fiyat: u.p, not: satir.not || '' };
+    return { id: u.id, ad: u.t, adet: satir.adet, fiyat: satisFiyati(u), not: satir.not || '' };
   }).filter(Boolean);
 }
 
@@ -2924,7 +2956,7 @@ function urunKarti(u){
     <div class="urun-govde">
       <span class="urun-kat">${escHtml(u.g_ad || '')}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h3 class="urun-ad">${escHtml(u.t)}</h3>
-      <div class="urun-fiyat num">${fiyatFmt(u.p)}</div>
+      <div class="urun-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s></div>
       ${ty}
       <button class="sepet-ekle" type="button" data-id="${u.id}">Sepete ekle</button>
     </div>
@@ -3024,7 +3056,8 @@ function detayAc(id){
     <div class="detay-govde">
       <span class="urun-kat">${escHtml(grupAdi(u.g))}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h2>${escHtml(u.t)}</h2>
-      <div class="detay-fiyat num">${fiyatFmt(u.p)}</div>
+      <div class="detay-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
+        <span class="indirim-rozet">Trendyol fiyatından %${Math.round(((u.indirim != null) ? u.indirim : INDIRIM)*100)} ucuz</span></div>
       <div class="detay-kargo">📦 Bugün sipariş verin, <b>ertesi iş günü kargoda</b>.</div>
       <button class="detay-linki" type="button" id="detay-linki">🔗 Ürün linkini kopyala</button>
       ${notAlani}
@@ -3045,7 +3078,7 @@ function detayAc(id){
           <div class="detay-bolum-icerik">
             Kredi/banka kartı ile güvenli ödeme (PayTR altyapısı — taksit seçenekleri ödeme
             ekranında görünür) veya WhatsApp üzerinden sipariş. Kart bilgileriniz sitemizden
-            hiç geçmez. <b>700 TL ve üzeri siparişlerde kargo bedava</b>, altında 39 TL.
+            hiç geçmez. Kargo her siparişte sabit <b>69,99 TL</b>; asgari sipariş tutarı <b>250 TL</b>.
           </div>
         </details>
         <details class="detay-bolum">
@@ -3120,6 +3153,7 @@ function sayfaGoster(ad){
   document.getElementById('sayfa-katalog').hidden = ad !== 'katalog';
   document.getElementById('sayfa-urun').hidden    = ad !== 'urun';
   document.getElementById('sayfa-sepet').hidden   = ad !== 'sepet';
+  document.getElementById('sayfa-hesap').hidden   = ad !== 'hesap';
   if(ad !== 'urun') document.title = 'OXEROM';
   window.scrollTo({top:0, behavior:'instant'});
 }
@@ -3139,6 +3173,7 @@ function yolCoz(){
   const es = h.match(/^#u(\d+)$/);
   if(es){ detayAc(parseInt(es[1])); return; }
   if(h === '#sepet'){ sepetCiz(); sayfaGoster('sepet'); return; }
+  if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
   sayfaGoster('katalog');
   if(h === '#katalog' || h === '#iletisim'){
     const hedef = document.getElementById(h.slice(1));
@@ -3338,10 +3373,6 @@ document.getElementById('sayfa-basi-sec').addEventListener('change', e=>{
 });
 // ---- hesap paneli aç/kapat ----
 document.getElementById('hesap-ac').addEventListener('click', ()=> hesapAc());
-document.getElementById('hesap-kapat').addEventListener('click', hesapKapat);
-document.getElementById('hesap-ortu').addEventListener('click', e=>{
-  if(e.target.id === 'hesap-ortu') hesapKapat();
-});
 hesapDugmeGuncelle();
 
 // oturum hâlâ geçerli mi kontrol et (sunucu tarafı süresi dolmuş olabilir)
