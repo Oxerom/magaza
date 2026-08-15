@@ -1623,6 +1623,26 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .ozellik-tablo td{ padding:6px 0; border-bottom:1px solid var(--cizgi); vertical-align:top; }
 .ozellik-tablo tr:last-child th, .ozellik-tablo tr:last-child td{ border-bottom:0; }
 .benzer{ margin-top:36px; }
+.wa-balon{
+  position:fixed; right:18px; bottom:18px; z-index:60; display:flex; align-items:center; gap:8px;
+  background:#25D366; color:#fff; text-decoration:none; font-weight:700; font-size:13.5px;
+  padding:10px 14px 10px 12px; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+.wa-balon:hover{ background:#1ebe5b; }
+@media (max-width:640px){ .wa-balon span{ display:none; } .wa-balon{ padding:12px; right:14px; bottom:14px; } }
+.talep{ margin:44px 0 0; padding:38px 0; background:var(--panel); border-top:1.5px solid var(--cizgi-koyu); border-bottom:1.5px solid var(--cizgi-koyu); }
+.talep-kap{ display:grid; grid-template-columns:1.1fr 1fr; gap:34px; align-items:start; }
+.talep-metin h2{ font-size:24px; margin:0 0 10px; letter-spacing:-.01em; }
+.talep-metin p{ margin:0 0 10px; font-size:14.5px; line-height:1.6; color:var(--soluk); }
+.talep-not{ font-size:12.5px !important; color:var(--sisik) !important; }
+.talep-form{ display:flex; flex-direction:column; gap:10px; background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:18px; }
+.talep-form label{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:700; }
+.talep-form .opsiyonel{ font-weight:400; color:var(--sisik); }
+.talep-form input, .talep-form textarea{ font:inherit; font-size:13.5px; font-weight:400; padding:8px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--kagit); color:var(--murekkep); }
+.talep-form input[type=file]{ padding:6px; }
+.talep-satir{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
+@media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 .benzer-baslik{ font-size:17px; margin:0 0 14px; }
 .benzer-izgara .urun{ animation:none; }
 .sepet-not-alani{ display:flex; flex-direction:column; gap:5px; font-size:12.5px; font-weight:700; margin:12px 0 4px; }
@@ -2076,6 +2096,18 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
           <option value="en-yeni">En yeni</option>
         </select>
       </label>
+      <label>Fiyat
+        <select id="fiyat-sec">
+          <option value="tum">Hepsi</option>
+          <option value="0-100">100 TL altı</option>
+          <option value="100-150">100 – 150 TL</option>
+          <option value="150-200">150 – 200 TL</option>
+          <option value="200-300">200 – 300 TL</option>
+          <option value="300-400">300 – 400 TL</option>
+          <option value="400-600">400 – 600 TL</option>
+          <option value="600-">600 TL üstü</option>
+        </select>
+      </label>
       <label>Sayfa başına
         <select id="sayfa-basi-sec">
           <option value="24">24</option>
@@ -2131,6 +2163,29 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 
 
 
+<!-- Özel baskı talebi (15.08.2026, Emre): STL yükle + ad soyad + telefon zorunlu -->
+<section class="talep" id="ozel-baski">
+  <div class="kap talep-kap">
+    <div class="talep-metin">
+      <h2>Aklındaki parçayı basalım</h2>
+      <p>Sitede olmayan bir parça mı lazım? Kırılan bir aparat, aracına özel bir tutucu, kendi tasarımın… <b>STL dosyanı</b> yükle, WhatsApp'tan fiyat ve süre verelim. Elimizde her zaman siyah, beyaz, kırmızı ve gri PETG var.</p>
+      <p class="talep-not">Dosyan sadece bize gelir, üçüncü kişiyle paylaşılmaz; 60 gün sonra silinir. Tasarımın yoksa fotoğraf ve ölçüyü <a href="https://wa.me/905514823223" target="_blank" rel="noopener">WhatsApp'tan</a> gönder.</p>
+    </div>
+    <form class="talep-form" id="talep-form" novalidate>
+      <div class="talep-satir">
+        <label>Ad <input type="text" name="ad" maxlength="40" required autocomplete="given-name"></label>
+        <label>Soyad <input type="text" name="soyad" maxlength="40" required autocomplete="family-name"></label>
+      </div>
+      <label>Telefon <input type="tel" name="telefon" maxlength="20" required placeholder="05xx xxx xx xx" autocomplete="tel"></label>
+      <label>Kısa açıklama <span class="opsiyonel">(isteğe bağlı: adet, renk, nerede kullanılacak)</span><textarea name="aciklama" rows="2" maxlength="600"></textarea></label>
+      <label class="talep-dosya">STL dosyası <span class="opsiyonel">(sadece .stl, en fazla 15 MB)</span><input type="file" name="dosya" accept=".stl" required></label>
+      <p class="detay-not-hata" id="talep-hata"></p>
+      <button class="detay-sepet" type="submit" id="talep-gonder">Dosyayı gönder</button>
+      <p class="talep-ok" id="talep-ok" hidden>✓ Aldık. En kısa sürede WhatsApp'tan fiyat ve süreyle döneceğiz.</p>
+    </form>
+  </div>
+</section>
+
 <footer class="dip" id="iletisim">
   <div class="kap">
     <div class="fis">
@@ -2159,6 +2214,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             <li class="fis-satir"><a href="mailto:oxerom9@gmail.com">E-posta</a><span class="nk"></span><span class="sag">oxerom9@gmail.com</span></li>
             <li class="fis-satir"><a href="hakkimizda.html">Atölye</a><span class="nk"></span><span class="sag">Kayseri, Türkiye</span></li>
             <li class="fis-satir"><a href="sss.html">Sık sorulan sorular</a><span class="nk"></span><span class="sag">SSS</span></li>
+            <li class="fis-satir"><a href="#ozel-baski" onclick="katalogaDon(); setTimeout(()=>document.getElementById('ozel-baski').scrollIntoView({behavior:'smooth'}),50); return false;">Özel baskı talebi</a><span class="nk"></span><span class="sag">STL yükle</span></li>
           </ul>
         </div>
       </div>
@@ -2178,6 +2234,11 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   </div>
 </footer>
 
+<a class="wa-balon" href="https://wa.me/905514823223?text=Merhaba%2C%20oxerom.com.tr%27den%20yaz%C4%B1yorum." target="_blank" rel="noopener noreferrer" aria-label="WhatsApp'tan yaz">
+  <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M16 3C9 3 3.3 8.7 3.3 15.7c0 2.5.7 4.9 2 7L3 29l6.5-2.1c2 1.1 4.2 1.7 6.5 1.7 7 0 12.7-5.7 12.7-12.7S23 3 16 3zm0 23.2c-2 0-4-.5-5.7-1.6l-.4-.2-3.9 1.3 1.3-3.8-.3-.4c-1.2-1.8-1.8-3.9-1.8-6 0-5.9 4.8-10.6 10.7-10.6S26.7 9.7 26.7 15.6 21.9 26.2 16 26.2zm5.8-7.9c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2s-.8 1-1 1.2c-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.6l.5-.5.3-.5c.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.3c.2.2 2.3 3.5 5.6 4.9.8.3 1.4.5 1.9.7.8.3 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5-.1-.2-.3-.2-.6-.4z"/></svg>
+  <span>WhatsApp</span>
+</a>
+
 <script>
 
 // ürün verisi urunler.json'dan yüklenir (yönetim paneli düzenleyebilsin diye) — 'başlangıç' bölümüne bak
@@ -2188,7 +2249,7 @@ let MARKALAR = [];
 // Modeli başlığından çıkarılamayan ürünler markanın "genel" listesindedir ve
 // hangi model seçilirse seçilsin gösterilir — ürün kaybolmaz.
 let ARACLAR = null;
-let state = { q: '', grup: 'tum', marka: 'tum', model: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24 };
+let state = { q: '', grup: 'tum', marka: 'tum', model: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24, fiyat: 'tum' };
 // ödeme motorunun adresi — motor (magaza-odeme/) Cloudflare'a yayınlanınca
 // gerçek adresle değiştirilecek. Değişene kadar site kendiliğinden misafir
 // WhatsApp siparişine düşer (üyelik/yorum/kart kapalı kalır).
@@ -3007,6 +3068,11 @@ function filtreliListe(){
       }
     }
   }
+  if(state.fiyat && state.fiyat !== 'tum'){
+    // Aralık SİTEDEKİ satış fiyatına (indirimli) göre; "600-" = üst sınır yok
+    const [alt, ust] = state.fiyat.split('-').map(x=>x===''?null:parseFloat(x));
+    l = l.filter(x=>{ const f = satisFiyati(x); return f >= (alt||0) && (ust==null || f < ust); });
+  }
   if(state.sirala === 'fiyat-artan') l = [...l].sort((a,b)=>a.p-b.p);
   else if(state.sirala === 'fiyat-azalan') l = [...l].sort((a,b)=>b.p-a.p);
   else if(state.sirala === 'en-yeni') l = [...l].sort((a,b)=>b.ts-a.ts);
@@ -3337,6 +3403,7 @@ async function ozellikleriYukle(u){
     satirlar.push(['Uyumlu araç', u.m + (modeller.length ? ' ' + modeller.join(', ') : '') + ' <small>(başlıktaki model/yıl esastır)</small>']);
   }
   (OZELLIKLER[String(u.id)] || []).forEach(([k,v])=>{ if(k && v) satirlar.push([escHtml(k), escHtml(v)]); });
+  satirlar.push(['Malzeme', 'PETG filament — 80 °C ısıya dayanır, ışığa (güneşe) dayanıklı; araç içi kullanıma uygun']);
   satirlar.push(['Üretim', '3D baskı — Kayseri, Türkiye, sipariş üzerine']);
   if(RENK_ACIK) satirlar.push(['Renk', RENKLER.join(', ') + ' (ücretsiz) · başka renk +' + fiyatFmt(RENK_FARK) + '/adet']);
   satirlar.push(['Kişiye özel', u.kisisel ? 'Evet — üstüne yazı/isim basılır, iade edilemez' : 'Hayır']);
@@ -3561,9 +3628,45 @@ function cokSatanBagla(){
   });
 }
 
+// ---- özel baskı talebi formu ----
+(function(){
+  const f = document.getElementById('talep-form'); if(!f) return;
+  const hata = document.getElementById('talep-hata');
+  const goster = m=>{ hata.textContent = m; hata.classList.add('gorunur'); };
+  f.addEventListener('submit', async e=>{
+    e.preventDefault();
+    hata.classList.remove('gorunur');
+    const fd = new FormData(f);
+    const dosya = fd.get('dosya');
+    if(!String(fd.get('ad')||'').trim() || !String(fd.get('soyad')||'').trim()) return goster('Ad ve soyad gerekli.');
+    if(String(fd.get('telefon')||'').replace(/\D/g,'').length < 10) return goster('Geçerli bir telefon numarası yaz (05xx xxx xx xx).');
+    if(!dosya || !dosya.name) return goster('STL dosyanı seç.');
+    if(!/\.stl$/i.test(dosya.name)) return goster('Sadece .stl uzantılı dosya kabul ediyoruz.');
+    if(dosya.size > 15*1024*1024) return goster('Dosya en fazla 15 MB olabilir.');
+    const btn = document.getElementById('talep-gonder');
+    btn.disabled = true; btn.textContent = 'Gönderiliyor…';
+    try{
+      const res = await fetch(ODEME_API + '/api/ozel-talep', { method:'POST', body: fd });
+      const v = await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(v.hata || 'gönderilemedi');
+      f.reset();
+      document.getElementById('talep-ok').hidden = false;
+      btn.textContent = 'Gönderildi ✓';
+    }catch(err){
+      goster('Gönderilemedi: ' + err.message + ' — WhatsApp\'tan da yollayabilirsin: 0551 482 32 23');
+      btn.disabled = false; btn.textContent = 'Dosyayı gönder';
+    }
+  });
+})();
+
 // ---- sıralama / sayfa başına seçenekleri ----
 document.getElementById('sirala-sec').addEventListener('change', e=>{
   state.sirala = e.target.value;
+  state.sayfa = 1;
+  cizIzgara();
+});
+document.getElementById('fiyat-sec').addEventListener('change', e=>{
+  state.fiyat = e.target.value;
   state.sayfa = 1;
   cizIzgara();
 });
