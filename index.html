@@ -1645,6 +1645,8 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 .benzer-baslik{ font-size:17px; margin:0 0 14px; }
 .benzer-izgara .urun{ animation:none; }
+.bedava-cubuk{ margin:10px 0 2px; font-size:12.5px; color:var(--soluk); }
+.bedava-cubuk .min-sepet-cubuk{ margin-top:6px; }
 .sepet-not-alani{ display:flex; flex-direction:column; gap:5px; font-size:12.5px; font-weight:700; margin:12px 0 4px; }
 .sepet-not-alani .opsiyonel{ font-weight:400; color:var(--sisik); }
 .sepet-not-alani textarea{ font:inherit; font-size:13px; font-weight:400; padding:8px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--yuzey); color:var(--murekkep); resize:vertical; }
@@ -2143,6 +2145,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
         <div class="sepet-ara-satir"><span>Kargo <small id="sepet-kargo-etiket">(sabit)</small></span><span class="num" id="sepet-kargo">—</span></div>
         <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
+        <div class="bedava-cubuk" id="bedava-cubuk" hidden></div>
         <label class="sepet-not-alani">Sipariş notu <span class="opsiyonel">(isteğe bağlı)</span>
           <textarea id="siparis-notu" rows="2" maxlength="300" placeholder="Örn: hediye, fiyat yazmasın · kapıya bırakın"></textarea>
         </label>
@@ -2378,7 +2381,17 @@ function sepetCiz(){
   document.getElementById('sepet-kargo').textContent = kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
   document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam + kargo);
   SEPET_ARA_TOPLAM = toplam;
+  bedavaCubukCiz(toplam);
   siparisBolgeCiz();
+}
+// "Ücretsiz kargoya X TL kaldı" çubuğu — asgari sepet geçildikten sonra, eşiğe kadar
+function bedavaCubukCiz(toplam){
+  const el = document.getElementById('bedava-cubuk'); if(!el) return;
+  if(!(BEDAVA_ESIK > 0) || toplam < MIN_SEPET){ el.hidden = true; return; }
+  el.hidden = false;
+  if(toplam >= BEDAVA_ESIK){ el.innerHTML = '<b>🎉 Kargo bedava!</b>'; return; }
+  const kalan = BEDAVA_ESIK - toplam, yuzde = Math.min(100, Math.round(toplam / BEDAVA_ESIK * 100));
+  el.innerHTML = `<span>Ücretsiz kargoya <b>${fiyatFmt(kalan)}</b> kaldı</span><div class="min-sepet-cubuk"><i style="width:${yuzde}%"></i></div>`;
 }
 let SEPET_ARA_TOPLAM = 0;
 
@@ -3489,7 +3502,9 @@ async function urunAciklamaYukle(id){
     const metin = ACIKLAMALAR[String(id)];
     if(!hedef.isConnected) return;
     if(metin){
+      // Trendyol açıklamasındaki "Siyah olarak gönderilecektir" cümlesi renk seçiciyle çelişiyor — sitede gizlenir
       hedef.innerHTML = metin.split(/;\s*|\n+/).map(s=>s.trim()).filter(Boolean)
+        .filter(s=>!(RENK_ACIK && /siyah\s+(olarak\s+)?g[öo]nderil/i.test(s)))
         .map(s=>`<p>${escHtml(s)}</p>`).join('');
     }else{
       hedef.textContent = 'Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.';
