@@ -2028,7 +2028,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
     </div>
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">↩️</span>
-      <div><b>14 gün gerekçesiz iade</b><span>Beğenmediyseniz sebep sormayız. <a href="yasal/iade.html">Koşullar</a></span></div>
+      <div><b>14 gün iade hakkı</b><span>Kullanılmamış, ambalajı bozulmamış ürünlerde. <a href="yasal/iade.html">Koşullar</a></span></div>
     </div>
     <a class="guven-kart guven-link" href="hakkimizda.html">
       <span class="guven-ikon" aria-hidden="true">🛠️</span>
@@ -3066,7 +3066,7 @@ function detayAc(id){
        sizin için üretildiğinden yasal olarak cayma hakkı kapsamı dışındadır (Mesafeli Sözleşmeler
        Yönetmeliği m.15/1-a). Sipariş vermeden önce yazdırdığınız bilgiyi kontrol edin. Üretim
        hatası (kırık, yanlış yazı) elbette değiştirilir. <a href="yasal/iade.html" target="_blank" rel="noopener">İade koşulları</a>`
-    : `Teslim aldıktan sonra <b>14 gün içinde</b> gerekçesiz iade hakkınız var. Ürün kullanılmamış
+    : `Teslim aldıktan sonra <b>14 gün içinde</b> iade hakkınız var; ürün kullanılmamış
        ve orijinal ambalajında olmalı. Kırık/hasarlı gelen ürünü fotoğrafıyla bize iletin, ücretsiz
        yenisini basıp gönderiyoruz. <a href="yasal/iade.html" target="_blank" rel="noopener">İade koşulları</a>`;
   document.getElementById('detay-govde').innerHTML = `
@@ -3428,7 +3428,7 @@ if(oturum.token){
 // ---- başlangıç: ürün verisi urunler.json'dan gelir, sayımlar burada yapılır ----
 sepetSayacGuncelle();
 fetch('urunler.json').then(r=>r.json()).then(veri=>{
-  URUNLER = veri.urunler.filter(u=>!u.gizli); // panelden gizlenen ürünler müşteriye hiç görünmez
+  URUNLER = veri.urunler.filter(u=>!u.gizli && !u.gizli_ty); // panelden gizlenen (gizli) veya Trendyol'da satışta olmayan (gizli_ty) ürünler müşteriye görünmez
   ayarlariUygula(veri.ayarlar);
   const gSay = {};
   URUNLER.forEach(u=>{ gSay[u.g]=(gSay[u.g]||0)+1; });
