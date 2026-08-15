@@ -171,6 +171,23 @@
     .v26flas{animation:v26flasGoster linear both; animation-timeline:--v26; animation-range:11.63% 88.37%; }
     .v26site{animation:v26siteGoster linear both; animation-timeline:--v26; animation-range:11.63% 88.37%; }
   }
+  /* Kaydırmalı animasyon YOKSA (iPhone Safari 26 öncesi, eski Android): perdeyi JS sürer ve
+     stilleri DOĞRUDAN yazar (aşağıda perdeSurucu). CSS animasyonuna bağlanmıyoruz çünkü
+     "hareketi azalt" açık olan telefonda `animation-duration:.001ms !important` kuralı animasyonu
+     donduruyor ve perde hiç açılmıyordu (Emre, 15.08.2026: "telefonda perde açılma çalışmıyor").
+     Hareketi azalt açıksa perde zaten hiç gösterilmez — aşağıdaki kural. */
+  html.perde-js .v26logo, html.perde-js .v26perde, html.perde-js .v26zoom,
+  html.perde-js .v26vazo, html.perde-js .v26flas, html.perde-js .v26site{ animation:none !important; }
+  /* Telefonda perde 260vh olduğu için aralık da kısalır: 760vh -> %11.63-%88.37 hesabının
+     260vh karşılığı %27.78-%72.22. Bu satır @supports bloğundan SONRA gelmeli, yoksa ezilir
+     ve sahne yarı açık başlar (logo hiç görünmez). */
+  @media (max-width:640px){
+    @supports (animation-timeline: view()){
+      .v26logo, .v26perde.sol, .v26perde.sag, .v26zoom, .v26vazo, .v26flas, .v26site{
+        animation-range:27.78% 72.22%;
+      }
+    }
+  }
   @keyframes v26logoFade{0%,4%{opacity:1} 10%{opacity:0} 100%{opacity:0}}
   @keyframes v26perdeAcSol{0%,8%{transform:translateX(0) scaleX(-1)} 56%,100%{transform:translateX(-102%) scaleX(-1)}}
   @keyframes v26perdeAcSag{0%,8%{transform:translateX(0)} 56%,100%{transform:translateX(102%)}}
@@ -375,6 +392,29 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   padding:12px 15px; font-size:15px;
 }
 .arama-girdi::placeholder{ color:#A99A90; }
+.hediye-serit{ background:var(--panel); border-bottom:1px solid var(--cizgi); }
+.hediye-kap{ display:flex; align-items:center; gap:12px; padding:8px 0; overflow-x:auto; }
+.hediye-etiket{ font-size:12.5px; font-weight:700; color:var(--soluk); white-space:nowrap; }
+.hediye-baglar{ display:flex; gap:8px; }
+.hediye-bag{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px; text-decoration:none;
+  color:var(--murekkep); background:var(--kagit); border:1px solid var(--cizgi); border-radius:999px; padding:5px 12px; }
+.hediye-bag:hover{ border-color:var(--nar); }
+.hediye-bag.aktif{ background:var(--nar); border-color:var(--nar); color:#fff; }
+.hediye-bag .n{ font-size:11.5px; opacity:.7; }
+.hediye-bag.temizle{ color:var(--soluk); }
+@media (max-width:640px){ .hediye-etiket{ display:none; } }
+.arama-oneri{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:70; background:var(--kagit); border:1px solid var(--cizgi-koyu, var(--cizgi)); border-radius:12px; box-shadow:0 14px 34px rgba(0,0,0,.14); overflow:hidden; max-height:70vh; overflow-y:auto; }
+.arama-oneri[hidden]{ display:none; }
+.oneri-grup{ display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px 6px; }
+.oneri-etiket{ font:inherit; font-size:12.5px; padding:5px 10px; border-radius:999px; border:1px solid var(--cizgi); background:var(--yuzey); cursor:pointer; color:var(--murekkep); }
+.oneri-etiket:hover{ border-color:var(--nar); }
+.oneri-urun{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; font:inherit; font-size:13.5px; padding:8px 12px; border:0; border-top:1px solid var(--cizgi); background:transparent; cursor:pointer; color:var(--murekkep); }
+.oneri-urun:hover{ background:var(--yuzey); }
+.oneri-urun img{ width:40px; height:40px; object-fit:cover; border-radius:6px; flex:none; }
+.oneri-urun span{ flex:1; }
+.oneri-urun b{ flex:none; }
+.arama-oneri mark{ background:transparent; color:var(--nar); font-weight:700; }
+.oneri-hepsi{ display:block; width:100%; font:inherit; font-size:13px; font-weight:700; padding:10px 12px; border:0; border-top:1px solid var(--cizgi); background:var(--yuzey); color:var(--nar); cursor:pointer; text-align:left; }
 .arama-dugme{
   border:0; cursor:pointer;
   background:var(--nar); color:#FFF7F3;
@@ -1386,6 +1426,8 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 
 /* hareket azaltma: baskı hissi kalır, sıçrama gider */
 @media (prefers-reduced-motion: reduce){
+  /* Perde sahnesi tamamen atlanır: hareket istemeyen müşteri 7 ekran siyahta kalmasın */
+  .sahneDis{ display:none !important; }
   *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
   .urun{ clip-path:none !important; opacity:1 !important; }
   .urun::before{ display:none; }
@@ -1914,6 +1956,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <label class="gizli" for="arama">Ürün ara</label>
         <input class="arama-girdi" id="arama" type="search" placeholder="1000'den fazla ürün içinde ara…" autocomplete="off">
         <button class="arama-temizle" id="arama-temizle" type="button" aria-label="Aramayı temizle">✕</button>
+        <div class="arama-oneri" id="arama-oneri" hidden></div>
       </div>
       <div class="ust-eylem">
         <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button">
@@ -1929,6 +1972,12 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   <nav class="kat-serit" aria-label="Kategoriler">
     <div class="kap">
       <div class="kat-baglar" id="kat-baglar"></div>
+    </div>
+  </nav>
+  <nav class="hediye-serit" id="hediye-serit" aria-label="Hediye koleksiyonları" hidden>
+    <div class="kap hediye-kap">
+      <span class="hediye-etiket">Kime hediye?</span>
+      <div class="hediye-baglar" id="hediye-baglar"></div>
     </div>
   </nav>
 </div>
@@ -2305,7 +2354,9 @@ let MARKALAR = [];
 // Modeli başlığından çıkarılamayan ürünler markanın "genel" listesindedir ve
 // hangi model seçilirse seçilsin gösterilir — ürün kaybolmaz.
 let ARACLAR = null;
-let state = { q: '', grup: 'tum', marka: 'tum', model: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24, fiyat: 'tum' };
+// Hediye koleksiyonları (Emre panelden seçer): [{slug, ad, ikon}]. Hiç ürün atanmadıysa şerit çıkmaz.
+let KOLEKSIYONLAR = [];
+let state = { q: '', grup: 'tum', marka: 'tum', model: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24, fiyat: 'tum', koleksiyon: '' };
 // ödeme motorunun adresi — motor (magaza-odeme/) Cloudflare'a yayınlanınca
 // gerçek adresle değiştirilecek. Değişene kadar site kendiliğinden misafir
 // WhatsApp siparişine düşer (üyelik/yorum/kart kapalı kalır).
@@ -3064,6 +3115,7 @@ function katBaglarCiz(){
       state.grup = a.dataset.grup;
       state.marka = 'tum';
       state.model = 'tum';
+      state.koleksiyon = '';
       state.sayfa = 1;
       cizHepsi();
       if(document.getElementById('sayfa-katalog').hidden) katalogaDon();
@@ -3126,6 +3178,8 @@ function filtreliListe(){
     // arama her zaman TÜM sitede arar — seçili kategori aramayı daraltmaz
     const qq = q.toLocaleLowerCase('tr-TR');
     l = l.filter(x=>x.t.toLocaleLowerCase('tr-TR').includes(qq) || x.cat.toLocaleLowerCase('tr-TR').includes(qq));
+  } else if(state.koleksiyon){
+    l = l.filter(x=>x.k === state.koleksiyon);
   } else {
     if(state.grup === 'kisisel') l = l.filter(x=>x.kisisel);
     else if(state.grup !== 'tum') l = l.filter(x=>x.g===state.grup);
@@ -3181,7 +3235,9 @@ function grupAdi(slug){
 function cizIzgara(){
   const liste = filtreliListe();
   document.getElementById('sonuc-sayisi').textContent = liste.length + ' ürün';
-  document.getElementById('baslik').textContent = state.q.trim() ? `"${state.q.trim()}" için sonuçlar` : grupAdi(state.grup);
+  const kol = state.koleksiyon ? KOLEKSIYONLAR.find(k=>k.slug===state.koleksiyon) : null;
+  document.getElementById('baslik').textContent = state.q.trim() ? `"${state.q.trim()}" için sonuçlar`
+    : kol ? `${kol.ikon||'🎁'} ${kol.ad} hediyelik` : grupAdi(state.grup);
   document.getElementById('alt-baslik').textContent = state.q.trim()
     ? 'tüm ürünlerde arandı'
     : 'gerçek stoktan, gerçek fiyatlarla';
@@ -3237,7 +3293,27 @@ function cizIzgara(){
 }
 function gitSayfa(n){ state.sayfa = n; cizIzgara(); document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'}); }
 
-function cizHepsi(){ katBaglarCiz(); markaSeridiCiz(); cizIzgara(); }
+function cizHepsi(){ katBaglarCiz(); hediyeSeridiCiz(); markaSeridiCiz(); cizIzgara(); }
+// "Kime hediye?" şeridi: sadece içinde ürün olan koleksiyonlar çıkar (Emre panelden atar)
+function hediyeSeridiCiz(){
+  const serit = document.getElementById('hediye-serit'), kutu = document.getElementById('hediye-baglar');
+  if(!serit || !kutu) return;
+  const dolu = KOLEKSIYONLAR.map(k=>({ ...k, n: URUNLER.filter(u=>u.k === k.slug).length })).filter(k=>k.n > 0);
+  if(!dolu.length){ serit.hidden = true; return; }
+  serit.hidden = false;
+  kutu.innerHTML = dolu.map(k=>`<a class="hediye-bag ${state.koleksiyon===k.slug?'aktif':''}" href="#" data-k="${escHtml(k.slug)}">${escHtml(k.ikon||'🎁')} ${escHtml(k.ad)} <span class="n num">${k.n}</span></a>`).join('')
+    + (state.koleksiyon ? '<a class="hediye-bag temizle" href="#" data-k="">✕ temizle</a>' : '');
+  kutu.querySelectorAll('.hediye-bag').forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      state.koleksiyon = a.dataset.k === state.koleksiyon ? '' : a.dataset.k;
+      state.grup = 'tum'; state.marka = 'tum'; state.model = 'tum'; state.q = ''; state.sayfa = 1;
+      const g = document.getElementById('arama'); if(g){ g.value = ''; }
+      katalogaDon(); cizHepsi();
+      document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+}
 
 // ---- ürün detay ----
 function detayAc(id){
@@ -3684,8 +3760,40 @@ aramaGirdi.addEventListener('input', ()=>{
     state.q = aramaGirdi.value;
     state.sayfa = 1;
     cizIzgara();
+    aramaOneriCiz();
   }, 120);
 });
+// Arama önerisi: yazarken kutunun altında eşleşen ürünler + kategoriler/markalar (4. tur, 15.08.2026)
+const aramaOneri = document.getElementById('arama-oneri');
+function aramaOneriKapat(){ aramaOneri.hidden = true; aramaOneri.innerHTML = ''; }
+function aramaOneriCiz(){
+  const q = aramaGirdi.value.trim();
+  if(q.length < 2 || document.activeElement !== aramaGirdi){ aramaOneriKapat(); return; }
+  const qq = q.toLocaleLowerCase('tr-TR');
+  const urunler = URUNLER.filter(x=>x.t.toLocaleLowerCase('tr-TR').includes(qq)).slice(0, 6);
+  const gruplar = GRUPLAR.filter(g=>g.name.toLocaleLowerCase('tr-TR').includes(qq)).slice(0, 3);
+  const markalar = [...new Set(URUNLER.filter(x=>x.m && x.m.toLocaleLowerCase('tr-TR').includes(qq)).map(x=>x.m))].slice(0, 3);
+  if(!urunler.length && !gruplar.length && !markalar.length){ aramaOneriKapat(); return; }
+  const vurgula = t=>{ const i = t.toLocaleLowerCase('tr-TR').indexOf(qq); return i < 0 ? escHtml(t) : escHtml(t.slice(0,i)) + '<mark>' + escHtml(t.slice(i, i+q.length)) + '</mark>' + escHtml(t.slice(i+q.length)); };
+  aramaOneri.innerHTML =
+    (gruplar.length || markalar.length ? '<div class="oneri-grup">' +
+      gruplar.map(g=>`<button type="button" class="oneri-etiket" data-grup="${escHtml(g.slug)}">📂 ${vurgula(g.name)}</button>`).join('') +
+      markalar.map(m=>`<button type="button" class="oneri-etiket" data-marka="${escHtml(m)}">🚗 ${vurgula(m)}</button>`).join('') + '</div>' : '') +
+    urunler.map(u=>`<button type="button" class="oneri-urun" data-id="${u.id}"><img src="${escHtml(u.img)}" alt="" loading="lazy"><span>${vurgula(u.t)}</span><b class="num">${fiyatFmt(satisFiyati(u))}</b></button>`).join('') +
+    `<button type="button" class="oneri-hepsi" data-hepsi="1">"${escHtml(q)}" için tüm sonuçlar →</button>`;
+  aramaOneri.hidden = false;
+  aramaOneri.querySelectorAll('.oneri-urun').forEach(b=> b.onclick = ()=>{ aramaOneriKapat(); detayAc(parseInt(b.dataset.id)); });
+  aramaOneri.querySelectorAll('.oneri-etiket').forEach(b=> b.onclick = ()=>{
+    aramaOneriKapat(); aramaGirdi.value=''; aramaTemizle.classList.remove('gorunur'); state.q='';
+    if(b.dataset.grup){ state.grup = b.dataset.grup; state.marka='tum'; state.model='tum'; }
+    else { state.grup = 'arac'; state.marka = b.dataset.marka; state.model='tum'; }
+    state.sayfa = 1; katalogaDon(); cizHepsi();
+  });
+  aramaOneri.querySelector('.oneri-hepsi').onclick = ()=>{ aramaOneriKapat(); katalogaDon(); document.getElementById('katalog').scrollIntoView({behavior:'smooth'}); };
+}
+aramaGirdi.addEventListener('focus', aramaOneriCiz);
+aramaGirdi.addEventListener('keydown', e=>{ if(e.key==='Escape') aramaOneriKapat(); if(e.key==='Enter'){ aramaOneriKapat(); katalogaDon(); } });
+document.addEventListener('click', e=>{ if(!e.target.closest('.arama-sarmal')) aramaOneriKapat(); });
 aramaTemizle.addEventListener('click', ()=>{
   aramaGirdi.value = '';
   aramaTemizle.classList.remove('gorunur');
@@ -3722,6 +3830,54 @@ function cokSatanBagla(){
     });
   });
 }
+
+// ---- perde JS sürücüsü: kaydırmalı animasyon (animation-timeline) desteği yoksa ----
+// iPhone Safari 26 öncesi ve eski Android'de CSS kaydırma animasyonu yok; perde hiç açılmıyordu.
+// Burada aynı hareketi kaydırma oranından hesaplayıp DOĞRUDAN stil olarak yazıyoruz
+// (CSS animasyonuna bağlanmıyoruz: "hareketi azalt" açıkken süre .001ms'ye düşüp donuyor).
+// Test için adrese ?perdejs=1 eklenirse Chrome'da da bu yol çalışır.
+(function(){
+  const zorla = /perdejs=1/.test(location.search);
+  const destek = window.CSS && CSS.supports && CSS.supports('animation-timeline: view()');
+  if(destek && !zorla) return;
+  const dis = document.querySelector('.v26dis'); if(!dis) return;
+  document.documentElement.classList.add('perde-js');
+  const bul = q=>dis.querySelector(q);
+  const el = { logo:bul('.v26logo'), sol:bul('.v26perde.sol'), sag:bul('.v26perde.sag'),
+               zoom:bul('.v26zoom'), vazo:bul('.v26vazo'), flas:bul('.v26flas'), site:bul('.v26site') };
+  // p: 0-1 arası ilerleme → keyframe'lerin aynısı (yukarıdaki @keyframes bloklarıyla birebir)
+  const ara = (p, a, b)=> p <= a ? 0 : p >= b ? 1 : (p - a) / (b - a);
+  function ciz(p){
+    if(el.logo) el.logo.style.opacity = 1 - ara(p, .04, .10);
+    const perde = ara(p, .08, .56) * 102;
+    if(el.sol) el.sol.style.transform = `translateX(${-perde}%) scaleX(-1)`;
+    if(el.sag) el.sag.style.transform = `translateX(${perde}%)`;
+    if(el.zoom){
+      const o = p < .82 ? 1 + ara(p, .56, .82) * 3.2 : p < .90 ? 4.2 + ara(p, .82, .90) * 1.6 : 5.8 + ara(p, .90, .96) * 0.6;
+      el.zoom.style.transform = `scale(${o})`;
+      el.zoom.style.opacity = 1 - ara(p, .90, .96);
+    }
+    if(el.vazo) el.vazo.style.clipPath = `inset(${60 - ara(p, 0, .90) * 60}% 0 0 0)`;
+    if(el.flas) el.flas.style.opacity = ara(p, .76, .88);
+    if(el.site){ const g = ara(p, .90, .97); el.site.style.opacity = g; el.site.style.transform = `scale(${1.06 - g * .06})`; }
+  }
+  let bekleyen = false;
+  function guncelle(){
+    bekleyen = false;
+    if(dis.hidden) return;
+    const vh = window.innerHeight, ust = dis.getBoundingClientRect().top + window.scrollY, boy = dis.offsetHeight;
+    if(!boy) return;
+    // view() zaman çizelgesinin karşılığı: eleman alttan girerken 0, üstten çıkarken 1
+    const ham = (window.scrollY - (ust - vh)) / (boy + vh);
+    // Aralık sahnenin kendi yüksekliğinden: sayfa başında 0, sahne bitince 1 (CSS animation-range ile aynı)
+    const bas = vh / (boy + vh), bit = boy / (boy + vh);
+    ciz(Math.max(0, Math.min(1, (ham - bas) / (bit - bas))));
+  }
+  window.addEventListener('scroll', ()=>{ if(!bekleyen){ bekleyen = true; requestAnimationFrame(guncelle); } }, { passive:true });
+  window.addEventListener('resize', guncelle);
+  requestAnimationFrame(guncelle);
+  setTimeout(guncelle, 300);
+})();
 
 // ---- sipariş takibi (üyeliksiz) ----
 (function(){
@@ -3837,6 +3993,7 @@ if(oturum.token){
 // ---- başlangıç: ürün verisi urunler.json'dan gelir, sayımlar burada yapılır ----
 sepetSayacGuncelle();
 fetch('urunler.json').then(r=>r.json()).then(veri=>{
+  KOLEKSIYONLAR = Array.isArray(veri.koleksiyonlar) ? veri.koleksiyonlar : [];
   URUNLER = veri.urunler.filter(u=>!u.gizli && !u.gizli_ty); // panelden gizlenen (gizli) veya Trendyol'da satışta olmayan (gizli_ty) ürünler müşteriye görünmez
   ayarlariUygula(veri.ayarlar);
   const gSay = {};
