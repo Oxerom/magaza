@@ -294,6 +294,9 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   gap:18px; min-height:40px; flex-wrap:wrap;
 }
 .duyuru-sol{ display:flex; align-items:center; gap:10px; }
+.duyuru-metin{ width:100%; display:flex; justify-content:center; align-items:center; gap:14px; flex-wrap:wrap; font-weight:600; letter-spacing:.02em; text-align:center; }
+.duyuru-metin .ayrac{ font-style:normal; color:#8E7A6B; }
+@media (max-width:640px){ .duyuru-metin{ font-size:11px; gap:8px; } }
 .nozul-nokta{
   width:7px; height:7px; border-radius:50%; flex:none;
   background:var(--akkor);
@@ -1546,6 +1549,12 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-kargo{ font-size:13px; color:#2E7D4F; background:#EBF6EF; border-radius:8px; padding:8px 12px; margin:2px 0 4px; }
 .detay-linki{ align-self:flex-start; background:none; border:1px dashed var(--cizgi); border-radius:8px; padding:5px 10px; font-size:12px; color:var(--soluk); cursor:pointer; margin-bottom:4px; }
 .detay-linki:hover{ color:var(--nar); border-color:var(--nar); }
+.paylas{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
+.paylas-etiket{ font-size:12px; color:var(--sisik); margin-right:2px; }
+.paylas-d{ display:inline-block; font-size:12px; font-weight:700; padding:5px 10px; border-radius:8px; border:0; cursor:pointer; text-decoration:none; color:#fff; }
+.paylas-d.wa{ background:#25D366; } .paylas-d.fb{ background:#1877F2; }
+.paylas-d.ig{ background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7); }
+.paylas .detay-linki{ margin:0; }
 .detay-galeri{ display:flex; gap:6px; margin-top:8px; overflow-x:auto; padding-bottom:2px; }
 .detay-galeri img{ width:52px; height:52px; object-fit:cover; border-radius:8px; border:2px solid transparent; cursor:pointer; flex:0 0 auto; }
 .detay-galeri img.secili{ border-color:var(--nar); }
@@ -1815,18 +1824,15 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 
 
 <!-- ============ duyuru ============ -->
+<div class="ust-sabit">
+<!-- Duyuru şeridi: her sayfada sabit (üst şeritle birlikte kayar). Rakamlar urunler.json → ayarlar'dan (duyuruYaz) -->
 <div class="duyuru">
   <div class="kap">
-    <div class="duyuru-sol">
-      <span class="nozul-nokta" aria-hidden="true"></span>
-      <!-- Kargo eşiği burada YAZILMAZ: Emre eşik hesabını doğrulamadı (14.08.2026).
-           Eski "500 TL üzeri ücretsiz" yazısı yanlıştı — gerçek kural 700 TL. -->
-      <span>Bugün sipariş verin — ertesi iş günü kargoda.</span>
+    <div class="duyuru-metin" id="duyuru-metin">
+      <span>250 TL Minimum Sipariş Tutarı</span><i class="ayrac">—</i><span>750 TL Üzeri Ücretsiz Kargo</span><i class="ayrac">—</i><span>Ertesi İş Günü Kargoda</span>
     </div>
   </div>
 </div>
-
-<div class="ust-sabit">
   <header class="ust">
     <div class="kap ust-govde">
       <a class="logo" href="#" aria-label="OXEROM ana sayfa" onclick="katalogaDon(); window.scrollTo({top:0, behavior:'smooth'}); return false;">
@@ -2081,7 +2087,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <div class="sepet-liste" id="sepet-liste"></div>
       <aside class="sepet-ozet">
         <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
-        <div class="sepet-ara-satir"><span>Kargo <small>(sabit)</small></span><span class="num" id="sepet-kargo">—</span></div>
+        <div class="sepet-ara-satir"><span>Kargo <small id="sepet-kargo-etiket">(sabit)</small></span><span class="num" id="sepet-kargo">—</span></div>
         <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
         <div id="siparis-bolge"></div>
       </aside>
@@ -2130,12 +2136,6 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         </div>
       </div>
 
-      <div class="fis-alt">
-        <div class="kase">
-          <b>Fiyatlar gerçek Trendyol verisidir</b>
-          <span>12.08.2026 çekimi — güncel olmayabilir</span>
-        </div>
-      </div>
     </div>
 
     <div class="dip-serit">
@@ -2204,12 +2204,31 @@ function sepetAdetAyarla(key, adet){
 // FİYAT KURALLARI (Emre, 15.08.2026 — deneme): Trendyol fiyatının %20 altı ·
 // sepet en az 250 TL (indirimli tutar) · kargo sabit 69,99 · bedava kargo eşiği YOK.
 // Ödeme motoru (magaza-odeme) aynı üç sayıyı kendi tarafında da uygular; değişirse ikisi birden.
-const INDIRIM = 0.20, MIN_SEPET = 250, KARGO_UCRET = 69.99;
+// Bunlar VARSAYILAN; canlı değerler urunler.json → ayarlar (panelden değiştirilir), açılışta yüklenir.
+let INDIRIM = 0.20, MIN_SEPET = 250, KARGO_UCRET = 69.99, BEDAVA_ESIK = 750;
+function ayarlariUygula(a){
+  if(!a) return;
+  if(Number.isFinite(+a.indirim)) INDIRIM = (+a.indirim) / 100;
+  if(Number.isFinite(+a.min_sepet)) MIN_SEPET = +a.min_sepet;
+  if(Number.isFinite(+a.kargo)) KARGO_UCRET = +a.kargo;
+  if(Number.isFinite(+a.bedava_esik)) BEDAVA_ESIK = +a.bedava_esik;
+  duyuruYaz();
+}
+function duyuruYaz(){
+  const el = document.getElementById('duyuru-metin'); if(!el) return;
+  const par = [];
+  if(MIN_SEPET > 0) par.push(fiyatFmt(MIN_SEPET).replace(',00','') + ' Minimum Sipariş Tutarı');
+  if(BEDAVA_ESIK > 0) par.push(fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' Üzeri Ücretsiz Kargo');
+  par.push('Ertesi İş Günü Kargoda');
+  el.innerHTML = par.map(x=>'<span>'+x+'</span>').join('<i class="ayrac">—</i>');
+  const kl = document.getElementById('sepet-kargo-etiket');
+  if(kl) kl.textContent = BEDAVA_ESIK > 0 ? '(' + fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' üzeri bedava)' : '(sabit)';
+}
 function satisFiyati(u){
-  const oran = (u.indirim != null) ? u.indirim : INDIRIM; // ürün bazlı oran (panelden) yoksa genel
+  const oran = (u.indirim != null) ? (+u.indirim) / 100 : INDIRIM; // ürün bazlı yüzde (panelden) yoksa genel
   return Math.round(u.p * (1 - oran) * 100) / 100;
 }
-function kargoHesapla(araToplam){ return KARGO_UCRET; }
+function kargoHesapla(araToplam){ return (BEDAVA_ESIK > 0 && araToplam >= BEDAVA_ESIK) ? 0 : KARGO_UCRET; }
 
 function sepetCiz(){
   const liste = document.getElementById('sepet-liste');
@@ -3057,9 +3076,15 @@ function detayAc(id){
       <span class="urun-kat">${escHtml(grupAdi(u.g))}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h2>${escHtml(u.t)}</h2>
       <div class="detay-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
-        <span class="indirim-rozet">Trendyol fiyatından %${Math.round(((u.indirim != null) ? u.indirim : INDIRIM)*100)} ucuz</span></div>
+        <span class="indirim-rozet">Trendyol fiyatından %${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} ucuz</span></div>
       <div class="detay-kargo">📦 Bugün sipariş verin, <b>ertesi iş günü kargoda</b>.</div>
-      <button class="detay-linki" type="button" id="detay-linki">🔗 Ürün linkini kopyala</button>
+      <div class="paylas">
+        <span class="paylas-etiket">Paylaş:</span>
+        <a class="paylas-d wa" id="paylas-wa" href="#" target="_blank" rel="noopener" title="WhatsApp'ta paylaş">WhatsApp</a>
+        <a class="paylas-d fb" id="paylas-fb" href="#" target="_blank" rel="noopener" title="Facebook'ta paylaş">Facebook</a>
+        <button class="paylas-d ig" type="button" id="paylas-ig" title="Instagram: linki kopyalar, hikâyene/DM'e yapıştır">Instagram</button>
+        <button class="detay-linki" type="button" id="detay-linki">🔗 Linki kopyala</button>
+      </div>
       ${notAlani}
       <div class="detay-adet">
         <button class="adet-dugme" type="button" id="detay-eksi">−</button>
@@ -3078,7 +3103,7 @@ function detayAc(id){
           <div class="detay-bolum-icerik">
             Kredi/banka kartı ile güvenli ödeme (PayTR altyapısı — taksit seçenekleri ödeme
             ekranında görünür) veya WhatsApp üzerinden sipariş. Kart bilgileriniz sitemizden
-            hiç geçmez. Kargo her siparişte sabit <b>69,99 TL</b>; asgari sipariş tutarı <b>250 TL</b>.
+            hiç geçmez. Kargo ücreti ve asgari sipariş tutarı sepette gösterilir; eşiği aşan siparişlerde kargo bedava.
           </div>
         </details>
         <details class="detay-bolum">
@@ -3100,12 +3125,23 @@ function detayAc(id){
     history.pushState({urun: u.id}, '', '#u' + u.id);
   }
   const linkBtn = document.getElementById('detay-linki');
-  linkBtn.onclick = ()=>{
-    const adres = location.origin + location.pathname + '#u' + u.id;
-    (navigator.clipboard ? navigator.clipboard.writeText(adres) : Promise.reject())
-      .then(()=>{ linkBtn.textContent = '✓ Link kopyalandı'; })
-      .catch(()=>{ prompt('Ürün linki:', adres); });
-    setTimeout(()=>{ linkBtn.textContent = '🔗 Ürün linkini kopyala'; }, 2500);
+  const urunAdresi = 'https://oxerom.com.tr/#u' + u.id;
+  const kopyala = (btn, eskiMetin)=>{
+    (navigator.clipboard ? navigator.clipboard.writeText(urunAdresi) : Promise.reject())
+      .then(()=>{ btn.textContent = '✓ Kopyalandı'; })
+      .catch(()=>{ prompt('Ürün linki:', urunAdresi); });
+    setTimeout(()=>{ btn.textContent = eskiMetin; }, 2500);
+  };
+  linkBtn.onclick = ()=> kopyala(linkBtn, '🔗 Linki kopyala');
+  const paylasMetin = u.t + ' — ' + fiyatFmt(satisFiyati(u)) + ' · OXEROM';
+  document.getElementById('paylas-wa').href = 'https://wa.me/?text=' + encodeURIComponent(paylasMetin + '\n' + urunAdresi);
+  document.getElementById('paylas-fb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(urunAdresi);
+  const igBtn = document.getElementById('paylas-ig');
+  igBtn.onclick = ()=>{
+    // Instagram'ın web paylaşım adresi yok: telefonda sistem paylaşım penceresi (Instagram seçilir),
+    // bilgisayarda link kopyalanır.
+    if(navigator.share){ navigator.share({ title: u.t, text: paylasMetin, url: urunAdresi }).catch(()=>{}); }
+    else kopyala(igBtn, 'Instagram');
   };
 
   let adet = 1;
@@ -3393,6 +3429,7 @@ if(oturum.token){
 sepetSayacGuncelle();
 fetch('urunler.json').then(r=>r.json()).then(veri=>{
   URUNLER = veri.urunler.filter(u=>!u.gizli); // panelden gizlenen ürünler müşteriye hiç görünmez
+  ayarlariUygula(veri.ayarlar);
   const gSay = {};
   URUNLER.forEach(u=>{ gSay[u.g]=(gSay[u.g]||0)+1; });
   GRUPLAR = veri.gruplar.map(g=>({slug:g.slug, name:g.name, n:gSay[g.slug]||0}))
