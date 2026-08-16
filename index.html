@@ -1705,6 +1705,10 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 
+/* ---- Trendyol'dan gelen yorumlar ---- */
+.yorum-kaynak{ font-size:12.5px; color:var(--soluk); margin:14px 0 8px; padding-top:12px; border-top:1px dashed var(--cizgi); }
+.yorum.ty .yorum-tarih{ color:var(--sisik); }
+
 /* ---- toptan bayilik ---- */
 .bayi-secim span b{ color:var(--nar); }
 .bayi-alan{ display:flex; flex-direction:column; gap:9px; padding:12px; margin:2px 0 4px;
@@ -3992,10 +3996,19 @@ async function urunAciklamaYukle(id){
 function yildizlar(puan){
   return '★'.repeat(puan) + '☆'.repeat(5-puan);
 }
+let TY_YORUM = null;
+async function trendyolYorumlari(id){
+  if(!TY_YORUM){
+    try{ const r = await fetch('yorumlar.json'); TY_YORUM = r.ok ? await r.json() : {}; }
+    catch(e){ TY_YORUM = {}; }
+  }
+  return TY_YORUM[String(id)] || [];
+}
 async function yorumlariYukle(id){
   const hedef = document.getElementById('detay-yorumlar');
   const sayiEl = document.getElementById('detay-yorum-sayi');
   if(!hedef) return;
+  const tyYorum = await trendyolYorumlari(id);
   let yorumlar = [];
   let apiVar = true;
   try{
@@ -4006,15 +4019,26 @@ async function yorumlariYukle(id){
   if(!hedef.isConnected) return;
 
   let icerik = '';
-  if(yorumlar.length){
-    const ort = yorumlar.reduce((t,y)=>t+y.puan,0) / yorumlar.length;
-    if(sayiEl) sayiEl.textContent = `(${yorumlar.length}) ${yildizlar(Math.round(ort))}`;
+  const hepsi = yorumlar.length + tyYorum.length;
+  if(hepsi){
+    const tumPuan = yorumlar.concat(tyYorum);
+    const ort = tumPuan.reduce((t,y)=>t+y.puan,0) / tumPuan.length;
+    if(sayiEl) sayiEl.textContent = `(${hepsi}) ${yildizlar(Math.round(ort))}`;
     icerik = yorumlar.map(y=>`
       <div class="yorum">
         <div class="yorum-bas"><b>${escHtml(y.ad)}</b><span class="yorum-puan">${yildizlar(y.puan)}</span></div>
         <p>${escHtml(y.metin)}</p>
         <span class="yorum-tarih">${escHtml(y.tarih||'')}</span>
       </div>`).join('');
+    if(tyYorum.length){
+      icerik += `<p class="yorum-kaynak">Aşağıdakiler bu ürünü <b>Trendyol mağazamızdan</b> alan müşterilerin yorumları.</p>`
+        + tyYorum.map(y=>`
+        <div class="yorum ty">
+          <div class="yorum-bas"><b>${escHtml(y.ad)}</b><span class="yorum-puan">${yildizlar(y.puan)}</span></div>
+          <p>${escHtml(y.metin)}</p>
+          <span class="yorum-tarih">${escHtml(y.tarih||'')} · Trendyol</span>
+        </div>`).join('');
+    }
   }else{
     if(sayiEl) sayiEl.textContent = '';
     icerik = `<p class="yorum-bos">${apiVar ? 'Bu ürüne henüz yorum yapılmamış.' : 'Yorumlar yakında açılıyor.'}</p>`;
