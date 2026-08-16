@@ -1705,6 +1705,22 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 
+/* ---- toptan bayilik ---- */
+.bayi-secim span b{ color:var(--nar); }
+.bayi-alan{ display:flex; flex-direction:column; gap:9px; padding:12px; margin:2px 0 4px;
+  background:var(--panel); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m); }
+.bayi-not{ margin:0; font-size:12px; color:var(--sisik); }
+.bayi-serit{ background:#2A211C; color:#F2E6DB; text-align:center; padding:9px 14px; font-size:13px; font-weight:600; }
+.bayi-serit b{ color:#E8B04B; }
+.bayi-bekliyor{ background:#FFF6E5; border:1.5px solid #E4C77A; border-radius:var(--r-m); padding:13px 15px; font-size:13.5px; line-height:1.55; color:#6B5320; margin-bottom:14px; }
+.bayi-fiyat-not{ font-size:12px; color:var(--nar); font-weight:700; }
+
+/* ---- STL fiyat tahmini ---- */
+.tahmin-kutu{ background:#EBF6EF; border:1px solid #C9E4D4; border-radius:8px; padding:11px 13px; font-size:13px; line-height:1.5; color:#20573A; }
+.tahmin-kutu b{ font-size:15px; }
+.tahmin-kutu small{ display:block; margin-top:4px; font-size:11.5px; color:#4A7A5E; }
+.tahmin-kutu.hesapliyor{ background:var(--panel); border-color:var(--cizgi); color:var(--soluk); }
+
 /* ---- favori (kalp) ---- */
 .favori-dugme{
   position:absolute; top:9px; right:9px; z-index:3;
@@ -2402,6 +2418,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <label>Telefon <input type="tel" name="telefon" maxlength="20" required placeholder="05xx xxx xx xx" autocomplete="tel"></label>
       <label>Kısa açıklama <span class="opsiyonel">(isteğe bağlı: adet, renk, nerede kullanılacak)</span><textarea name="aciklama" rows="2" maxlength="600"></textarea></label>
       <label class="talep-dosya">STL dosyası <span class="opsiyonel">(sadece .stl, en fazla 15 MB)</span><input type="file" name="dosya" accept=".stl" required></label>
+      <input type="hidden" name="tahmin" id="talep-tahmin-veri">
+      <div class="tahmin-kutu" id="talep-tahmin" hidden></div>
       <p class="detay-not-hata" id="talep-hata"></p>
       <button class="detay-sepet" type="submit" id="talep-gonder">Dosyayı gönder</button>
       <p class="talep-ok" id="talep-ok" hidden>✓ Aldık. En kısa sürede WhatsApp'tan fiyat ve süreyle döneceğiz.</p>
@@ -2589,9 +2607,29 @@ function duyuruYaz(){
   const kl = document.getElementById('sepet-kargo-etiket');
   if(kl) kl.textContent = BEDAVA_ESIK > 0 ? '(' + fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' üzeri bedava)' : '(sabit)';
 }
+// Onaylı toptan bayi tüm ürünlerde ek indirim görür (Emre'nin kararı: %25, tek oran).
+// Rakam motordan gelir; onay yoksa 0 döner, yani bekleyen başvuru bayi fiyatı GÖRMEZ.
+function bayiOrani(){
+  const b = oturum.kullanici && oturum.kullanici.bayi;
+  return (b && b.durum === 'onayli' && b.indirim > 0) ? b.indirim : 0;
+}
 function satisFiyati(u){
   const oran = (u.indirim != null) ? (+u.indirim) / 100 : INDIRIM; // ürün bazlı yüzde (panelden) yoksa genel
-  return Math.round(u.p * (1 - oran) * 100) / 100;
+  const fiyat = u.p * (1 - oran) * (1 - bayiOrani() / 100);
+  return Math.round(fiyat * 100) / 100;
+}
+// Bayi girişi yapılınca üstte şerit çıksın — hangi fiyatı gördüğü belirsiz kalmasın
+function bayiSeridiCiz(){
+  let el = document.getElementById('bayi-serit');
+  const oran = bayiOrani();
+  if(!oran){ if(el) el.remove(); return; }
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'bayi-serit'; el.className = 'bayi-serit';
+    document.querySelector('.ust-sabit').prepend(el);
+  }
+  const b = oturum.kullanici.bayi;
+  el.innerHTML = 'Toptan bayi fiyatlarını görüyorsunuz — <b>tüm ürünlerde %' + oran + ' indirimli</b>' + (b.firma ? ' · ' + escHtml(b.firma) : '');
 }
 function kargoHesapla(araToplam){ return (BEDAVA_ESIK > 0 && araToplam >= BEDAVA_ESIK) ? 0 : KARGO_UCRET; }
 
@@ -2759,11 +2797,21 @@ function hesapCiz(gorunum){
           <span><a href="yasal/gizlilik.html" target="_blank" rel="noopener">KVKK Aydınlatma Metni</a>'ni okudum, kişisel verilerimin sipariş süreçleri için işlenmesini onaylıyorum. <b>(zorunlu)</b></span></label>
         <label class="onay-satir"><input type="checkbox" id="k-kampanya">
           <span>Kampanya ve indirimlerden WhatsApp/SMS ile haberdar olmak istiyorum. (isteğe bağlı)</span></label>
+        <label class="onay-satir bayi-secim"><input type="checkbox" id="k-bayi">
+          <span><b>Toptan bayilik başvurusu yapıyorum.</b> Onaylanan bayiler tüm ürünlerde indirimli fiyat görür. Başvuru elle onaylanır.</span></label>
+        <div class="bayi-alan" id="k-bayi-alan" hidden>
+          <input id="k-firma" type="text" placeholder="Firma adı (zorunlu)" autocomplete="organization">
+          <input id="k-sosyal" type="text" placeholder="Sosyal medya hesabı — Instagram, site vb. (zorunlu)">
+          <p class="bayi-not">Telefon numarası bayilikte zorunludur; onay için sizi arayabiliriz.</p>
+        </div>
         <p class="siparis-hata" id="k-hata"></p>
         <button class="sepet-tamamla" type="button" id="k-dugme">Üye ol</button>
         <p class="hesap-gecis">Zaten üye misiniz? <a href="#" onclick="hesapCiz('giris'); return false;">Giriş yapın</a></p>
       </div>`;
     document.getElementById('k-dugme').onclick = kayitOl;
+    document.getElementById('k-bayi').onchange = e=>{
+      document.getElementById('k-bayi-alan').hidden = !e.target.checked;
+    };
   }else{
     hesabimCiz('siparislerim');
   }
@@ -2782,6 +2830,9 @@ async function girisYap(){
     if(!res.ok) throw new Error(v.hata || 'giriş yapılamadı');
     oturum = { token: v.token, kullanici: v.kullanici };
     oturumKaydet();
+    bayiSeridiCiz();
+    cizHepsi();          // bayi onaylıysa tüm fiyatlar indirimli yeniden çizilir
+    favorileriEsitle();
     hesapCiz('hesabim');
     siparisBolgeCiz(true);
   }catch(e){
@@ -2801,17 +2852,27 @@ async function kayitOl(){
   const sifre = document.getElementById('k-sifre').value;
   const kvkk = document.getElementById('k-kvkk').checked;
   const kampanya = document.getElementById('k-kampanya').checked;
+  const bayi = document.getElementById('k-bayi').checked;
+  const firma = document.getElementById('k-firma').value.trim();
+  const sosyal = document.getElementById('k-sosyal').value.trim();
   if(!ad || !soyad || !eposta || !telefon || !sifre){
     hata.textContent = 'Tüm alanları doldurun.'; hata.classList.add('gorunur'); return;
   }
   if(!kvkk){ hata.textContent = 'KVKK onayı olmadan üyelik oluşturulamıyor.'; hata.classList.add('gorunur'); return; }
+  if(bayi && (!firma || !sosyal)){
+    hata.textContent = 'Bayilik için firma adı ve sosyal medya hesabı zorunlu.'; hata.classList.add('gorunur'); return;
+  }
   document.getElementById('k-dugme').textContent = 'Kaydediliyor…';
   try{
-    const res = await apiIstek('/api/kayit', { ad, soyad, eposta, telefon, sifre, kvkkOnay:true, kampanyaIzni:kampanya });
+    const res = await apiIstek('/api/kayit', { ad, soyad, eposta, telefon, sifre, kvkkOnay:true, kampanyaIzni:kampanya,
+      bayi, firma: bayi ? firma : '', sosyal: bayi ? sosyal : '' });
     const v = await res.json();
     if(!res.ok) throw new Error(v.hata || 'üyelik oluşturulamadı');
     oturum = { token: v.token, kullanici: v.kullanici };
     oturumKaydet();
+    bayiSeridiCiz();
+    cizHepsi();          // bayi onaylıysa tüm fiyatlar indirimli yeniden çizilir
+    favorileriEsitle();
     hesapCiz('hesabim');
     siparisBolgeCiz(true);
   }catch(e){
@@ -2845,12 +2906,25 @@ async function hesabimCiz(sekme){
           ${s==='siparislerim'?'Siparişlerim':s==='favorilerim'?'Favorilerim':s==='adreslerim'?'Adreslerim':'Bilgilerim'}
         </button>`).join('')}
     </div>
+    <div id="bayi-durum"></div>
     <div id="hesap-icerik">Yükleniyor…</div>
     <button class="hesap-cikis" type="button" onclick="cikisYap()">Çıkış yap (${escHtml(k.ad)})</button>`;
   govde.querySelectorAll('.hesap-sekme').forEach(b=>{
     b.onclick = ()=> hesabimCiz(b.dataset.sekme);
   });
   const icerik = document.getElementById('hesap-icerik');
+
+  // Bayilik durumu her sekmede en üstte görünür — Emre'nin onayını bekleyen bilsin
+  const by = oturum.kullanici && oturum.kullanici.bayi;
+  const bayiKutu = !by ? ''
+    : by.durum === 'onayli'
+      ? `<div class="bayi-bekliyor" style="background:#EBF6EF;border-color:#C9E4D4;color:#20573A"><b>Toptan bayisiniz.</b> ${escHtml(by.firma || '')} — tüm ürünlerde %${by.indirim} indirimli fiyat görüyorsunuz.</div>`
+      : by.durum === 'reddedildi'
+        ? `<div class="bayi-bekliyor"><b>Bayilik başvurunuz onaylanmadı.</b> Ayrıntı için WhatsApp'tan yazabilirsiniz: 0551 482 32 23</div>`
+        : `<div class="bayi-bekliyor"><b>Bayilik başvurunuz onay bekliyor.</b> ${escHtml(by.firma || '')} — onaylandığında indirimli fiyatları görmeye başlayacaksınız. Şimdilik normal fiyatla sipariş verebilirsiniz.</div>`;
+
+  const bayiYer = document.getElementById('bayi-durum');
+  if(bayiYer) bayiYer.innerHTML = bayiKutu;
 
   if(sekme === 'siparislerim'){
     try{
@@ -4232,10 +4306,93 @@ function promosyonCiz(){
   });
 })();
 
+// ---- STL ölçümü ve tahmini fiyat ----
+// Emre'nin kuralı (16.08.2026): gram başına 1 TL, ±%20 aralık.
+// Ağırlık dosyadan doğrudan çıkmaz — STL sadece şekli verir. Emre'nin Bambu ayarlarıyla
+// (0,28 katman · 2 duvar · alt/üst 3 · %5 dolgu) hesaplanıyor:
+//   kabuk = yüzey alanı × 0,84 mm (2 duvar ≈ 0,42+0,42; alt/üst 3 katman da 3×0,28 = 0,84)
+//   iç boşluk = kalan hacmin %5'i (dolgu)
+//   gram = malzeme hacmi × 1,27 g/cm³ (PETG)
+// Destek, etek ve çok ince parçalar oynatır; ±%20 aralık payı zaten bunun için.
+const BASKI = { duvar_mm: 0.84, dolgu: 0.05, yogunluk: 1.27, gram_fiyat: 1, pay: 0.20 };
+function stlUcgenleri(buf){
+  const dv = new DataView(buf);
+  const ucgen = [];
+  // İkili STL: 80 bayt başlık + adet + her yüzey 50 bayt
+  if(buf.byteLength >= 84){
+    const adet = dv.getUint32(80, true);
+    if(84 + adet * 50 === buf.byteLength){
+      for(let i = 0; i < adet; i++){
+        const o = 84 + i * 50 + 12; // normali atla
+        const v = [];
+        for(let j = 0; j < 9; j++) v.push(dv.getFloat32(o + j * 4, true));
+        ucgen.push(v);
+      }
+      return ucgen;
+    }
+  }
+  // Yazı hâlindeki STL
+  const metin = new TextDecoder().decode(new Uint8Array(buf.slice(0, Math.min(buf.byteLength, 40 * 1024 * 1024))));
+  const sayilar = metin.match(/vertex\s+(-?[\d.eE+]+)\s+(-?[\d.eE+]+)\s+(-?[\d.eE+]+)/g) || [];
+  for(let i = 0; i + 2 < sayilar.length; i += 3){
+    const v = [];
+    for(let j = 0; j < 3; j++){
+      const p = sayilar[i + j].trim().split(/\s+/);
+      v.push(parseFloat(p[1]), parseFloat(p[2]), parseFloat(p[3]));
+    }
+    ucgen.push(v);
+  }
+  return ucgen;
+}
+function stlOlc(ucgenler){
+  let hacim = 0, alan = 0;
+  for(const t of ucgenler){
+    const [ax,ay,az,bx,by,bz,cx,cy,cz] = t;
+    // İşaretli dörtyüzlü hacmi — kapalı yüzeyin toplamı gerçek hacmi verir
+    hacim += (ax*(by*cz - bz*cy) - ay*(bx*cz - bz*cx) + az*(bx*cy - by*cx)) / 6;
+    const ux = bx-ax, uy = by-ay, uz = bz-az, vx = cx-ax, vy = cy-ay, vz = cz-az;
+    const nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx;
+    alan += Math.sqrt(nx*nx + ny*ny + nz*nz) / 2;
+  }
+  return { hacim: Math.abs(hacim), alan };  // mm³ ve mm²
+}
+function baskiTahmini(olcu){
+  const kabuk = Math.min(olcu.alan * BASKI.duvar_mm, olcu.hacim);
+  const ic = Math.max(0, olcu.hacim - kabuk);
+  const malzeme = kabuk + ic * BASKI.dolgu;           // mm³
+  const gram = malzeme / 1000 * BASKI.yogunluk;
+  const orta = gram * BASKI.gram_fiyat;
+  return { gram, alt: orta * (1 - BASKI.pay), ust: orta * (1 + BASKI.pay) };
+}
+async function stlTahminGoster(dosya){
+  const kutu = document.getElementById('talep-tahmin');
+  const veri = document.getElementById('talep-tahmin-veri');
+  if(!kutu) return;
+  if(!dosya || !dosya.name || !/\.stl$/i.test(dosya.name)){ kutu.hidden = true; if(veri) veri.value = ''; return; }
+  kutu.hidden = false; kutu.className = 'tahmin-kutu hesapliyor'; kutu.textContent = 'Dosya ölçülüyor…';
+  try{
+    const ucgenler = stlUcgenleri(await dosya.arrayBuffer());
+    if(ucgenler.length < 4) throw new Error('okunamadı');
+    const olcu = stlOlc(ucgenler);
+    if(!(olcu.hacim > 0)) throw new Error('hacim yok');
+    const t = baskiTahmini(olcu);
+    kutu.className = 'tahmin-kutu';
+    kutu.innerHTML = 'Tahmini fiyat: <b>' + fiyatFmt(Math.round(t.alt)) + ' – ' + fiyatFmt(Math.round(t.ust)) + '</b>'
+      + '<small>Yaklaşık ' + Math.round(t.gram) + ' gram · siyah, beyaz, kırmızı veya gri PETG.'
+      + ' Kesin fiyatı ve süreyi WhatsApp\'tan yazacağız.</small>';
+    if(veri) veri.value = Math.round(t.gram) + ' g / ' + Math.round(t.alt) + '-' + Math.round(t.ust) + ' TL';
+  }catch(e){
+    kutu.hidden = true;
+    if(veri) veri.value = '';
+  }
+}
+
 // ---- özel baskı talebi formu ----
 (function(){
   const f = document.getElementById('talep-form'); if(!f) return;
   const hata = document.getElementById('talep-hata');
+  const dosyaKutu = f.querySelector('input[name="dosya"]');
+  if(dosyaKutu) dosyaKutu.addEventListener('change', ()=> stlTahminGoster(dosyaKutu.files[0]));
   const goster = m=>{ hata.textContent = m; hata.classList.add('gorunur'); };
   f.addEventListener('submit', async e=>{
     e.preventDefault();
