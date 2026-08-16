@@ -2251,7 +2251,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   <div class="kap guven-izgara">
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">📦</span>
-      <div><b>Ertesi iş günü kargoda</b><span id="guven-kargo">18:00'a kadar verilen siparişler ertesi iş günü yola çıkar.</span></div>
+      <div><b>Ertesi gün kargoda</b><span id="guven-kargo">18:00'a kadar verilen siparişler ertesi gün yola çıkar (pazar hariç).</span></div>
     </div>
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">↩️</span>
@@ -2598,15 +2598,15 @@ function satirNotu(satir){
 const KARGO_SON_SAAT = 18;
 const GUN_ADI = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
 const AY_ADI = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-// Paketin hangi gün yola çıkacağı: bugün saat sınırından önceyse ertesi iş günü, sonraysa bir sonraki.
-// Hafta sonu çalışılmıyor kabul edildi (cumartesi/pazar atlanır).
+// Paketin hangi gün yola çıkacağı: bugün saat sınırından önceyse ertesi gün, sonraysa bir sonraki.
+// Emre, 17.08.2026: cumartesi kargo VERİLİYOR. Sadece pazar atlanır.
 function kargoGunu(){
   const s = new Date();
   const g = new Date(s.getFullYear(), s.getMonth(), s.getDate());
   g.setDate(g.getDate() + 1);
   // Saat sınırı geçtiyse bugünün siparişi bugün toplanmaz, bir gün daha kayar
   if(s.getHours() >= KARGO_SON_SAAT) g.setDate(g.getDate() + 1);
-  while(g.getDay() === 0 || g.getDay() === 6) g.setDate(g.getDate() + 1);
+  while(g.getDay() === 0) g.setDate(g.getDate() + 1); // sadece pazar
   return g;
 }
 function kargoGunuMetni(){
@@ -3185,7 +3185,7 @@ function siparisBolgeCiz(zorla){
     </div>
     ${KART_AKTIF ? `<p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart bilgileriniz
       bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>` : ''}
-    <p class="sepet-not">📦 Siparişler ertesi iş günü kargoya verilir.</p>
+    <p class="sepet-not">📦 Siparişler ertesi gün kargoya verilir (pazar hariç).</p>
     <div class="odeme-secenekleri">
       ${KART_AKTIF ? `<button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>` : ''}
       <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
@@ -3904,7 +3904,7 @@ async function ozellikleriYukle(u){
   satirlar.push(['Üretim', '3D baskı — Kayseri, Türkiye, sipariş üzerine']);
   if(RENK_ACIK) satirlar.push(['Renk', RENKLER.join(', ') + ' (ücretsiz) · başka renk +' + fiyatFmt(RENK_FARK) + '/adet']);
   satirlar.push(['Kişiye özel', u.kisisel ? 'Evet — üstüne yazı/isim basılır, iade edilemez' : 'Hayır']);
-  satirlar.push(['Kargo', KARGO_SON_SAAT + ':00\'a kadar verilen sipariş ertesi iş günü kargoda']);
+  satirlar.push(['Kargo', KARGO_SON_SAAT + ':00\'a kadar verilen sipariş ertesi gün kargoda (pazar hariç)']);
   kutu.innerHTML = '<table class="ozellik-tablo">' + satirlar.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('') + '</table>';
 }
 
@@ -4292,7 +4292,7 @@ function cokSatanBagla(){
       const adimlar = [
         ['Sipariş alındı', new Date(v.olusturuldu).toLocaleDateString('tr-TR')],
         [v.odemeTuru === 'kart' ? 'Ödeme alındı, hazırlanıyor' : 'Onaylandı, hazırlanıyor', adim >= 2 ? '' : (v.odemeTuru === 'kart' ? 'ödeme bekleniyor' : 'WhatsApp\'tan onaylayacağız')],
-        ['Kargoya verildi', kb ? `${escHtml(kb.firma||'')} · takip no <b>${escHtml(kb.takip||'')}</b> · ${new Date(kb.tarih).toLocaleDateString('tr-TR')}` : 'ertesi iş günü'],
+        ['Kargoya verildi', kb ? `${escHtml(kb.firma||'')} · takip no <b>${escHtml(kb.takip||'')}</b> · ${new Date(kb.tarih).toLocaleDateString('tr-TR')}` : 'ertesi gün'],
       ];
       sonuc.innerHTML = `<div class="takip-kart">
         <div class="takip-ust"><b>${escHtml(v.id)}</b><span>${v.urunSayisi} ürün · ${fiyatFmt(v.toplam)}</span></div>
