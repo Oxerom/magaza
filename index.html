@@ -1705,6 +1705,23 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 
+/* ---- favori (kalp) ---- */
+.favori-dugme{
+  position:absolute; top:9px; right:9px; z-index:3;
+  width:34px; height:34px; border:0; border-radius:50%; cursor:pointer;
+  background:rgba(252,248,244,.92); color:var(--sisik); font-size:16px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 1px 4px rgba(33,26,21,.14); transition:transform .16s var(--e-cik), color .16s;
+}
+.favori-dugme:hover{ transform:scale(1.12); color:var(--nar); }
+.favori-dugme.dolu{ color:var(--nar); }
+.detay-favori{
+  position:static; width:auto; height:auto; border-radius:8px; padding:9px 14px;
+  background:var(--panel); border:1.5px solid var(--cizgi-koyu); font-size:13.5px; font-weight:700;
+  gap:7px; box-shadow:none; color:var(--murekkep);
+}
+.detay-favori.dolu{ color:var(--nar); border-color:var(--nar); }
+
 /* ---- indirim kodu kutusu (sepet özeti) ---- */
 .kupon-kutu{ display:flex; gap:8px; margin:10px 0 4px; }
 .kupon-kutu input{ flex:1; min-width:0; font:inherit; font-size:13.5px; padding:8px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--kagit); color:var(--murekkep); text-transform:uppercase; }
@@ -1734,6 +1751,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .promo-liste{ margin:0; padding-left:18px; font-size:14px; color:var(--soluk); line-height:1.75; }
 @media (max-width:860px){ .promo-isler{ grid-template-columns:1fr; } .promo-alt{ grid-template-columns:1fr; padding:20px; } }
 
+.kat-favori{ color:var(--nar) !important; }
 /* Şeritteki promosyon düğmesi: kategori değil, ayrı bir kapı — o yüzden farklı duruyor */
 .kat-promo{ color:var(--nar) !important; font-weight:700; }
 .kat-promo::before{ content:"✦"; margin-right:6px; font-size:11px; vertical-align:1px; }
@@ -2822,9 +2840,9 @@ async function hesabimCiz(sekme){
   document.getElementById('hesap-baslik').textContent = 'Hesabım';
   govde.innerHTML = `
     <div class="hesap-sekmeler">
-      ${['siparislerim','adreslerim','bilgilerim'].map(s=>`
+      ${['siparislerim','favorilerim','adreslerim','bilgilerim'].map(s=>`
         <button type="button" class="hesap-sekme ${s===sekme?'aktif':''}" data-sekme="${s}">
-          ${s==='siparislerim'?'Siparişlerim':s==='adreslerim'?'Adreslerim':'Bilgilerim'}
+          ${s==='siparislerim'?'Siparişlerim':s==='favorilerim'?'Favorilerim':s==='adreslerim'?'Adreslerim':'Bilgilerim'}
         </button>`).join('')}
     </div>
     <div id="hesap-icerik">Yükleniyor…</div>
@@ -2858,6 +2876,23 @@ async function hesabimCiz(sekme){
         </div>`).join('');
     }catch(e){
       icerik.innerHTML = '<p class="hesap-bos">Siparişler şu an yüklenemedi.</p>';
+    }
+  }else if(sekme === 'favorilerim'){
+    await favorileriEsitle();
+    const liste = FAVORILER.map(id=>URUNLER.find(u=>String(u.id)===String(id))).filter(Boolean);
+    if(!liste.length){
+      icerik.innerHTML = '<p class="hesap-bos">Henüz favoriniz yok. Ürünlerin köşesindeki ♡ işaretine dokunarak buraya ekleyebilirsiniz.</p>';
+    }else{
+      icerik.innerHTML = '<div class="izgara">' + liste.map(u=>urunKarti({...u, g_ad: grupAdi(u.g)})).join('') + '</div>';
+      icerik.querySelectorAll('.urun').forEach(el=>{
+        el.addEventListener('click', ()=> detayAc(parseInt(el.dataset.id)));
+      });
+      icerik.querySelectorAll('[data-favori]').forEach(btn=>{
+        btn.addEventListener('click', e=>{ e.stopPropagation(); favoriDegistir(btn.dataset.favori); hesabimCiz('favorilerim'); });
+      });
+      icerik.querySelectorAll('.sepet-ekle').forEach(btn=>{
+        btn.addEventListener('click', e=>{ e.stopPropagation(); sepeteEkle(parseInt(btn.dataset.id)); });
+      });
     }
   }else if(sekme === 'adreslerim'){
     const adresler = (oturum.kullanici.adresler || []);
@@ -3286,6 +3321,11 @@ function katBaglarCiz(){
   GRUPLAR.forEach(g=>{
     html += `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`;
   });
+  // Favoriler: üye olmayan müşteri de görebilsin diye şeritte kendi düğmesi var.
+  // Boşken düğme hiç çıkmıyor — dolu olmayan bir kapı müşteriyi boş sayfaya götürmesin.
+  if(FAVORILER.length){
+    html += `<a class="kat-bag kat-favori ${state.grup==='favori'?'aktif':''}" href="#" data-grup="favori">♥ Favorilerim <span class="n num" id="favori-sayi">${FAVORILER.length}</span></a>`;
+  }
   // Promosyon bir ürün grubu değil, ayrı bir kapı: kendi sayfasını açar
   html += `<a class="kat-bag kat-promo" href="#promosyon" onclick="promosyonAc(); return false;">Promosyon &amp; Kurumsal</a>`;
   document.getElementById('kat-baglar').innerHTML = html;
@@ -3361,7 +3401,8 @@ function filtreliListe(){
   } else if(state.koleksiyon){
     l = l.filter(x=>x.k === state.koleksiyon);
   } else {
-    if(state.grup === 'kisisel') l = l.filter(x=>x.kisisel);
+    if(state.grup === 'favori') l = l.filter(x=>favoriMi(x.id));
+    else if(state.grup === 'kisisel') l = l.filter(x=>x.kisisel);
     else if(state.grup !== 'tum') l = l.filter(x=>x.g===state.grup);
     if(state.grup === 'arac' && state.marka !== 'tum'){
       l = l.filter(x=>x.m===state.marka);
@@ -3394,6 +3435,8 @@ function urunKarti(u){
     <div class="urun-gorsel">
       <img src="${u.img}" alt="${escHtml(u.t)}" loading="lazy">
       ${rozet}
+      <button class="favori-dugme ${favoriMi(u.id)?'dolu':''}" type="button" data-favori="${u.id}"
+        title="Favorilerime ekle" aria-label="Favorilerime ekle">${favoriMi(u.id)?'♥':'♡'}</button>
     </div>
     <div class="urun-govde">
       <span class="urun-kat">${escHtml(u.g_ad || '')}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
@@ -3408,6 +3451,7 @@ function urunKarti(u){
 function grupAdi(slug){
   if(slug==='tum') return 'Tüm ürünler';
   if(slug==='kisisel') return 'Kişiye Özel Ürünler';
+  if(slug==='favori') return 'Favorilerim';
   const g = GRUPLAR.find(x=>x.slug===slug);
   return g ? g.name : slug;
 }
@@ -3434,6 +3478,9 @@ function cizIzgara(){
     izgara.innerHTML = sayfaListe.map(u=>urunKarti({...u, g_ad: grupAdi(u.g)})).join('');
     izgara.querySelectorAll('.urun').forEach(el=>{
       el.addEventListener('click', ()=> detayAc(parseInt(el.dataset.id)));
+    });
+    izgara.querySelectorAll('[data-favori]').forEach(btn=>{
+      btn.addEventListener('click', e=>{ e.stopPropagation(); favoriDegistir(btn.dataset.favori); });
     });
     izgara.querySelectorAll('.sepet-ekle').forEach(btn=>{
       btn.addEventListener('click', e=>{
@@ -3535,6 +3582,7 @@ function detayAc(id){
       <div class="detay-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
         <span class="indirim-rozet">Trendyol fiyatından %${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} ucuz</span></div>
       <div class="detay-kargo">📦 ${kargoCumlesi()}</div>
+      <button class="favori-dugme detay-favori ${favoriMi(u.id)?'dolu':''}" type="button" data-favori="${u.id}">${favoriMi(u.id)?'♥ Favorilerimde':'♡ Favorilerime ekle'}</button>
       <div class="paylas">
         <span class="paylas-etiket">Paylaş:</span>
         <a class="paylas-d wa" id="paylas-wa" href="#" target="_blank" rel="noopener" title="WhatsApp'ta paylaş">WhatsApp</a>
@@ -3809,6 +3857,12 @@ function yolCoz(){
 }
 window.addEventListener('popstate', yolCoz);
 window.addEventListener('hashchange', yolCoz);
+
+// Ürün sayfasındaki favori düğmesi (kartlardaki ayrı bağlanıyor)
+document.addEventListener('click', e=>{
+  const d = e.target.closest('.detay-favori');
+  if(d){ e.preventDefault(); favoriDegistir(d.dataset.favori); }
+});
 
 // ---- ürün galerisi — ayrı dosyadan bir kere çekilir ----
 let GORSELLER = null;
@@ -4208,6 +4262,55 @@ function promosyonCiz(){
     }
   });
 })();
+
+// ---- favoriler ----
+// Cihazda localStorage'da durur (üye olmayan da kullanabilsin), üyeyse hesaba da yazılır.
+let FAVORILER = JSON.parse(localStorage.getItem('oxerom_favori') || '[]');
+function favoriMi(id){ return FAVORILER.includes(String(id)); }
+function favoriKaydet(){
+  localStorage.setItem('oxerom_favori', JSON.stringify(FAVORILER));
+  if(oturum.token) apiIstek('/api/favorilerim', { favoriler: FAVORILER }).catch(()=>{});
+}
+function favoriDegistir(id){
+  const s = String(id);
+  const i = FAVORILER.indexOf(s);
+  if(i >= 0) FAVORILER.splice(i, 1); else FAVORILER.unshift(s);
+  favoriKaydet();
+  favoriIsaretleriYenile();
+  // Favori listesi boşaldıysa şeritteki düğme de kalkmalı; favori sayfasındaysak ızgara yenilenir
+  const oncekiVar = !!document.querySelector('.kat-favori');
+  if(oncekiVar !== (FAVORILER.length > 0)) katBaglarCiz();
+  favoriSayisiYaz();
+  if(state.grup === 'favori') cizIzgara();
+}
+function favoriIsaretleriYenile(){
+  document.querySelectorAll('[data-favori]').forEach(b=>{
+    const dolu = favoriMi(b.dataset.favori);
+    b.classList.toggle('dolu', dolu);
+    b.innerHTML = b.classList.contains('detay-favori')
+      ? (dolu ? '♥ Favorilerimde' : '♡ Favorilerime ekle')
+      : (dolu ? '♥' : '♡');
+  });
+}
+function favoriSayisiYaz(){
+  const el = document.getElementById('favori-sayi'); if(!el) return;
+  el.textContent = FAVORILER.length ? ' (' + FAVORILER.length + ')' : '';
+}
+// Giriş yapınca hesaptaki favorilerle cihazdaki birleşir — hiçbir taraf kaybolmasın
+async function favorileriEsitle(){
+  if(!oturum.token) return;
+  try{
+    const res = await apiIstek('/api/favorilerim');
+    if(!res.ok) return;
+    const uzak = await res.json();
+    const birlesik = [...FAVORILER];
+    uzak.forEach(x=>{ if(!birlesik.includes(String(x))) birlesik.push(String(x)); });
+    FAVORILER = birlesik;
+    localStorage.setItem('oxerom_favori', JSON.stringify(FAVORILER));
+    await apiIstek('/api/favorilerim', { favoriler: FAVORILER });
+    favoriIsaretleriYenile(); favoriSayisiYaz();
+  }catch(e){}
+}
 
 // ---- indirim kodu kutusunu bağla ----
 (function(){
