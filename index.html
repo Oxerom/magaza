@@ -1704,6 +1704,29 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-satir{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
+
+/* ---- promosyon / kurumsal sayfası ---- */
+.promo-giris{ font-size:16px; line-height:1.65; color:var(--soluk); max-width:62ch; margin:0 0 26px; }
+.promo-isler{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:0 0 34px; }
+.promo-is{ background:var(--panel); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m); padding:18px 20px; }
+.promo-is b{ display:block; font-size:15px; margin-bottom:5px; }
+.promo-is span{ font-size:13px; color:var(--soluk); line-height:1.5; }
+.promo-baslik{ font-size:19px; margin:0 0 14px; letter-spacing:-.01em; }
+.promo-ornek{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin:0 0 34px; }
+.promo-ornek a{ display:block; color:inherit; text-decoration:none; }
+.promo-ornek img{ width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:var(--r-m); border:1px solid var(--cizgi); background:var(--panel); }
+.promo-ornek small{ display:block; margin-top:7px; font-size:12.5px; color:var(--soluk); line-height:1.4; }
+.promo-ornek a:hover small{ color:var(--nar); }
+.promo-alt{ display:grid; grid-template-columns:1fr 1fr; gap:30px; align-items:start;
+  background:var(--panel); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-l); padding:26px 28px; }
+.promo-alt h2{ font-size:21px; margin:0 0 10px; letter-spacing:-.01em; }
+.promo-alt p{ font-size:14.5px; line-height:1.6; color:var(--soluk); margin:0 0 10px; }
+.promo-liste{ margin:0; padding-left:18px; font-size:14px; color:var(--soluk); line-height:1.75; }
+@media (max-width:860px){ .promo-isler{ grid-template-columns:1fr; } .promo-alt{ grid-template-columns:1fr; padding:20px; } }
+
+/* Şeritteki promosyon düğmesi: kategori değil, ayrı bir kapı — o yüzden farklı duruyor */
+.kat-promo{ color:var(--nar) !important; font-weight:700; }
+.kat-promo::before{ content:"✦"; margin-right:6px; font-size:11px; vertical-align:1px; }
 .benzer-baslik{ font-size:17px; margin:0 0 14px; }
 .benzer-izgara .urun{ animation:none; }
 .alt-cubuk{ display:none; }
@@ -2268,6 +2291,56 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   </div>
 </section>
 
+<!-- ============ PROMOSYON / KURUMSAL SAYFASI (tam sayfa, #promosyon) ============ -->
+<section class="sayfa" id="sayfa-promosyon" hidden>
+  <div class="kap">
+    <a class="sayfa-geri" href="#" onclick="katalogaDon(); return false;">← Alışverişe dön</a>
+    <h1 class="sayfa-baslik">Promosyon &amp; Kurumsal Baskı</h1>
+    <p class="promo-giris">Firmanızın logosunu, adını ya da tasarımını ürüne biz basıyoruz. Kendi atölyemizde
+      UV baskı, lazer markalama ve 3D baskı yapıyoruz — aracı yok, işi biz yapıyoruz.</p>
+
+    <div class="promo-isler">
+      <div class="promo-is"><b>UV baskı</b><span>Renkli, kalıcı baskı. Pleksi, plaka, magnet, plaket gibi düz yüzeylere.</span></div>
+      <div class="promo-is"><b>Lazer markalama</b><span>Metal ve ahşapta silinmeyen kazıma. Çakmak, bileklik, anahtarlık, isim plakası.</span></div>
+      <div class="promo-is"><b>3D baskı özel üretim</b><span>Kataloğa uymayan bir parça mı lazım? Ölçüsüne göre sadece size basıyoruz.</span></div>
+    </div>
+
+    <h2 class="promo-baslik">Yaptığımız işlerden</h2>
+    <div class="promo-ornek" id="promo-ornek"></div>
+
+    <div class="promo-alt">
+      <div>
+        <h2>Teklif isteyin</h2>
+        <p>Ürünü ve adedi yazın, fiyatı ve teslim süresini WhatsApp'tan gönderelim. Logonuz varsa şimdi ekleyin,
+          yoksa sonra da yollayabilirsiniz.</p>
+        <ul class="promo-liste">
+          <li>Fiyat ürüne ve adede göre değişir</li>
+          <li>Numune yapılabilir</li>
+          <li>Faturalı gönderim</li>
+        </ul>
+      </div>
+      <form class="talep-form" id="promo-form" novalidate>
+        <input type="hidden" name="tip" value="promosyon">
+        <label>Firma adı <span class="opsiyonel">(isteğe bağlı)</span><input type="text" name="firma" maxlength="80" autocomplete="organization"></label>
+        <div class="talep-satir">
+          <label>Ad <input type="text" name="ad" maxlength="40" required autocomplete="given-name"></label>
+          <label>Soyad <input type="text" name="soyad" maxlength="40" required autocomplete="family-name"></label>
+        </div>
+        <label>Telefon <input type="tel" name="telefon" maxlength="20" required placeholder="05xx xxx xx xx" autocomplete="tel"></label>
+        <div class="talep-satir">
+          <label>Hangi ürüne <input type="text" name="urun" maxlength="120" required placeholder="çakmak, magnet, anahtarlık…"></label>
+          <label>Adet <input type="text" name="adet" maxlength="7" required inputmode="numeric" placeholder="100"></label>
+        </div>
+        <label>Kısa açıklama <span class="opsiyonel">(isteğe bağlı: renk, ne zaman lazım)</span><textarea name="aciklama" rows="2" maxlength="600"></textarea></label>
+        <label>Logo dosyası <span class="opsiyonel">(isteğe bağlı — png, jpg, pdf, svg; en fazla 15 MB)</span><input type="file" name="dosya" accept=".png,.jpg,.jpeg,.webp,.pdf,.svg,.ai,.eps,.cdr,.stl"></label>
+        <p class="detay-not-hata" id="promo-hata"></p>
+        <button class="detay-sepet" type="submit" id="promo-gonder">Teklif iste</button>
+        <p class="talep-ok" id="promo-ok" hidden>✓ Aldık. Fiyat ve süreyle WhatsApp'tan döneceğiz.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
 <!-- ============ HESABIM SAYFASI (tam sayfa, #hesap) ============ -->
 <section class="sayfa" id="sayfa-hesap" hidden>
   <div class="kap kap-dar">
@@ -2331,6 +2404,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             <li class="fis-satir"><a href="#takip" onclick="history.pushState({takip:true},'','#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a><span class="nk"></span><span class="sag">takip</span></li>
             <li class="fis-satir"><a href="hakkimizda.html">Atölye</a><span class="nk"></span><span class="sag">Kayseri, Türkiye</span></li>
             <li class="fis-satir"><a href="sss.html">Sık sorulan sorular</a><span class="nk"></span><span class="sag">SSS</span></li>
+            <li class="fis-satir"><a href="#promosyon" onclick="promosyonAc(); return false;">Promosyon ve kurumsal baskı</a><span class="nk"></span><span class="sag">toplu sipariş</span></li>
             <li class="fis-satir"><a href="#ozel-baski" onclick="katalogaDon(); setTimeout(()=>document.getElementById('ozel-baski').scrollIntoView({behavior:'smooth'}),50); return false;">Özel baskı talebi</a><span class="nk"></span><span class="sag">STL yükle</span></li>
           </ul>
         </div>
@@ -3120,8 +3194,10 @@ function katBaglarCiz(){
   GRUPLAR.forEach(g=>{
     html += `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`;
   });
+  // Promosyon bir ürün grubu değil, ayrı bir kapı: kendi sayfasını açar
+  html += `<a class="kat-bag kat-promo" href="#promosyon" onclick="promosyonAc(); return false;">Promosyon &amp; Kurumsal</a>`;
   document.getElementById('kat-baglar').innerHTML = html;
-  document.querySelectorAll('.kat-bag').forEach(a=>{
+  document.querySelectorAll('.kat-bag[data-grup]').forEach(a=>{
     a.addEventListener('click', e=>{
       e.preventDefault();
       state.grup = a.dataset.grup;
@@ -3601,6 +3677,15 @@ function sayfaGoster(ad){
   document.getElementById('sayfa-sepet').hidden   = ad !== 'sepet';
   document.getElementById('sayfa-hesap').hidden   = ad !== 'hesap';
   document.getElementById('sayfa-takip').hidden   = ad !== 'takip';
+  document.getElementById('sayfa-promosyon').hidden = ad !== 'promosyon';
+  // Promosyon sayfasındayken şeritte "Tümü" değil promosyon işaretli dursun
+  const promoBag = document.querySelector('.kat-promo');
+  if(promoBag){
+    promoBag.classList.toggle('aktif', ad === 'promosyon');
+    document.querySelectorAll('.kat-bag[data-grup]').forEach(x=>{
+      x.classList.toggle('aktif', ad !== 'promosyon' && x.dataset.grup === state.grup);
+    });
+  }
   const altC = document.getElementById('detay-alt'); if(altC && ad !== 'urun') altC.hidden = true;
   if(ad !== 'urun') document.title = 'OXEROM';
   window.scrollTo({top:0, behavior:'instant'});
@@ -3623,6 +3708,7 @@ function yolCoz(){
   if(h === '#sepet'){ sepetCiz(); sayfaGoster('sepet'); return; }
   if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
   if(h === '#takip'){ sayfaGoster('takip'); return; }
+  if(h === '#promosyon'){ promosyonCiz(); sayfaGoster('promosyon'); return; }
   sayfaGoster('katalog');
   if(h === '#katalog' || h === '#iletisim'){
     const hedef = document.getElementById(h.slice(1));
@@ -3935,6 +4021,69 @@ function cokSatanBagla(){
     if(biriken > 60) ust.classList.add('katla');
     else if(biriken < -40) ust.classList.remove('katla');
   }, { passive:true });
+})();
+
+// ---- promosyon / kurumsal sayfası ----
+// Örnek işler gerçek ürünlerden çekilir: görsel de fiyat da tek kaynaktan gelsin, elle
+// yüklenen ölü fotoğraf birikmesin. Ürün satıştan kalkarsa listeden kendiliğinden düşer.
+const PROMO_ORNEK = [
+  [1182591964, 'UV baskı — akülü araba plakası'],
+  [1122299445, 'UV baskı — motor plakalığı'],
+  [837098727,  'Lazer kesim — motor plakalığı'],
+  [787006963,  'Lazer markalama — metal çakmak'],
+  [932532105,  'Lazer markalama — isimli bileklik'],
+  [956574700,  'Baskılı magnet'],
+];
+function promosyonAc(){
+  if(location.hash !== '#promosyon') history.pushState({promosyon:true}, '', '#promosyon');
+  promosyonCiz();
+  sayfaGoster('promosyon');
+}
+function promosyonCiz(){
+  const kutu = document.getElementById('promo-ornek'); if(!kutu) return;
+  const bul = id => URUNLER.find(u=>String(u.id)===String(id));
+  // Promosyon grubuna atanmış ürün varsa onlar da örnek olarak çıkar
+  const grup = URUNLER.filter(u=>u.g==='promosyon').slice(0, 6);
+  const liste = PROMO_ORNEK.map(([id, ad])=>{ const u = bul(id); return u ? [u, ad] : null; })
+    .filter(Boolean)
+    .concat(grup.filter(u=>!PROMO_ORNEK.some(x=>String(x[0])===String(u.id))).map(u=>[u, u.t]));
+  if(!liste.length){ kutu.innerHTML = ''; return; }
+  kutu.innerHTML = liste.map(([u, ad])=>
+    `<a href="#u${u.id}" onclick="detayAc(${u.id}); return false;">
+       <img src="${u.img}" alt="${escHtml(ad)}" loading="lazy">
+       <small>${escHtml(ad)}</small>
+     </a>`).join('');
+}
+(function(){
+  const f = document.getElementById('promo-form'); if(!f) return;
+  const hata = document.getElementById('promo-hata');
+  const goster = m=>{ hata.textContent = m; hata.classList.add('gorunur'); };
+  f.addEventListener('submit', async e=>{
+    e.preventDefault();
+    hata.classList.remove('gorunur');
+    const fd = new FormData(f);
+    const dosya = fd.get('dosya');
+    if(!String(fd.get('ad')||'').trim() || !String(fd.get('soyad')||'').trim()) return goster('Ad ve soyad gerekli.');
+    if(String(fd.get('telefon')||'').replace(/\D/g,'').length < 10) return goster('Geçerli bir telefon numarası yaz (05xx xxx xx xx).');
+    if(!String(fd.get('urun')||'').trim()) return goster('Hangi ürüne baskı istediğini yaz.');
+    if(!String(fd.get('adet')||'').replace(/\D/g,'')) return goster('Kaç adet istediğini yaz.');
+    if(dosya && dosya.name && dosya.size > 15*1024*1024) return goster('Dosya en fazla 15 MB olabilir.');
+    if(dosya && dosya.name && !/\.(stl|png|jpe?g|webp|pdf|svg|ai|eps|cdr)$/i.test(dosya.name))
+      return goster('Logo için resim (png/jpg), pdf ya da vektör (svg/ai) yükle.');
+    const btn = document.getElementById('promo-gonder');
+    btn.disabled = true; btn.textContent = 'Gönderiliyor…';
+    try{
+      const res = await fetch(ODEME_API + '/api/ozel-talep', { method:'POST', body: fd });
+      const v = await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(v.hata || 'gönderilemedi');
+      f.reset();
+      document.getElementById('promo-ok').hidden = false;
+      btn.textContent = 'Gönderildi ✓';
+    }catch(err){
+      goster('Gönderilemedi: ' + err.message + ' — WhatsApp\'tan da yazabilirsin: 0551 482 32 23');
+      btn.disabled = false; btn.textContent = 'Teklif iste';
+    }
+  });
 })();
 
 // ---- özel baskı talebi formu ----
