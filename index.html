@@ -1705,6 +1705,16 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 
+/* ---- indirim kodu kutusu (sepet özeti) ---- */
+.kupon-kutu{ display:flex; gap:8px; margin:10px 0 4px; }
+.kupon-kutu input{ flex:1; min-width:0; font:inherit; font-size:13.5px; padding:8px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--kagit); color:var(--murekkep); text-transform:uppercase; }
+.kupon-kutu button{ font:inherit; font-size:13px; font-weight:700; padding:8px 14px; border:1.5px solid var(--cizgi-koyu); border-radius:8px; background:var(--panel); color:var(--murekkep); cursor:pointer; }
+.kupon-kutu button:hover{ background:var(--murekkep); color:var(--kagit); border-color:var(--murekkep); }
+.kupon-mesaj{ margin:2px 0 0; font-size:12.5px; color:#9C2F33; }
+.kupon-mesaj.oldu{ color:#2E7D4F; }
+.kupon-satir span:first-child{ color:#2E7D4F; font-weight:700; }
+.kupon-satir .num{ color:#2E7D4F; }
+
 /* ---- promosyon / kurumsal sayfası ---- */
 .promo-giris{ font-size:16px; line-height:1.65; color:var(--soluk); max-width:62ch; margin:0 0 26px; }
 .promo-isler{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:0 0 34px; }
@@ -2180,7 +2190,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   <div class="kap guven-izgara">
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">📦</span>
-      <div><b>Ertesi iş günü kargoda</b><span>Bugün sipariş verin, paketiniz yarın yola çıksın.</span></div>
+      <div><b>Ertesi iş günü kargoda</b><span id="guven-kargo">18:00'a kadar verilen siparişler ertesi iş günü yola çıkar.</span></div>
     </div>
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">↩️</span>
@@ -2262,6 +2272,12 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <aside class="sepet-ozet">
         <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
         <div class="sepet-ara-satir"><span>Kargo <small id="sepet-kargo-etiket">(sabit)</small></span><span class="num" id="sepet-kargo">—</span></div>
+        <div class="sepet-ara-satir kupon-satir" id="kupon-satir" hidden><span id="kupon-etiket">İndirim</span><span class="num" id="sepet-kupon">0,00 TL</span></div>
+        <div class="kupon-kutu">
+          <input type="text" id="kupon-kod" placeholder="İndirim kodu" autocomplete="off" maxlength="24">
+          <button type="button" id="kupon-uygula">Uygula</button>
+        </div>
+        <p class="kupon-mesaj" id="kupon-mesaj" hidden></p>
         <div class="sepet-toplam"><span>Toplam</span><span class="num" id="sepet-toplam">0,00 TL</span></div>
         <div class="bedava-cubuk" id="bedava-cubuk" hidden></div>
         <label class="sepet-not-alani">Sipariş notu <span class="opsiyonel">(isteğe bağlı)</span>
@@ -2514,12 +2530,43 @@ function satirNotu(satir){
   if(satir.not) par.push((satir.renk && satir.renk !== RENKLER[0] ? 'Yazı: ' : '') + satir.not);
   return par.join(' · ');
 }
+// Kargoya son verme saati — Emre'nin kararı 16.08.2026: "18:00'a kadar siparişler ertesi gün kargo".
+// TEK KAYNAK: burayı değiştirmek yeter, duyuru şeridi de ürün sayfası da buradan okur.
+const KARGO_SON_SAAT = 18;
+const GUN_ADI = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const AY_ADI = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+// Paketin hangi gün yola çıkacağı: bugün saat sınırından önceyse ertesi iş günü, sonraysa bir sonraki.
+// Hafta sonu çalışılmıyor kabul edildi (cumartesi/pazar atlanır).
+function kargoGunu(){
+  const s = new Date();
+  const g = new Date(s.getFullYear(), s.getMonth(), s.getDate());
+  g.setDate(g.getDate() + 1);
+  // Saat sınırı geçtiyse bugünün siparişi bugün toplanmaz, bir gün daha kayar
+  if(s.getHours() >= KARGO_SON_SAAT) g.setDate(g.getDate() + 1);
+  while(g.getDay() === 0 || g.getDay() === 6) g.setDate(g.getDate() + 1);
+  return g;
+}
+function kargoGunuMetni(){
+  const g = kargoGunu(), s = new Date();
+  const yarin = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 1);
+  if(g.getTime() === yarin.getTime()) return 'yarın';
+  return GUN_ADI[g.getDay()] + ' günü';
+}
+// Ürün sayfasındaki tam cümle: "Bugün 18:00'a kadar sipariş verirsen yarın kargoda"
+function kargoCumlesi(){
+  const s = new Date();
+  const kaldi = s.getHours() < KARGO_SON_SAAT;
+  return (kaldi ? 'Bugün ' + KARGO_SON_SAAT + ':00\'a kadar sipariş verirsen ' : 'Siparişin ')
+    + '<b>' + kargoGunuMetni() + ' kargoda</b>'
+    + ' (' + g_tarihYaz(kargoGunu()) + ')';
+}
+function g_tarihYaz(d){ return d.getDate() + ' ' + AY_ADI[d.getMonth()] + ' ' + GUN_ADI[d.getDay()]; }
 function duyuruYaz(){
   const el = document.getElementById('duyuru-metin'); if(!el) return;
   const par = [];
   if(MIN_SEPET > 0) par.push(fiyatFmt(MIN_SEPET).replace(',00','') + ' Minimum Sipariş Tutarı');
   if(BEDAVA_ESIK > 0) par.push(fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' Üzeri Ücretsiz Kargo');
-  par.push('Ertesi İş Günü Kargoda');
+  par.push(KARGO_SON_SAAT + ':00\'a Kadar Sipariş ' + (kargoGunuMetni() === 'yarın' ? 'Yarın' : kargoGunuMetni().replace(' günü','')) + ' Kargoda');
   el.innerHTML = par.map(x=>'<span>'+x+'</span>').join('<i class="ayrac">—</i>');
   const kl = document.getElementById('sepet-kargo-etiket');
   if(kl) kl.textContent = BEDAVA_ESIK > 0 ? '(' + fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' üzeri bedava)' : '(sabit)';
@@ -2573,10 +2620,22 @@ function sepetCiz(){
       </div>
     </div>`;
   }).join('');
+  // Kargo bedava eşiğine İNDİRİMSİZ ara toplamdan bakılır — yoksa kupon dolaylı olarak
+  // kargoyu da bedava yapardı. Motor tarafı da aynı sırayla hesaplıyor.
   const kargo = kargoHesapla(toplam);
+  if(KUPON && toplam < KUPON.min_gerekli) kuponKaldir();
+  const indirim = KUPON ? Math.min(KUPON.indirim, toplam) : 0;
   document.getElementById('sepet-ara').textContent = fiyatFmt(toplam);
   document.getElementById('sepet-kargo').textContent = kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
-  document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam + kargo);
+  const ks = document.getElementById('kupon-satir');
+  if(ks){
+    ks.hidden = !indirim;
+    if(indirim){
+      document.getElementById('kupon-etiket').textContent = 'İndirim (' + KUPON.kod + ')';
+      document.getElementById('sepet-kupon').textContent = '−' + fiyatFmt(indirim);
+    }
+  }
+  document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam - indirim + kargo);
   SEPET_ARA_TOPLAM = toplam;
   bedavaCubukCiz(toplam);
   siparisBolgeCiz();
@@ -2591,6 +2650,37 @@ function bedavaCubukCiz(toplam){
   el.innerHTML = `<span>Ücretsiz kargoya <b>${fiyatFmt(kalan)}</b> kaldı</span><div class="min-sepet-cubuk"><i style="width:${yuzde}%"></i></div>`;
 }
 let SEPET_ARA_TOPLAM = 0;
+
+// ---- indirim kodu ----
+// Kod motorda doğrulanır; buradaki rakam sadece gösterim, sipariş anında sunucu yeniden bakar.
+let KUPON = JSON.parse(sessionStorage.getItem('oxerom_kupon') || 'null');
+function kuponKaldir(){ KUPON = null; sessionStorage.removeItem('oxerom_kupon'); }
+function kuponMesaj(metin, oldu){
+  const el = document.getElementById('kupon-mesaj'); if(!el) return;
+  el.hidden = !metin; el.textContent = metin || '';
+  el.classList.toggle('oldu', !!oldu);
+}
+async function kuponUygula(kod){
+  const temiz = String(kod || '').trim();
+  if(!temiz){ kuponMesaj('İndirim kodunu yaz.'); return; }
+  kuponMesaj('Kontrol ediliyor…');
+  try{
+    const res = await fetch(ODEME_API + '/api/kupon-kontrol', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ kod: temiz, araToplam: SEPET_ARA_TOPLAM }),
+    });
+    const v = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(v.hata || 'kod uygulanamadı');
+    KUPON = { kod: v.kod, indirim: v.indirim, min_gerekli: SEPET_ARA_TOPLAM };
+    sessionStorage.setItem('oxerom_kupon', JSON.stringify(KUPON));
+    kuponMesaj('✓ ' + v.aciklama + ' uygulandı', true);
+    sepetCiz();
+  }catch(err){
+    kuponKaldir();
+    kuponMesaj(err.message);
+    sepetCiz();
+  }
+}
 
 // ═══════════ ÜYELİK / OTURUM ═══════════
 let oturum = JSON.parse(localStorage.getItem('oxerom_oturum') || 'null') || { token:null, kullanici:null };
@@ -3079,7 +3169,7 @@ function misafirWhatsapp(){
     return s;
   }).join('\n');
   const kargo = kargoHesapla(toplam);
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}\nToplam: ${fiyatFmt(toplam+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
   window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
 }
 
@@ -3105,6 +3195,7 @@ async function siparisiOnaylaWhatsapp(){
       fatura: veri.fatura,
       sozlesmeOnay: true,
       siparisNotu: siparisNotu(),
+      kupon: KUPON ? KUPON.kod : null,
       odemeTuru: 'whatsapp',
       ...(veri.misafir ? { misafir: veri.misafir } : {}),
     });
@@ -3131,7 +3222,7 @@ async function siparisiOnaylaWhatsapp(){
   }).join('\n');
   const kargo = kargoHesapla(toplam);
   const k = oturum.kullanici || veri.misafir;
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}\nToplam: ${fiyatFmt(toplam+kargo)}`
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}`
     + (sipNo ? `\nSipariş No: ${sipNo}` : '')
     + `\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
   const adres = 'https://wa.me/905514823223?text=' + encodeURIComponent(mesaj);
@@ -3160,6 +3251,7 @@ async function siparisiOnaylaKartla(){
       fatura: veri.fatura,
       sozlesmeOnay: true,
       siparisNotu: siparisNotu(),
+      kupon: KUPON ? KUPON.kod : null,
       odemeTuru: 'kart',
       ...(veri.misafir ? { misafir: veri.misafir } : {}),
     });
@@ -3442,7 +3534,7 @@ function detayAc(id){
       <h2>${escHtml(u.t)}</h2>
       <div class="detay-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
         <span class="indirim-rozet">Trendyol fiyatından %${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} ucuz</span></div>
-      <div class="detay-kargo">📦 Bugün sipariş verin, <b>ertesi iş günü kargoda</b>.</div>
+      <div class="detay-kargo">📦 ${kargoCumlesi()}</div>
       <div class="paylas">
         <span class="paylas-etiket">Paylaş:</span>
         <a class="paylas-d wa" id="paylas-wa" href="#" target="_blank" rel="noopener" title="WhatsApp'ta paylaş">WhatsApp</a>
@@ -3661,7 +3753,7 @@ async function ozellikleriYukle(u){
   satirlar.push(['Üretim', '3D baskı — Kayseri, Türkiye, sipariş üzerine']);
   if(RENK_ACIK) satirlar.push(['Renk', RENKLER.join(', ') + ' (ücretsiz) · başka renk +' + fiyatFmt(RENK_FARK) + '/adet']);
   satirlar.push(['Kişiye özel', u.kisisel ? 'Evet — üstüne yazı/isim basılır, iade edilemez' : 'Hayır']);
-  satirlar.push(['Kargo', 'Ertesi iş günü kargoda']);
+  satirlar.push(['Kargo', KARGO_SON_SAAT + ':00\'a kadar verilen sipariş ertesi iş günü kargoda']);
   kutu.innerHTML = '<table class="ozellik-tablo">' + satirlar.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('') + '</table>';
 }
 
@@ -4115,6 +4207,15 @@ function promosyonCiz(){
       btn.disabled = false; btn.textContent = 'Dosyayı gönder';
     }
   });
+})();
+
+// ---- indirim kodu kutusunu bağla ----
+(function(){
+  const dugme = document.getElementById('kupon-uygula'), kutu = document.getElementById('kupon-kod');
+  if(!dugme || !kutu) return;
+  if(KUPON) kutu.value = KUPON.kod;
+  dugme.addEventListener('click', ()=>kuponUygula(kutu.value));
+  kutu.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); kuponUygula(kutu.value); } });
 })();
 
 // ---- sıralama / sayfa başına seçenekleri ----
