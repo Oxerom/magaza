@@ -1705,6 +1705,29 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 
+/* ---- ürün videosu (Instagram) ---- */
+.detay-video{ margin:14px 0 4px; }
+.detay-video h4{ margin:0 0 8px; font-size:14px; letter-spacing:-.01em; }
+.video-kapak{
+  position:relative; display:block; width:100%; border:0; padding:0; cursor:pointer;
+  border-radius:var(--r-m); overflow:hidden; background:var(--panel); line-height:0;
+}
+.video-kapak img{ width:100%; aspect-ratio:16/10; object-fit:cover; display:block; opacity:.85; transition:opacity .2s; }
+.video-kapak:hover img{ opacity:1; }
+.video-kapak i{
+  position:absolute; inset:0; margin:auto; width:62px; height:62px; border-radius:50%;
+  background:rgba(252,248,244,.94); color:var(--nar); font-style:normal; font-size:24px;
+  display:flex; align-items:center; justify-content:center; padding-left:5px;
+  box-shadow:0 2px 12px rgba(33,26,21,.3);
+}
+.video-kapak b{
+  position:absolute; left:0; right:0; bottom:0; padding:10px 13px; line-height:1.4;
+  background:linear-gradient(180deg, rgba(33,26,21,0), rgba(33,26,21,.82));
+  color:#F2E6DB; font-size:13px; font-weight:600; text-align:left;
+}
+.detay-video iframe{ width:100%; height:640px; border:0; border-radius:var(--r-m); background:var(--panel); }
+.video-not{ margin:6px 0 0; font-size:11.5px; color:var(--sisik); }
+
 /* ---- Trendyol'dan gelen yorumlar ---- */
 .yorum-kaynak{ font-size:12.5px; color:var(--soluk); margin:14px 0 8px; padding-top:12px; border-top:1px dashed var(--cizgi); }
 .yorum.ty .yorum-tarih{ color:var(--sisik); }
@@ -3698,6 +3721,7 @@ function detayAc(id){
           <summary>Teslimat ve iade</summary>
           <div class="detay-bolum-icerik">${iadeIcerik}</div>
         </details>
+        <div class="detay-video" id="detay-video" hidden></div>
         <details class="detay-bolum" id="detay-yorum-bolum">
           <summary>Yorumlar <span class="yorum-sayi" id="detay-yorum-sayi"></span></summary>
           <div class="detay-bolum-icerik" id="detay-yorumlar">Yükleniyor…</div>
@@ -3708,6 +3732,7 @@ function detayAc(id){
   galeriYukle(u.id);
   yorumlariYukle(u.id);
   ozellikleriYukle(u);
+  videoYukle(u);
   benzerleriCiz(u);
 
   // Ürünün kendi linki: paylaşılabilir #u<id> adresi (Instagram/WhatsApp'a atılabilir)
@@ -3996,6 +4021,34 @@ async function urunAciklamaYukle(id){
 function yildizlar(puan){
   return '★'.repeat(puan) + '☆'.repeat(5-puan);
 }
+// ---- ürün videosu ----
+let VIDEOLAR = null;
+async function videoYukle(u){
+  const kutu = document.getElementById('detay-video'); if(!kutu) return;
+  kutu.hidden = true; kutu.innerHTML = '';
+  if(!VIDEOLAR){
+    try{ const r = await fetch('videolar.json'); VIDEOLAR = r.ok ? await r.json() : {}; }
+    catch(e){ VIDEOLAR = {}; }
+  }
+  if(document.getElementById('detay-video') !== kutu) return; // başka ürüne geçildi
+  const v = VIDEOLAR[String(u.id)];
+  if(!v || !v.kod) return;
+  kutu.hidden = false;
+  kutu.innerHTML = `<h4>Bu ürünün videosu</h4>
+    <button class="video-kapak" type="button" id="video-ac">
+      <img src="${u.img}" alt="" loading="lazy">
+      <i>▶</i>
+      <b>${escHtml(v.konu || 'Atölyeden')} — izlemek için dokun</b>
+    </button>
+    <p class="video-not">Video Instagram'da açılır; dokunana kadar Instagram'a hiçbir bilgi gitmez.</p>`;
+  document.getElementById('video-ac').onclick = ()=>{
+    kutu.innerHTML = `<h4>Bu ürünün videosu</h4>
+      <iframe src="https://www.instagram.com/reel/${encodeURIComponent(v.kod)}/embed" loading="lazy"
+        title="${escHtml(v.konu || 'Ürün videosu')}" allowfullscreen scrolling="no"></iframe>
+      <p class="video-not"><a href="${escHtml(v.link)}" target="_blank" rel="noopener">Instagram'da aç →</a></p>`;
+  };
+}
+
 let TY_YORUM = null;
 async function trendyolYorumlari(id){
   if(!TY_YORUM){
