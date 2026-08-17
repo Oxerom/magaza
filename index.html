@@ -1705,6 +1705,30 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
 
+/* Müşterinin kendi fotoğrafı (Trendyol'dan gelen yorumlarda). Adres ölürse
+   onerror ile sessizce kaldırılır — kırık resim görünmez. */
+.yorum-foto{ display:flex; gap:7px; flex-wrap:wrap; margin:8px 0 2px; }
+.yorum-foto img{ width:78px; height:78px; object-fit:cover; border-radius:8px; border:1px solid var(--cizgi); }
+
+/* ---- özel baskı: renk seçimi + yazı önizlemesi ---- */
+.talep-renk{ margin:2px 0 4px; }
+.talep-renk-not{ font-size:11.5px; color:var(--sisik); line-height:1.45; }
+.yazi-onizleme{ margin:8px 0 2px; }
+.yazi-onizleme > span{ display:block; font-size:11.5px; color:var(--sisik); margin-bottom:5px; }
+.plaka{
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  min-height:74px; padding:12px 16px; border-radius:10px; text-align:center;
+  border:2px solid rgba(33,26,21,.18); box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
+  background:#2A2724; color:#F4EFE9; overflow-wrap:anywhere;
+}
+.plaka b{
+  display:block; font-weight:800; letter-spacing:.06em; line-height:1.15;
+  text-shadow:0 1px 0 rgba(0,0,0,.35), 0 -1px 0 rgba(255,255,255,.12);
+}
+.plaka i{ font-style:normal; opacity:.55; font-size:13px; letter-spacing:.02em; }
+.yazi-sayac{ font-size:11.5px; color:var(--sisik); margin:5px 0 0; }
+.yazi-sayac.uzun{ color:var(--nar); font-weight:600; }
+
 /* ---- ürün videosu (Instagram) ---- */
 .detay-video{ margin:14px 0 4px; }
 .detay-video h4{ margin:0 0 8px; font-size:14px; letter-spacing:-.01em; }
@@ -2434,7 +2458,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   <div class="kap talep-kap">
     <div class="talep-metin">
       <h2>Aklındaki parçayı basalım</h2>
-      <p>Sitede olmayan bir parça mı lazım? Kırılan bir aparat, aracına özel bir tutucu, kendi tasarımın… <b>STL dosyanı</b> yükle, WhatsApp'tan fiyat ve süre verelim. Elimizde her zaman siyah, beyaz, kırmızı ve gri PETG var.</p>
+      <p>Sitede olmayan bir parça mı lazım? Kırılan bir aparat, aracına özel bir tutucu, kendi tasarımın… <b>STL, 3MF ya da OBJ dosyanı</b> yükle, WhatsApp'tan fiyat ve süre verelim. Onay verildikten sonra <b>2 iş gününde hazır</b>.</p>
       <p class="talep-not">Dosyan sadece bize gelir, üçüncü kişiyle paylaşılmaz; 60 gün sonra silinir. Tasarımın yoksa fotoğraf ve ölçüyü <a href="https://wa.me/905514823223" target="_blank" rel="noopener">WhatsApp'tan</a> gönder.</p>
     </div>
     <form class="talep-form" id="talep-form" novalidate>
@@ -2443,8 +2467,14 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <label>Soyad <input type="text" name="soyad" maxlength="40" required autocomplete="family-name"></label>
       </div>
       <label>Telefon <input type="tel" name="telefon" maxlength="20" required placeholder="05xx xxx xx xx" autocomplete="tel"></label>
-      <label>Kısa açıklama <span class="opsiyonel">(isteğe bağlı: adet, renk, nerede kullanılacak)</span><textarea name="aciklama" rows="2" maxlength="600"></textarea></label>
-      <label class="talep-dosya">STL dosyası <span class="opsiyonel">(sadece .stl, en fazla 15 MB)</span><input type="file" name="dosya" accept=".stl" required></label>
+      <label>Kısa açıklama <span class="opsiyonel">(isteğe bağlı: adet, nerede kullanılacak)</span><textarea name="aciklama" rows="2" maxlength="600"></textarea></label>
+      <div class="detay-renk talep-renk">
+        <label>Renk</label>
+        <div class="renk-secenek" id="talep-renkler"></div>
+        <input type="text" id="talep-renk-diger" name="renk_diger" maxlength="30" placeholder="Hangi renk? (örn. Mavi, Turuncu)" hidden>
+        <small class="talep-renk-not">Listede olmayan bir renk de yazabilirsin — elimizde yoksa haber veririz ya da siparişini veririz.</small>
+      </div>
+      <label class="talep-dosya">Dosya <span class="opsiyonel">(.stl, .3mf, .obj — en fazla 15 MB)</span><input type="file" name="dosya" accept=".stl,.3mf,.obj" required></label>
       <input type="hidden" name="tahmin" id="talep-tahmin-veri">
       <div class="tahmin-kutu" id="talep-tahmin" hidden></div>
       <p class="detay-not-hata" id="talep-hata"></p>
@@ -3652,6 +3682,11 @@ function detayAc(id){
       <div class="detay-not">
         <label for="detay-not-metin">Siparişe ne yazalım? <span class="opsiyonel">(isim, tarih, istediğin yazı) — zorunlu</span></label>
         <textarea id="detay-not-metin" rows="2" placeholder="Örn: Ahmet, 14.02.2026"></textarea>
+        <div class="yazi-onizleme" id="yazi-onizleme" hidden>
+          <span>Önizleme — yazı ürüne böyle basılacak (temsilî)</span>
+          <div class="plaka" id="yazi-plaka"><i>Yazmaya başla, burada göreceksin</i></div>
+          <p class="yazi-sayac" id="yazi-sayac"></p>
+        </div>
         <p class="detay-not-hata" id="detay-not-hata">Bu ürün kişiye özel — sepete eklemeden önce ne yazılacağını girmen lazım.</p>
         <label class="detay-onay"><input type="checkbox" id="detay-not-onay"> Yazdığım bilgileri kontrol ettim, doğru. <small>(Kişiye özel ürün iade edilemez; yazım hatası sonradan düzeltilemez.)</small></label>
         <p class="detay-not-hata" id="detay-onay-hata">Devam etmek için yazdığını kontrol edip kutuyu işaretle.</p>
@@ -3785,10 +3820,56 @@ function detayAc(id){
         document.getElementById('detay-renk-hata').classList.remove('gorunur');
         seciliRenk = diger ? '' : b.dataset.renk;
         if(diger) renkDiger.focus();
+        if(typeof onizlemeCiz === 'function') onizlemeCiz();
       };
     });
     renkDiger.addEventListener('input', ()=>{ document.getElementById('detay-renk-hata').classList.remove('gorunur'); });
   }
+  // ---- canlı yazı önizlemesi (Emre, 17.08.2026) ----
+  // Müşteri yazıyı yazarken ürün üstünde nasıl duracağını görsün diye. Trendyol'da
+  // en çok vakit alan iş "yazı ne olacak" yazışması; sitede baştan çözülüyor.
+  const onizKutu = document.getElementById('yazi-onizleme');
+  const plaka = document.getElementById('yazi-plaka');
+  const sayac = document.getElementById('yazi-sayac');
+  function plakaRengi(ad){
+    const r = String(ad || '').toLocaleLowerCase('tr');
+    const t = [['siyah','#26221F','#F4EFE9'], ['beyaz','#F3EFE9','#2A211C'], ['kırmızı','#9C2F33','#FBF1EC'],
+               ['kirmizi','#9C2F33','#FBF1EC'], ['gri','#8A857F','#1F1B18'], ['mavi','#2B4C7E','#F1F4FA'],
+               ['yeşil','#2F6B45','#F0F6F1'], ['yesil','#2F6B45','#F0F6F1'], ['sarı','#D8A72C','#2A211C'],
+               ['sari','#D8A72C','#2A211C'], ['turuncu','#C96A20','#FFF4EA'], ['mor','#5C3B7E','#F4EFFA'],
+               ['pembe','#C26A8C','#FFF2F6'], ['altın','#B9922F','#2A211C'], ['gümüş','#B9B4AE','#1F1B18'],
+               ['şeffaf','#DCD8D2','#2A211C'], ['seffaf','#DCD8D2','#2A211C']];
+    for(const [k, arka, yazi] of t) if(r.includes(k)) return { arka, yazi };
+    return { arka:'#4A443E', yazi:'#F4EFE9' };   // tanımadığımız renk: nötr göster
+  }
+  function onizlemeCiz(){
+    if(!onizKutu || !plaka) return;
+    const metin = (notElBaslangic ? notElBaslangic.value : '').replace(/\s+$/,'');
+    const renk = plakaRengi(seciliRenk || (renkDiger && renkDiger.value) || (RENKLER[0] || ''));
+    plaka.style.background = renk.arka;
+    plaka.style.color = renk.yazi;
+    if(!metin){
+      plaka.innerHTML = '<i>Yazmaya başla, burada göreceksin</i>';
+      sayac.textContent = '';
+      sayac.classList.remove('uzun');
+      return;
+    }
+    const satirlar = metin.split(/\n/).slice(0, 3);
+    const enUzun = Math.max(...satirlar.map(x=>x.length), 1);
+    // yazı uzadıkça küçülür — gerçek üretimde de böyle olur
+    const punto = Math.max(15, Math.min(34, Math.round(300 / enUzun)));
+    plaka.innerHTML = satirlar.map(x=>`<b style="font-size:${punto}px">${escHtml(x) || '&nbsp;'}</b>`).join('');
+    const n = metin.replace(/\n/g,'').length;
+    sayac.textContent = n + ' karakter' + (enUzun > 20 ? ' · uzun yazı ürüne küçük basılır' : '');
+    sayac.classList.toggle('uzun', enUzun > 20);
+  }
+  if(onizKutu && notElBaslangic){
+    onizKutu.hidden = false;
+    notElBaslangic.addEventListener('input', onizlemeCiz);
+    if(renkDiger) renkDiger.addEventListener('input', onizlemeCiz);
+    onizlemeCiz();
+  }
+
   const onayEl = document.getElementById('detay-not-onay');
   if(onayEl) onayEl.addEventListener('change', ()=>{ if(onayEl.checked) document.getElementById('detay-onay-hata').classList.remove('gorunur'); });
   document.getElementById('detay-sepet-ekle').onclick = ()=>{
@@ -4089,6 +4170,7 @@ async function yorumlariYukle(id){
         <div class="yorum ty">
           <div class="yorum-bas"><b>${escHtml(y.ad)}</b><span class="yorum-puan">${yildizlar(y.puan)}</span></div>
           <p>${escHtml(y.metin)}</p>
+          ${(y.foto||[]).length ? `<div class="yorum-foto">${y.foto.map(f=>`<img src="${escHtml(f)}" alt="Müşteri fotoğrafı" loading="lazy" onerror="this.remove()">`).join('')}</div>` : ''}
           <span class="yorum-tarih">${escHtml(y.tarih||'')} · Trendyol</span>
         </div>`).join('');
     }
@@ -4421,6 +4503,78 @@ function stlUcgenleri(buf){
   }
   return ucgen;
 }
+// OBJ: düz yazı. "v x y z" köşe, "f a b c ..." yüzey (a/b/c ve eksi sıra numarası dahil).
+function objUcgenleri(buf){
+  const metin = new TextDecoder().decode(new Uint8Array(buf));
+  const kose = [], ucgen = [];
+  for(const satir of metin.split(/\r?\n/)){
+    if(satir[0] === 'v' && satir[1] === ' '){
+      const p = satir.trim().split(/\s+/);
+      kose.push([parseFloat(p[1]), parseFloat(p[2]), parseFloat(p[3])]);
+    }else if(satir[0] === 'f' && satir[1] === ' '){
+      const p = satir.trim().split(/\s+/).slice(1).map(x=>{
+        const n = parseInt(x.split('/')[0], 10);
+        return n < 0 ? kose.length + n : n - 1;
+      });
+      for(let i = 1; i + 1 < p.length; i++){          // çokgeni üçgenlere böl
+        const a = kose[p[0]], b = kose[p[i]], c = kose[p[i+1]];
+        if(a && b && c) ucgen.push([...a, ...b, ...c]);
+      }
+    }
+  }
+  return ucgen;
+}
+
+// 3MF = içinde XML olan bir zip. Bambu Studio kullanan müşteri elinde bununla geliyor.
+// Zip'i tarayıcının kendi açıcısıyla (DecompressionStream) açıyoruz, dışarıdan kütüphane yok.
+async function zipDosyaCoz(buf, bitis){
+  const dv = new DataView(buf);
+  // Zip'in sonundaki kayıt defterini (EOCD) sondan geriye tarayarak bul
+  let eocd = -1;
+  for(let i = buf.byteLength - 22; i >= 0 && i > buf.byteLength - 66000; i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) return null;
+  let p = dv.getUint32(eocd + 16, true);
+  const adet = dv.getUint16(eocd + 10, true);
+  for(let k = 0; k < adet; k++){
+    if(dv.getUint32(p, true) !== 0x02014b50) return null;
+    const yontem = dv.getUint16(p + 10, true);
+    const sikisik = dv.getUint32(p + 20, true);
+    const adUz = dv.getUint16(p + 28, true), ekUz = dv.getUint16(p + 30, true), notUz = dv.getUint16(p + 32, true);
+    const yerel = dv.getUint32(p + 42, true);
+    const ad = new TextDecoder().decode(new Uint8Array(buf, p + 46, adUz));
+    if(ad.toLowerCase().endsWith(bitis)){
+      const lAdUz = dv.getUint16(yerel + 26, true), lEkUz = dv.getUint16(yerel + 28, true);
+      const bas = yerel + 30 + lAdUz + lEkUz;
+      const veri = buf.slice(bas, bas + sikisik);
+      if(yontem === 0) return new TextDecoder().decode(new Uint8Array(veri));
+      if(yontem !== 8 || typeof DecompressionStream === 'undefined') return null;
+      const akis = new Blob([veri]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return await new Response(akis).text();
+    }
+    p += 46 + adUz + ekUz + notUz;
+  }
+  return null;
+}
+async function mfUcgenleri(buf){
+  const xml = await zipDosyaCoz(buf, '.model');
+  if(!xml) return [];
+  // ölçü birimi milimetre değilse mm'ye çevir
+  const birim = (xml.match(/<model[^>]*\sunit="([a-z]+)"/i) || [])[1] || 'millimeter';
+  const carpan = { micron: 0.001, millimeter: 1, centimeter: 10, inch: 25.4, foot: 304.8, meter: 1000 }[birim] || 1;
+  const kose = [];
+  for(const m of xml.matchAll(/<vertex\s+x="([^"]+)"\s+y="([^"]+)"\s+z="([^"]+)"/g)){
+    kose.push([parseFloat(m[1]) * carpan, parseFloat(m[2]) * carpan, parseFloat(m[3]) * carpan]);
+  }
+  const ucgen = [];
+  for(const m of xml.matchAll(/<triangle\s+v1="(\d+)"\s+v2="(\d+)"\s+v3="(\d+)"/g)){
+    const a = kose[+m[1]], b = kose[+m[2]], c = kose[+m[3]];
+    if(a && b && c) ucgen.push([...a, ...b, ...c]);
+  }
+  return ucgen;
+}
+
 function stlOlc(ucgenler){
   let hacim = 0, alan = 0;
   for(const t of ucgenler){
@@ -4445,18 +4599,21 @@ async function stlTahminGoster(dosya){
   const kutu = document.getElementById('talep-tahmin');
   const veri = document.getElementById('talep-tahmin-veri');
   if(!kutu) return;
-  if(!dosya || !dosya.name || !/\.stl$/i.test(dosya.name)){ kutu.hidden = true; if(veri) veri.value = ''; return; }
+  const tur = (String(dosya && dosya.name || '').match(/\.(stl|3mf|obj)$/i) || [])[1];
+  if(!tur){ kutu.hidden = true; if(veri) veri.value = ''; return; }
   kutu.hidden = false; kutu.className = 'tahmin-kutu hesapliyor'; kutu.textContent = 'Dosya ölçülüyor…';
   try{
-    const ucgenler = stlUcgenleri(await dosya.arrayBuffer());
+    const ham = await dosya.arrayBuffer();
+    const t3 = tur.toLowerCase();
+    const ucgenler = t3 === 'stl' ? stlUcgenleri(ham) : (t3 === 'obj' ? objUcgenleri(ham) : await mfUcgenleri(ham));
     if(ucgenler.length < 4) throw new Error('okunamadı');
     const olcu = stlOlc(ucgenler);
     if(!(olcu.hacim > 0)) throw new Error('hacim yok');
     const t = baskiTahmini(olcu);
     kutu.className = 'tahmin-kutu';
     kutu.innerHTML = 'Tahmini fiyat: <b>' + fiyatFmt(Math.round(t.alt)) + ' – ' + fiyatFmt(Math.round(t.ust)) + '</b>'
-      + '<small>Yaklaşık ' + Math.round(t.gram) + ' gram · siyah, beyaz, kırmızı veya gri PETG.'
-      + ' Kesin fiyatı ve süreyi WhatsApp\'tan yazacağız.</small>';
+      + '<small>Yaklaşık ' + Math.round(t.gram) + ' gram PETG · onaydan sonra <b>2 iş gününde hazır</b>.'
+      + ' Kesin fiyatı WhatsApp\'tan yazacağız.</small>';
     if(veri) veri.value = Math.round(t.gram) + ' g / ' + Math.round(t.alt) + '-' + Math.round(t.ust) + ' TL';
   }catch(e){
     kutu.hidden = true;
@@ -4470,6 +4627,25 @@ async function stlTahminGoster(dosya){
   const hata = document.getElementById('talep-hata');
   const dosyaKutu = f.querySelector('input[name="dosya"]');
   if(dosyaKutu) dosyaKutu.addEventListener('change', ()=> stlTahminGoster(dosyaKutu.files[0]));
+  // Renk: ürün sayfasındakiyle aynı liste (panelden gelen ayar), artı serbest yazı.
+  // Emre 17.08.2026: "elimde yoksa haber veririm ya da siparişini veririm."
+  let talepRenk = RENKLER[0] || '';
+  const renkKutu = document.getElementById('talep-renkler');
+  const renkDiger = document.getElementById('talep-renk-diger');
+  if(renkKutu){
+    renkKutu.innerHTML = RENKLER.map((r,i)=>`<button type="button" class="renk-d${i===0?' secili':''}" data-renk="${escHtml(r)}">${escHtml(r)}</button>`).join('')
+      + '<button type="button" class="renk-d renk-diger" data-renk="">Başka renk</button>';
+    renkKutu.querySelectorAll('.renk-d').forEach(b=>{
+      b.onclick = ()=>{
+        renkKutu.querySelectorAll('.renk-d').forEach(x=>x.classList.remove('secili'));
+        b.classList.add('secili');
+        const diger = b.classList.contains('renk-diger');
+        renkDiger.hidden = !diger;
+        talepRenk = diger ? '' : b.dataset.renk;
+        if(diger) renkDiger.focus();
+      };
+    });
+  }
   const goster = m=>{ hata.textContent = m; hata.classList.add('gorunur'); };
   f.addEventListener('submit', async e=>{
     e.preventDefault();
@@ -4478,9 +4654,12 @@ async function stlTahminGoster(dosya){
     const dosya = fd.get('dosya');
     if(!String(fd.get('ad')||'').trim() || !String(fd.get('soyad')||'').trim()) return goster('Ad ve soyad gerekli.');
     if(String(fd.get('telefon')||'').replace(/\D/g,'').length < 10) return goster('Geçerli bir telefon numarası yaz (05xx xxx xx xx).');
-    if(!dosya || !dosya.name) return goster('STL dosyanı seç.');
-    if(!/\.stl$/i.test(dosya.name)) return goster('Sadece .stl uzantılı dosya kabul ediyoruz.');
+    if(!dosya || !dosya.name) return goster('Dosyanı seç.');
+    if(!/\.(stl|3mf|obj)$/i.test(dosya.name)) return goster('Sadece .stl, .3mf ve .obj dosyası kabul ediyoruz.');
     if(dosya.size > 15*1024*1024) return goster('Dosya en fazla 15 MB olabilir.');
+    const renkAdi = talepRenk || String(fd.get('renk_diger')||'').trim();
+    if(!renkAdi) return goster('Hangi renk olacağını yaz.');
+    fd.set('renk', renkAdi);
     const btn = document.getElementById('talep-gonder');
     btn.disabled = true; btn.textContent = 'Gönderiliyor…';
     try{
