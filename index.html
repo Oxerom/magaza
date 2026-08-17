@@ -1678,7 +1678,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .renk-d{ font:inherit; font-size:12.5px; padding:5px 11px; border-radius:999px; border:1px solid var(--cizgi); background:var(--yuzey); color:var(--murekkep); cursor:pointer; }
 .renk-d.secili{ border-color:var(--nar); background:color-mix(in srgb, var(--nar) 10%, transparent); font-weight:700; }
 .renk-diger{ border-style:dashed; }
-#detay-renk-diger{ font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--yuzey); color:var(--murekkep); max-width:260px; }
+#talep-renk-diger{ font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--yuzey); color:var(--murekkep); max-width:260px; }
 .ozellik-tablo{ border-collapse:collapse; width:100%; font-size:12.5px; }
 .ozellik-tablo th{ text-align:left; font-weight:700; color:var(--murekkep); padding:6px 10px 6px 0; width:36%; vertical-align:top; border-bottom:1px solid var(--cizgi); }
 .ozellik-tablo td{ padding:6px 0; border-bottom:1px solid var(--cizgi); vertical-align:top; }
@@ -1709,6 +1709,22 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
    onerror ile sessizce kaldırılır — kırık resim görünmez. */
 .yorum-foto{ display:flex; gap:7px; flex-wrap:wrap; margin:8px 0 2px; }
 .yorum-foto img{ width:78px; height:78px; object-fit:cover; border-radius:8px; border:1px solid var(--cizgi); }
+
+/* ---- model no + isim (kişiye özel plakalık) ---- */
+.detay-model{ display:flex; flex-direction:column; gap:6px; margin:6px 0 4px; }
+.detay-model > label{ font-size:12.5px; font-weight:700; color:var(--murekkep); }
+.detay-model .opsiyonel{ font-weight:400; color:var(--sisik); }
+.model-satirlar{ display:flex; flex-direction:column; gap:6px; }
+.model-satir{ display:flex; align-items:center; gap:7px; }
+.model-sira{ font-size:12.5px; color:var(--sisik); min-width:18px; }
+.model-satir select, .model-satir input{
+  font:inherit; font-size:13px; padding:7px 9px; border:1px solid var(--cizgi);
+  border-radius:8px; background:var(--yuzey); color:var(--murekkep);
+}
+.model-satir select{ min-width:112px; }
+.model-satir input{ flex:1; min-width:0; }
+.model-satir select:focus, .model-satir input:focus{ outline:2px solid var(--nar); outline-offset:1px; }
+.sepet-adet.kilitli{ font-size:12.5px; color:var(--sisik); }
 
 /* ---- özel baskı: renk seçimi + yazı önizlemesi ---- */
 .talep-renk{ margin:2px 0 4px; }
@@ -2576,15 +2592,19 @@ function sepeteEkle(id, adet, not, renk){
   const u = URUNLER.find(x=>x.id===id);
   if(!u) return;
   renk = (renk || '').trim();
-  const fark = !!(renk && !RENKLER.some(r=>r.toLocaleLowerCase('tr')===renk.toLocaleLowerCase('tr')));
+  // Ürünün kendi rengi seçiliyse fiyat farkı yok ve siparişe renk notu düşülmez;
+  // müşteri başka renk seçtiyse +RENK_FARK TL/adet (Emre, 17.08.2026).
+  const kendiRenk = urunRengi(u);
+  const fark = !!(renk && renk.toLocaleLowerCase('tr') !== kendiRenk.toLocaleLowerCase('tr'));
+  if(!fark) renk = '';
   // kişiye özel üründe her ekleme kendi notuyla ayrı satır olur — aksi halde ikinci
   // eklenen ürünün notu birincininkinin üstüne yazıp onu silerdi. Farklı renk de ayrı satır.
   const key = (u.kisisel && not) ? (id + '::' + Date.now() + '_' + Math.random().toString(36).slice(2,8))
-            : (renk && renk !== RENKLER[0]) ? (id + '::r:' + renk.toLocaleLowerCase('tr')) : String(id);
+            : renk ? (id + '::r:' + renk.toLocaleLowerCase('tr')) : String(id);
   if(sepet[key]) sepet[key].adet += adet;
   else sepet[key] = { id, adet };
   if(not) sepet[key].not = not;
-  if(renk){ sepet[key].renk = renk; if(fark) sepet[key].fark = true; }
+  if(renk){ sepet[key].renk = renk; sepet[key].fark = true; }
   kaydetSepet();
   sepetCiz();
 }
@@ -2614,13 +2634,24 @@ function ayarlariUygula(a){
   if(typeof a.renkler === 'string' && a.renkler.trim()) RENKLER = a.renkler.split(',').map(x=>x.trim()).filter(Boolean);
   duyuruYaz();
 }
+// Ürünün KENDİ rengi (Emre, 17.08.2026): fotoğraftaki renk ücretsiz, diğerleri +RENK_FARK.
+// Sıra: panelde elle seçilen renk > başlıkta geçen renk > listenin ilk rengi.
+function urunRengi(u){
+  if(!u) return RENKLER[0] || '';
+  const esit = a=>RENKLER.find(r=>r.toLocaleLowerCase('tr') === String(a||'').toLocaleLowerCase('tr'));
+  const elle = esit(u.renk);
+  if(elle) return elle;
+  const t = String(u.t || '').toLocaleLowerCase('tr');
+  for(const r of RENKLER) if(t.includes(r.toLocaleLowerCase('tr'))) return r;
+  return RENKLER[0] || '';
+}
 // Sepet satırının birim fiyatı: ürün fiyatı + (standart dışı renk seçildiyse renk farkı)
 function satirBirimFiyat(u, satir){ return satisFiyati(u) + ((satir && satir.fark) ? RENK_FARK : 0); }
 // Emre'ye giden satır notu: renk (standart dışı veya varsayılan olmayan) + kişiye özel yazı
 function satirNotu(satir){
   const par = [];
-  if(satir.renk && satir.renk !== RENKLER[0]) par.push('Renk: ' + satir.renk + (satir.fark ? ' (+' + RENK_FARK + ' TL)' : ''));
-  if(satir.not) par.push((satir.renk && satir.renk !== RENKLER[0] ? 'Yazı: ' : '') + satir.not);
+  if(satir.renk) par.push('Renk: ' + satir.renk + (satir.fark ? ' (+' + RENK_FARK + ' TL)' : ''));
+  if(satir.not) par.push((satir.renk ? 'Yazı: ' : '') + satir.not);
   return par.join(' · ');
 }
 // Kargoya son verme saati — Emre'nin kararı 16.08.2026: "18:00'a kadar siparişler ertesi gün kargo".
@@ -2722,11 +2753,11 @@ function sepetCiz(){
         ${satir.renk ? `<div class="sepet-satir-not">Renk: ${escHtml(satir.renk)}${satir.fark ? ` <small>(+${fiyatFmt(RENK_FARK)}/adet)</small>` : ''}</div>` : ''}
         ${satir.not ? `<div class="sepet-satir-not">Yazı: "${escHtml(satir.not)}"</div>` : ''}
         <div class="sepet-satir-alt">
-          <div class="sepet-adet">
+          ${u.modelli && satir.not ? `<div class="sepet-adet kilitli"><span class="num">${satir.adet}</span> adet <small>(değiştirmek için ürün sayfasından yeniden ekle)</small></div>` : `<div class="sepet-adet">
             <button type="button" onclick="sepetAdetAyarla('${key}', ${satir.adet-1})">−</button>
             <span class="num">${satir.adet}</span>
             <button type="button" onclick="sepetAdetAyarla('${key}', ${satir.adet+1})">+</button>
-          </div>
+          </div>`}
           <b class="num">${fiyatFmt(satirToplam)}</b>
         </div>
         <button class="sepet-sil" type="button" onclick="sepettenSil('${key}')">kaldır</button>
@@ -3678,10 +3709,18 @@ function detayAc(id){
   const u = URUNLER.find(x=>x.id===id);
   if(!u) return;
   const ty = '';
+  // Model seçimli ürünlerde (motor plakalığı) yazı, model satırlarının içinde alınır —
+  // ayrıca bir "ne yazalım" kutusu gösterilmez (Emre, 17.08.2026).
+  const modelAlani = (u.kisisel && u.modelli) ? `
+      <div class="detay-model">
+        <label>Model ve isim <span class="opsiyonel">— her adet için ayrı seçilir; modelleri ürün fotoğraflarında görebilirsin</span></label>
+        <div class="model-satirlar" id="model-satirlar"></div>
+        <p class="detay-not-hata" id="detay-model-hata">Her adet için model no ve isim gir.</p>
+      </div>` : '';
   const notAlani = u.kisisel ? `
       <div class="detay-not">
-        <label for="detay-not-metin">Siparişe ne yazalım? <span class="opsiyonel">(isim, tarih, istediğin yazı) — zorunlu</span></label>
-        <textarea id="detay-not-metin" rows="2" placeholder="Örn: Ahmet, 14.02.2026"></textarea>
+        ${u.modelli ? '' : `<label for="detay-not-metin">Siparişe ne yazalım? <span class="opsiyonel">(isim, tarih, istediğin yazı) — zorunlu</span></label>
+        <textarea id="detay-not-metin" rows="2" placeholder="Örn: Ahmet, 14.02.2026"></textarea>`}
         <div class="yazi-onizleme" id="yazi-onizleme" hidden>
           <span>Önizleme — yazı ürüne böyle basılacak (temsilî)</span>
           <div class="plaka" id="yazi-plaka"><i>Yazmaya başla, burada göreceksin</i></div>
@@ -3691,15 +3730,16 @@ function detayAc(id){
         <label class="detay-onay"><input type="checkbox" id="detay-not-onay"> Yazdığım bilgileri kontrol ettim, doğru. <small>(Kişiye özel ürün iade edilemez; yazım hatası sonradan düzeltilemez.)</small></label>
         <p class="detay-not-hata" id="detay-onay-hata">Devam etmek için yazdığını kontrol edip kutuyu işaretle.</p>
       </div>` : '';
-  const renkAlani = RENK_ACIK ? `
+  // Renk seçimi SADECE 3D baskı ürünlerinde (Emre, 17.08.2026). Kişiye özel ürünler
+  // (pleksi, lazer kesim, metal) hangi renkte üretiliyorsa o renkte gider — seçenek yok.
+  // Ürünün kendi rengi ücretsiz, listedeki diğer renkler +RENK_FARK TL/adet. Serbest renk yazma yok.
+  const uRenk = urunRengi(u);
+  const renkAlani = (RENK_ACIK && !u.kisisel && uRenk) ? `
       <div class="detay-renk">
-        <label>Renk <span class="opsiyonel">(standart renkler ücretsiz, başka renk +${fiyatFmt(RENK_FARK)}/adet)</span></label>
+        <label>Renk <span class="opsiyonel">(${escHtml(uRenk)} ücretsiz · diğer renkler +${RENK_FARK} TL/adet)</span></label>
         <div class="renk-secenek" id="detay-renkler">
-          ${RENKLER.map((r,i)=>`<button type="button" class="renk-d${i===0?' secili':''}" data-renk="${escHtml(r)}">${escHtml(r)}</button>`).join('')}
-          <button type="button" class="renk-d renk-diger" data-renk="">Başka renk +${fiyatFmt(RENK_FARK)}</button>
+          ${RENKLER.map(r=>`<button type="button" class="renk-d${r===uRenk?' secili':''}" data-renk="${escHtml(r)}">${escHtml(r)}${r===uRenk?'':' +' + RENK_FARK + ' TL'}</button>`).join('')}
         </div>
-        <input type="text" id="detay-renk-diger" maxlength="30" placeholder="Hangi renk? (örn. Mavi, Turuncu)" hidden>
-        <p class="detay-not-hata" id="detay-renk-hata">Başka renk seçtin — hangi renk olduğunu yaz.</p>
       </div>` : '';
   const iadeIcerik = u.kisisel
     ? `<b>Bu ürün kişiye özeldir, iadesi yoktur.</b> Üstüne isim/yazı bastırılan ürünler sadece
@@ -3727,6 +3767,7 @@ function detayAc(id){
         <button class="detay-linki" type="button" id="detay-linki">🔗 Linki kopyala</button>
       </div>
       ${renkAlani}
+      ${modelAlani}
       ${notAlani}
       <div class="detay-adet">
         <button class="adet-dugme" type="button" id="detay-eksi">−</button>
@@ -3804,26 +3845,20 @@ function detayAc(id){
       document.getElementById('detay-not-hata').classList.remove('gorunur');
     });
   }
-  document.getElementById('detay-eksi').onclick = ()=>{ if(adet>1){ adet--; document.getElementById('detay-adet-sayi').textContent=adet; } };
-  document.getElementById('detay-arti').onclick = ()=>{ adet++; document.getElementById('detay-adet-sayi').textContent=adet; };
-  // Renk seçimi
-  let seciliRenk = RENK_ACIK ? RENKLER[0] : '';
+  document.getElementById('detay-eksi').onclick = ()=>{ if(adet>1){ adet--; document.getElementById('detay-adet-sayi').textContent=adet; modelSatirlariCiz(); } };
+  document.getElementById('detay-arti').onclick = ()=>{ adet++; document.getElementById('detay-adet-sayi').textContent=adet; modelSatirlariCiz(); };
+  // Renk seçimi — ürünün kendi rengi seçili doğar
+  let seciliRenk = uRenk;
   const renkKutu = document.getElementById('detay-renkler');
-  const renkDiger = document.getElementById('detay-renk-diger');
   if(renkKutu){
     renkKutu.querySelectorAll('.renk-d').forEach(b=>{
       b.onclick = ()=>{
         renkKutu.querySelectorAll('.renk-d').forEach(x=>x.classList.remove('secili'));
         b.classList.add('secili');
-        const diger = b.classList.contains('renk-diger');
-        renkDiger.hidden = !diger;
-        document.getElementById('detay-renk-hata').classList.remove('gorunur');
-        seciliRenk = diger ? '' : b.dataset.renk;
-        if(diger) renkDiger.focus();
+        seciliRenk = b.dataset.renk;
         if(typeof onizlemeCiz === 'function') onizlemeCiz();
       };
     });
-    renkDiger.addEventListener('input', ()=>{ document.getElementById('detay-renk-hata').classList.remove('gorunur'); });
   }
   // ---- canlı yazı önizlemesi (Emre, 17.08.2026) ----
   // Müşteri yazıyı yazarken ürün üstünde nasıl duracağını görsün diye. Trendyol'da
@@ -3842,10 +3877,13 @@ function detayAc(id){
     for(const [k, arka, yazi] of t) if(r.includes(k)) return { arka, yazi };
     return { arka:'#4A443E', yazi:'#F4EFE9' };   // tanımadığımız renk: nötr göster
   }
+  // Önizlemede hangi kutunun yazısı gösterilecek: normal üründe tek yazı kutusu,
+  // model seçimli üründe müşterinin o an yazdığı satır.
+  let onizKaynak = ()=> (notElBaslangic ? notElBaslangic.value : '');
   function onizlemeCiz(){
     if(!onizKutu || !plaka) return;
-    const metin = (notElBaslangic ? notElBaslangic.value : '').replace(/\s+$/,'');
-    const renk = plakaRengi(seciliRenk || (renkDiger && renkDiger.value) || (RENKLER[0] || ''));
+    const metin = String(onizKaynak() || '').replace(/\s+$/,'');
+    const renk = plakaRengi(seciliRenk || uRenk || (RENKLER[0] || ''));
     plaka.style.background = renk.arka;
     plaka.style.color = renk.yazi;
     if(!metin){
@@ -3863,19 +3901,72 @@ function detayAc(id){
     sayac.textContent = n + ' karakter' + (enUzun > 20 ? ' · uzun yazı ürüne küçük basılır' : '');
     sayac.classList.toggle('uzun', enUzun > 20);
   }
-  if(onizKutu && notElBaslangic){
+  if(onizKutu && (notElBaslangic || u.modelli)){
     onizKutu.hidden = false;
-    notElBaslangic.addEventListener('input', onizlemeCiz);
-    if(renkDiger) renkDiger.addEventListener('input', onizlemeCiz);
+    if(notElBaslangic) notElBaslangic.addEventListener('input', onizlemeCiz);
     onizlemeCiz();
   }
+
+  // ---- Model no + isim satırları (Emre, 17.08.2026) ----
+  // Motor plakalığında müşteri 50 hazır tasarımdan birini seçiyor. 2 adet alıyorsa
+  // iki plakanın modeli ve ismi ayrı olabilir — adet arttıkça satır sayısı artar,
+  // yazılanlar kaybolmaz. Trendyol'da bu bilgi mesajlaşarak alınıyordu.
+  const MODEL_SAYISI = 50;
+  const modelKutu = document.getElementById('model-satirlar');
+  function modelSatirlariCiz(){
+    if(!modelKutu) return;
+    const eski = [...modelKutu.querySelectorAll('.model-satir')].map(x=>({
+      no: x.querySelector('.model-no').value, ad: x.querySelector('.model-ad').value }));
+    let h = '';
+    for(let i = 0; i < adet; i++){
+      const e = eski[i] || { no:'', ad:'' };
+      h += '<div class="model-satir"><span class="model-sira num">' + (i+1) + '.</span>'
+        + '<select class="model-no"><option value="">Model seç</option>'
+        + Array.from({length: MODEL_SAYISI}, (_, k)=>
+            '<option value="' + (k+1) + '"' + (String(k+1) === e.no ? ' selected' : '') + '>Model ' + (k+1) + '</option>').join('')
+        + '</select>'
+        + '<input class="model-ad" type="text" maxlength="40" placeholder="Plakaya yazılacak isim" value="' + escHtml(e.ad) + '">'
+        + '</div>';
+    }
+    modelKutu.innerHTML = h;
+    const hataSil = ()=> document.getElementById('detay-model-hata').classList.remove('gorunur');
+    modelKutu.querySelectorAll('.model-ad').forEach(el=>{
+      const bagla = ()=>{ onizKaynak = ()=> el.value; onizlemeCiz(); };
+      el.addEventListener('focus', bagla);
+      el.addEventListener('input', ()=>{ hataSil(); bagla(); });
+    });
+    modelKutu.querySelectorAll('.model-no').forEach(el=> el.addEventListener('change', hataSil));
+  }
+  // Sipariş notu: "Model 12 · AHMET" ya da çok adette "1) Model 12 · AHMET — 2) ..."
+  // Eksik satır varsa null döner, sepete eklenmez.
+  function modelNotu(){
+    if(!modelKutu) return '';
+    const sat = [...modelKutu.querySelectorAll('.model-satir')].map(x=>({
+      no: x.querySelector('.model-no').value.trim(), ad: x.querySelector('.model-ad').value.trim() }));
+    if(!sat.length || sat.some(x=>!x.no || !x.ad)) return null;
+    return sat.length === 1 ? 'Model ' + sat[0].no + ' · ' + sat[0].ad
+      : sat.map((x, i)=> (i+1) + ') Model ' + x.no + ' · ' + x.ad).join(' — ');
+  }
+  modelSatirlariCiz();
 
   const onayEl = document.getElementById('detay-not-onay');
   if(onayEl) onayEl.addEventListener('change', ()=>{ if(onayEl.checked) document.getElementById('detay-onay-hata').classList.remove('gorunur'); });
   document.getElementById('detay-sepet-ekle').onclick = ()=>{
     const notEl = document.getElementById('detay-not-metin');
-    const not = notEl ? notEl.value.trim() : '';
-    if(u.kisisel && !not){
+    let not = notEl ? notEl.value.trim() : '';
+    if(u.modelli){
+      not = modelNotu() || '';
+      if(!not){
+        document.getElementById('detay-model-hata').classList.add('gorunur');
+        const bos = [...modelKutu.querySelectorAll('.model-satir')]
+          .map(x=> !x.querySelector('.model-no').value ? x.querySelector('.model-no')
+                 : (!x.querySelector('.model-ad').value ? x.querySelector('.model-ad') : null))
+          .find(Boolean);
+        if(bos) bos.focus();
+        return;
+      }
+    }
+    if(u.kisisel && !not && notEl){
       notEl.classList.add('hata');
       document.getElementById('detay-not-hata').classList.add('gorunur');
       notEl.focus();
@@ -3886,12 +3977,7 @@ function detayAc(id){
       onayEl.focus();
       return;
     }
-    let renk = seciliRenk;
-    if(renkKutu && !renkDiger.hidden){
-      renk = renkDiger.value.trim();
-      if(!renk){ document.getElementById('detay-renk-hata').classList.add('gorunur'); renkDiger.focus(); return; }
-    }
-    sepeteEkle(u.id, adet, not, renk);
+    sepeteEkle(u.id, adet, not, renkKutu ? seciliRenk : '');
     document.getElementById('detay-sepet-ekle').textContent = 'Sepete eklendi ✓';
     let git = document.getElementById('detay-sepete-git');
     if(!git){
@@ -3981,9 +4067,18 @@ async function ozellikleriYukle(u){
     satirlar.push(['Uyumlu araç', u.m + (modeller.length ? ' ' + modeller.join(', ') : '') + ' <small>(başlıktaki model/yıl esastır)</small>']);
   }
   (OZELLIKLER[String(u.id)] || []).forEach(([k,v])=>{ if(k && v) satirlar.push([escHtml(k), escHtml(v)]); });
-  satirlar.push(['Malzeme', 'PETG filament — 80 °C ısıya dayanır, ışığa (güneşe) dayanıklı; araç içi kullanıma uygun']);
-  satirlar.push(['Üretim', '3D baskı — Kayseri, Türkiye, sipariş üzerine']);
-  if(RENK_ACIK) satirlar.push(['Renk', RENKLER.join(', ') + ' (ücretsiz) · başka renk +' + fiyatFmt(RENK_FARK) + '/adet']);
+  // Kişiye özel ürünler (pleksi/lazer kesim/metal) 3D baskı değil — onlarda PETG yazılmaz.
+  if(!u.kisisel){
+    satirlar.push(['Malzeme', 'PETG filament — 80 °C ısıya dayanır, ışığa (güneşe) dayanıklı; araç içi kullanıma uygun']);
+    satirlar.push(['Üretim', '3D baskı — Kayseri, Türkiye, sipariş üzerine']);
+  }else{
+    satirlar.push(['Üretim', 'Kayseri, Türkiye — sipariş üzerine üretilir']);
+  }
+  if(RENK_ACIK && !u.kisisel){
+    const ur = urunRengi(u);
+    satirlar.push(['Renk', ur + ' (ürünün kendi rengi, ücretsiz) · ' +
+      RENKLER.filter(r=>r !== ur).join(', ') + ' +' + fiyatFmt(RENK_FARK) + '/adet']);
+  }
   satirlar.push(['Kişiye özel', u.kisisel ? 'Evet — üstüne yazı/isim basılır, iade edilemez' : 'Hayır']);
   satirlar.push(['Kargo', KARGO_SON_SAAT + ':00\'a kadar verilen sipariş ertesi gün kargoda (pazar hariç)']);
   kutu.innerHTML = '<table class="ozellik-tablo">' + satirlar.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('') + '</table>';
