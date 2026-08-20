@@ -1466,6 +1466,14 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
      kontrol müşteride olduğu için hareket azaltmaya aykırı değil. CSS animasyonu
      .001ms kuralıyla donacağından bu durumda perdeyi JS sürücüsü çizer. */
   *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  /* Perde kaydırmayla sürülür; dondurma kuralından muaf. Aksi hâlde JS sürücüye
+     düşüyordu ve zayıf makinede kasıyordu (Emre, 20.08.2026: "çok kasıyor").
+     Tarayıcının kendi kaydırma animasyonu ana işi meşgul etmez, akıcıdır. */
+  @supports (animation-timeline: view()){
+    .v26logo, .v26perde.sol, .v26perde.sag, .v26zoom, .v26vazo, .v26flas, .v26site{
+      animation-duration:auto !important;
+    }
+  }
   .urun{ clip-path:none !important; opacity:1 !important; }
   .urun::before{ display:none; }
   .nozul-nokta{ animation:none; }
@@ -4591,9 +4599,9 @@ function cokSatanBagla(){
 (function(){
   const zorla = /perdejs=1/.test(location.search);
   const destek = window.CSS && CSS.supports && CSS.supports('animation-timeline: view()');
-  // Hareketi azalt açıkken CSS animasyonları .001ms'ye düşüp donuyor — perdeyi JS çizer
-  const hareketAzalt = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(destek && !zorla && !hareketAzalt) return;
+  // Hareket-azalt açıkken de CSS yolu kullanılır (yukarıda dondurmadan muaf tutuldu) —
+  // JS sürücü zayıf makinede kasıyordu. Bu yol sadece eski Safari/Android için.
+  if(destek && !zorla) return;
   const dis = document.querySelector('.v26dis'); if(!dis) return;
   document.documentElement.classList.add('perde-js');
   const bul = q=>dis.querySelector(q);
