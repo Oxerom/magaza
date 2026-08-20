@@ -1553,12 +1553,17 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .urun:hover{ border-color:var(--cizgi-koyu); box-shadow:var(--g2); transform:translateY(-3px); }
 .urun-gorsel{ position:relative; aspect-ratio:1/1; background:var(--panel); overflow:hidden; }
 .urun-gorsel img{ width:100%; height:100%; object-fit:cover; display:block; }
+/* Rozetler sol üstte ALT ALTA dizilir. Eskiden "Kişiye Özel" sağ üstteydi ve favori
+   kalbi (aynı köşe) tam üstüne oturuyordu — rozet hiç görünmüyordu (Emre, 20.08.2026). */
+.urun-rozetler{ position:absolute; top:9px; left:9px; display:flex; flex-direction:column; align-items:flex-start; gap:5px; z-index:2; }
 .urun-rozet{
-  position:absolute; top:9px; left:9px; background:var(--zeytin); color:#fff; font-size:10px; font-weight:800;
+  background:var(--zeytin); color:#fff; font-size:10px; font-weight:800;
   letter-spacing:.05em; text-transform:uppercase; padding:4px 8px; border-radius:3px;
 }
-/* Kişiye özel (isme/yazıya göre basılan) ürün rozeti — "Yeni" ile çakışmasın diye sağda */
-.urun-rozet.ozel{ left:auto; right:9px; background:var(--nar); }
+.urun-rozet.ozel{ background:var(--nar); }
+/* 3) karttaki yıldız + yorum sayısı */
+.urun-yildiz{ font-size:11.5px; color:#B98A2F; letter-spacing:.04em; }
+.urun-yildiz .n{ color:var(--sisik); font-weight:600; }
 .urun-govde{ padding:12px 13px 13px; display:flex; flex-direction:column; gap:8px; flex:1; }
 .urun-kat{ font-size:10.5px; color:var(--sisik); text-transform:uppercase; letter-spacing:.05em; }
 .urun-ad{
@@ -1711,6 +1716,13 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
    onerror ile sessizce kaldırılır — kırık resim görünmez. */
 .yorum-foto{ display:flex; gap:7px; flex-wrap:wrap; margin:8px 0 2px; }
 .yorum-foto img{ width:78px; height:78px; object-fit:cover; border-radius:8px; border:1px solid var(--cizgi); }
+
+/* ---- satışı kapalı ürün: gelince haber ver ---- */
+.stok-yok-not{ font-size:14px; line-height:1.55; color:var(--soluk); }
+.stok-haber{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.stok-haber input{ font:inherit; font-size:14px; padding:10px 12px; border:1px solid var(--cizgi); border-radius:9px; background:var(--yuzey); color:var(--murekkep); width:200px; }
+.stok-haber button{ font:inherit; font-weight:700; padding:10px 16px; border:0; border-radius:9px; background:var(--nar); color:#fff; cursor:pointer; }
+.stok-haber button:disabled{ opacity:.6; cursor:default; }
 
 /* ---- model no + isim (kişiye özel plakalık) ---- */
 .detay-model{ display:flex; flex-direction:column; gap:6px; margin:6px 0 4px; }
@@ -2375,6 +2387,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <aside class="sepet-ozet">
         <div class="sepet-ara-satir"><span>Ara toplam</span><span class="num" id="sepet-ara">0,00 TL</span></div>
         <div class="sepet-ara-satir"><span>Kargo <small id="sepet-kargo-etiket">(sabit)</small></span><span class="num" id="sepet-kargo">—</span></div>
+        <div class="sepet-ara-satir kupon-satir" id="kampanya-satir" hidden><span id="kampanya-etiket">Kampanya</span><span class="num" id="sepet-kampanya">0,00 TL</span></div>
         <div class="sepet-ara-satir kupon-satir" id="kupon-satir" hidden><span id="kupon-etiket">İndirim</span><span class="num" id="sepet-kupon">0,00 TL</span></div>
         <div class="kupon-kutu">
           <input type="text" id="kupon-kod" placeholder="İndirim kodu" autocomplete="off" maxlength="24">
@@ -2625,6 +2638,9 @@ function sepetAdetAyarla(key, adet){
 let INDIRIM = 0.20, MIN_SEPET = 250, KARGO_UCRET = 99.99, BEDAVA_ESIK = 750;
 // Renk seçimi (Emre, 15.08.2026): elde hep olan renkler ücretsiz, başka renk +RENK_FARK TL/adet.
 let RENK_ACIK = true, RENKLER = ['Siyah','Beyaz','Kırmızı','Gri'], RENK_FARK = 10;
+// Sepet kampanyası (20.08.2026, Emre: "panele ekle, şu an kapalı"): 'yok' | 'ikinci' | '3al2'.
+// Motor aynı kuralı sunucuda yeniden hesaplar — müşterinin gönderdiği rakama güvenilmez.
+let KAMPANYA = 'yok', KAMPANYA_YUZDE = 50;
 function ayarlariUygula(a){
   if(!a) return;
   if(Number.isFinite(+a.indirim)) INDIRIM = (+a.indirim) / 100;
@@ -2634,6 +2650,8 @@ function ayarlariUygula(a){
   if(a.renk_acik != null) RENK_ACIK = !!(+a.renk_acik);
   if(Number.isFinite(+a.renk_fark)) RENK_FARK = +a.renk_fark;
   if(typeof a.renkler === 'string' && a.renkler.trim()) RENKLER = a.renkler.split(',').map(x=>x.trim()).filter(Boolean);
+  KAMPANYA = (a.kampanya === 'ikinci' || a.kampanya === '3al2') ? a.kampanya : 'yok';
+  if(Number.isFinite(+a.kampanya_yuzde) && +a.kampanya_yuzde > 0) KAMPANYA_YUZDE = +a.kampanya_yuzde;
   duyuruYaz();
 }
 // Ürünün KENDİ rengi (Emre, 17.08.2026): fotoğraftaki renk ücretsiz, diğerleri +RENK_FARK.
@@ -2692,6 +2710,8 @@ function duyuruYaz(){
   const par = [];
   if(MIN_SEPET > 0) par.push(fiyatFmt(MIN_SEPET).replace(',00','') + ' Minimum Sipariş Tutarı');
   if(BEDAVA_ESIK > 0) par.push(fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' Üzeri Ücretsiz Kargo');
+  if(KAMPANYA === 'ikinci') par.push('🎉 2. Ürüne %' + KAMPANYA_YUZDE + ' İndirim');
+  if(KAMPANYA === '3al2') par.push('🎉 3 Al 2 Öde');
   par.push(KARGO_SON_SAAT + ':00\'a Kadar Sipariş ' + (kargoGunuMetni() === 'yarın' ? 'Yarın' : kargoGunuMetni().replace(' günü','')) + ' Kargoda');
   el.innerHTML = par.map(x=>'<span>'+x+'</span>').join('<i class="ayrac">—</i>');
   const kl = document.getElementById('sepet-kargo-etiket');
@@ -2722,6 +2742,26 @@ function bayiSeridiCiz(){
   el.innerHTML = 'Toptan bayi fiyatlarını görüyorsunuz — <b>tüm ürünlerde %' + oran + ' indirimli</b>' + (b.firma ? ' · ' + escHtml(b.firma) : '');
 }
 function kargoHesapla(araToplam){ return (BEDAVA_ESIK > 0 && araToplam >= BEDAVA_ESIK) ? 0 : KARGO_UCRET; }
+// Sepet kampanyası: birimler pahalıdan ucuza dizilir; "2. ürüne %X"te her çiftin ucuzu
+// %X iner, "3 al 2 öde"de her üçlünün en ucuzu bedava. Motor birebir aynı hesabı yapar.
+function kampanyaHesapla(){
+  if(KAMPANYA === 'yok') return { tutar: 0, etiket: '' };
+  const birimler = [];
+  for(const key of Object.keys(sepet)){
+    const satir = sepet[key];
+    const u = URUNLER.find(x=>x.id===satir.id); if(!u) continue;
+    const bf = satirBirimFiyat(u, satir);
+    for(let i = 0; i < satir.adet; i++) birimler.push(bf);
+  }
+  birimler.sort((a,b)=>b-a);
+  let tutar = 0;
+  if(KAMPANYA === 'ikinci'){
+    for(let i = 1; i < birimler.length; i += 2) tutar += birimler[i] * KAMPANYA_YUZDE / 100;
+    return { tutar: Math.round(tutar*100)/100, etiket: '2. ürüne %' + KAMPANYA_YUZDE };
+  }
+  for(let i = 2; i < birimler.length; i += 3) tutar += birimler[i];
+  return { tutar: Math.round(tutar*100)/100, etiket: '3 al 2 öde' };
+}
 
 function sepetCiz(){
   const liste = document.getElementById('sepet-liste');
@@ -2769,10 +2809,19 @@ function sepetCiz(){
   // Kargo bedava eşiğine İNDİRİMSİZ ara toplamdan bakılır — yoksa kupon dolaylı olarak
   // kargoyu da bedava yapardı. Motor tarafı da aynı sırayla hesaplıyor.
   const kargo = kargoHesapla(toplam);
+  const kamp = kampanyaHesapla();
   if(KUPON && toplam < KUPON.min_gerekli) kuponKaldir();
-  const indirim = KUPON ? Math.min(KUPON.indirim, toplam) : 0;
+  const indirim = KUPON ? Math.min(KUPON.indirim, Math.max(0, toplam - kamp.tutar)) : 0;
   document.getElementById('sepet-ara').textContent = fiyatFmt(toplam);
   document.getElementById('sepet-kargo').textContent = kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
+  const kms = document.getElementById('kampanya-satir');
+  if(kms){
+    kms.hidden = !kamp.tutar;
+    if(kamp.tutar){
+      document.getElementById('kampanya-etiket').textContent = 'Kampanya (' + kamp.etiket + ')';
+      document.getElementById('sepet-kampanya').textContent = '−' + fiyatFmt(kamp.tutar);
+    }
+  }
   const ks = document.getElementById('kupon-satir');
   if(ks){
     ks.hidden = !indirim;
@@ -2781,10 +2830,37 @@ function sepetCiz(){
       document.getElementById('sepet-kupon').textContent = '−' + fiyatFmt(indirim);
     }
   }
-  document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam - indirim + kargo);
+  document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam - kamp.tutar - indirim + kargo);
   SEPET_ARA_TOPLAM = toplam;
   bedavaCubukCiz(toplam);
+  sepetOnerileriCiz(keys);
   siparisBolgeCiz();
+}
+// ---- 6b) "Bunlarla iyi gider" (20.08.2026): ödeme adımından önce, sepettekilerle
+// alakalı en çok 4 ürün. Önce aynı araç modeli, sonra aynı marka, sonra aynı kategori.
+function sepetOnerileriCiz(keys){
+  const liste = document.getElementById('sepet-liste'); if(!liste) return;
+  const eldeki = new Set(keys.map(k=>sepet[k] && sepet[k].id).filter(Boolean));
+  const puanla = new Map();
+  const ekle = (u, puan)=>{ if(!eldeki.has(u.id)) puanla.set(u.id, Math.max(puanla.get(u.id) || 0, puan)); };
+  for(const id of eldeki){
+    const u = URUNLER.find(x=>x.id===id); if(!u) continue;
+    if(u.g === 'arac' && u.m && u.m !== 'Genel / Markasız' && ARACLAR && ARACLAR[u.m]){
+      const modeller = ARACLAR[u.m].modeller.filter(md=>md.ids.includes(u.id));
+      const modelIds = new Set(); modeller.forEach(md=>md.ids.forEach(i=>modelIds.add(i)));
+      URUNLER.forEach(x=>{ if(x.id!==u.id && modelIds.has(x.id)) ekle(x, 3); });
+      URUNLER.forEach(x=>{ if(x.id!==u.id && x.m === u.m) ekle(x, 2); });
+    }
+    URUNLER.forEach(x=>{ if(x.id!==u.id && x.g === u.g) ekle(x, 1); });
+  }
+  const oneri = [...puanla.entries()].sort((a,b)=>b[1]-a[1]).slice(0,4)
+    .map(([id])=>URUNLER.find(x=>x.id===id)).filter(Boolean);
+  if(!oneri.length) return;
+  const kutu = document.createElement('div');
+  kutu.innerHTML = `<h3 class="benzer-baslik">Bunlarla iyi gider</h3><div class="izgara benzer-izgara sepet-bos-izgara">${oneri.map(x=>urunKarti({...x, g_ad: grupAdi(x.g)})).join('')}</div>`;
+  liste.appendChild(kutu);
+  kutu.querySelectorAll('.urun').forEach(el=>{ el.addEventListener('click', ()=> detayAc(parseInt(el.dataset.id))); });
+  kutu.querySelectorAll('.sepet-ekle').forEach(btn=>{ btn.addEventListener('click', e=>{ e.stopPropagation(); const id=parseInt(btn.dataset.id); const x=URUNLER.find(y=>y.id===id); if(x&&x.kisisel){ detayAc(id); return; } sepeteEkle(id,1); }); });
 }
 // "Ücretsiz kargoya X TL kaldı" çubuğu — asgari sepet geçildikten sonra, eşiğe kadar
 function bedavaCubukCiz(toplam){
@@ -3368,7 +3444,8 @@ function misafirWhatsapp(){
     return s;
   }).join('\n');
   const kargo = kargoHesapla(toplam);
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
+  const kamp = kampanyaHesapla();
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
   window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
 }
 
@@ -3420,8 +3497,9 @@ async function siparisiOnaylaWhatsapp(){
     return s;
   }).join('\n');
   const kargo = kargoHesapla(toplam);
+  const kamp = kampanyaHesapla();
   const k = oturum.kullanici || veri.misafir;
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}`
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}`
     + (sipNo ? `\nSipariş No: ${sipNo}` : '')
     + `\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
   const adres = 'https://wa.me/905514823223?text=' + encodeURIComponent(mesaj);
@@ -3592,8 +3670,12 @@ function filtreliListe(){
 }
 
 function urunKarti(u){
-  const rozet = (u.new ? '<span class="urun-rozet">Yeni</span>' : '')
+  const rozetIc = (u.new ? '<span class="urun-rozet">Yeni</span>' : '')
     + (u.kisisel ? '<span class="urun-rozet ozel">✎ Kişiye Özel</span>' : '');
+  const rozet = rozetIc ? `<div class="urun-rozetler">${rozetIc}</div>` : '';
+  const yo = YORUM_OZET && YORUM_OZET[String(u.id)];
+  const yildiz = yo ? `<div class="urun-yildiz" data-yorumkart="${u.id}">${yildizlar(Math.round(yo.ort))} <span class="n num">(${yo.n})</span></div>`
+                    : `<div class="urun-yildiz" data-yorumkart="${u.id}" hidden></div>`;
   const ty = '';
   return `<article class="urun" data-id="${u.id}">
     <div class="urun-gorsel">
@@ -3605,6 +3687,7 @@ function urunKarti(u){
     <div class="urun-govde">
       <span class="urun-kat">${escHtml(u.g_ad || '')}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h3 class="urun-ad">${escHtml(u.t)}</h3>
+      ${yildiz}
       <div class="urun-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s></div>
       ${ty}
       <button class="sepet-ekle" type="button" data-id="${u.id}">Sepete ekle</button>
@@ -3707,9 +3790,51 @@ function hediyeSeridiCiz(){
 }
 
 // ---- ürün detay ----
+let KAPALI_URUNLER = [];
+// Satışı kapalı ürün sayfası: telefon bırakılır, stok gelince Emre WhatsApp'tan yazar
+function kapaliDetayAc(u){
+  document.getElementById('detay-govde').innerHTML = `
+    <div class="detay-gorsel"><img src="${u.img}" alt="${escHtml(u.t)}"></div>
+    <div class="detay-govde">
+      <span class="urun-kat">${escHtml(grupAdi(u.g))}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
+      <h2>${escHtml(u.t)}</h2>
+      <p class="stok-yok-not">Bu ürün şu an <b>satışta değil</b>. Numaranı bırak — tekrar
+        satışa girdiğinde WhatsApp'tan haber verelim.</p>
+      <div class="stok-haber" id="stok-haber">
+        <input type="tel" id="stok-tel" placeholder="05xx xxx xx xx" maxlength="17" autocomplete="tel">
+        <button type="button" id="stok-gonder">Gelince haber ver</button>
+      </div>
+      <p class="detay-not-hata" id="stok-hata"></p>
+    </div>`;
+  document.getElementById('stok-gonder').onclick = async ()=>{
+    const tel = document.getElementById('stok-tel').value.trim();
+    const hata = document.getElementById('stok-hata');
+    hata.classList.remove('gorunur');
+    if(tel.replace(/\D/g,'').length < 10){ hata.textContent = 'Geçerli bir telefon yaz.'; hata.classList.add('gorunur'); return; }
+    const btn = document.getElementById('stok-gonder');
+    btn.disabled = true; btn.textContent = 'Kaydediliyor…';
+    try{
+      const res = await fetch(ODEME_API + '/api/stok-bekle', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ urun: u.id, ad: u.t, telefon: tel }) });
+      if(!res.ok) throw new Error();
+      document.getElementById('stok-haber').innerHTML = '<b>✓ Kaydedildi</b> — ürün satışa girince WhatsApp\'tan yazacağız.';
+    }catch(e){
+      btn.disabled = false; btn.textContent = 'Gelince haber ver';
+      hata.textContent = 'Kaydedilemedi — birazdan tekrar dene.'; hata.classList.add('gorunur');
+    }
+  };
+  benzerleriCiz(u);
+  sayfaGoster('urun');
+  document.title = u.t + ' — OXEROM';
+  const alt = document.getElementById('detay-alt'); if(alt) alt.hidden = true;
+}
 function detayAc(id){
-  const u = URUNLER.find(x=>x.id===id);
-  if(!u) return;
+  let u = URUNLER.find(x=>x.id===id);
+  if(!u){
+    u = KAPALI_URUNLER.find(x=>x.id===id);
+    if(u){ kapaliDetayAc(u); if(location.hash !== '#u' + u.id) history.pushState({urun:u.id}, '', '#u' + u.id); }
+    return;
+  }
   const ty = '';
   // Model seçimli ürünlerde (motor plakalığı) yazı, model satırlarının içinde alınır —
   // ayrıca bir "ne yazalım" kutusu gösterilmez (Emre, 17.08.2026).
@@ -4228,10 +4353,24 @@ async function videoYukle(u){
 }
 
 let TY_YORUM = null;
+// Kart üstü yıldızlar için ürün başına {n, ort} özeti (3. madde, 20.08.2026).
+// Kartlar yorum dosyası inmeden çizilebildiği için data-yorumkart kutuları sonradan doldurulur.
+let YORUM_OZET = null;
+function yorumOzetiCikar(){
+  YORUM_OZET = {};
+  for(const [id, liste] of Object.entries(TY_YORUM || {})){
+    if(liste.length) YORUM_OZET[id] = { n: liste.length, ort: liste.reduce((t,y)=>t+y.puan,0) / liste.length };
+  }
+  document.querySelectorAll('[data-yorumkart]').forEach(el=>{
+    const o = YORUM_OZET[el.dataset.yorumkart];
+    if(o){ el.hidden = false; el.innerHTML = `${yildizlar(Math.round(o.ort))} <span class="n num">(${o.n})</span>`; }
+  });
+}
 async function trendyolYorumlari(id){
   if(!TY_YORUM){
     try{ const r = await fetch('yorumlar.json'); TY_YORUM = r.ok ? await r.json() : {}; }
     catch(e){ TY_YORUM = {}; }
+    yorumOzetiCikar();
   }
   return TY_YORUM[String(id)] || [];
 }
@@ -4872,6 +5011,10 @@ sepetSayacGuncelle();
 fetch('urunler.json').then(r=>r.json()).then(veri=>{
   KOLEKSIYONLAR = Array.isArray(veri.koleksiyonlar) ? veri.koleksiyonlar : [];
   URUNLER = veri.urunler.filter(u=>!u.gizli && !u.gizli_ty); // panelden gizlenen (gizli) veya Trendyol'da satışta olmayan (gizli_ty) ürünler müşteriye görünmez
+  // Trendyol'da satışı kapananlar (gizli_ty) listede çıkmaz ama linki/favorisi olan
+  // müşteri "gelince haber ver" sayfasını görür (9. madde, 20.08.2026). Emre'nin
+  // bilerek gizledikleri (gizli) burada da YOK — onlar gerçekten görünmez.
+  KAPALI_URUNLER = veri.urunler.filter(u=>u.gizli_ty && !u.gizli);
   ayarlariUygula(veri.ayarlar);
   const gSay = {};
   URUNLER.forEach(u=>{ gSay[u.g]=(gSay[u.g]||0)+1; });
@@ -4883,6 +5026,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   cizHepsi();
   fisKategorilerCiz();
   cokSatanBagla();
+  trendyolYorumlari(0); // yorum özetlerini indir, kartlardaki yıldızları doldur
   // Paylaşılan ürün linkiyle (#u123) gelindiyse o ürünü aç
   yolCoz();
   // Araç model listesi (yüklenemezse marka filtresi model satırı olmadan çalışır)
