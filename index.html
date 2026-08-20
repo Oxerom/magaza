@@ -394,6 +394,8 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 }
 .arama-girdi::placeholder{ color:#A99A90; }
 .hediye-serit{ background:var(--panel); border-bottom:1px solid var(--cizgi); }
+/* Masaüstünde üst hediye şeridi gizli: aynı liste soldaki yapışkan menüde (20.08.2026) */
+@media (min-width:961px){ .hediye-serit{ display:none; } }
 .hediye-kap{ display:flex; align-items:center; gap:12px; padding:6px 0; overflow-x:auto; }
 .hediye-etiket{ font-size:12.5px; font-weight:700; color:var(--soluk); white-space:nowrap; }
 .hediye-baglar{ display:flex; gap:8px; }
@@ -1003,8 +1005,23 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 .serit-yatay::-webkit-scrollbar-thumb{ background:var(--cizgi-koyu); border-radius:3px; }
 .serit-yatay .urun{ flex:0 0 228px; scroll-snap-align:start; }
 
-/* ---- ürün ızgarası: kaydırınca kartlar basılıyor ---- */
-.izgara{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; }
+/* ---- katalog yerleşimi: sol yapışkan menü + geniş ızgara (20.08.2026) ---- */
+.kap-genis{ max-width:1500px; }
+.katalog-yerlesim{ display:grid; grid-template-columns:208px minmax(0,1fr); gap:24px; align-items:start; }
+.katalog-yan{ position:sticky; top:118px; }
+.yan-kart{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:14px 14px 10px; }
+.yan-baslik{ margin:0 0 10px; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--soluk); }
+.yan-hediye{ display:flex; flex-direction:column; gap:4px; }
+.yan-hediye .hediye-bag{ display:flex; justify-content:space-between; align-items:center; border:0; background:none;
+  border-radius:8px; padding:7px 8px; font-size:13.5px; }
+.yan-hediye .hediye-bag:hover{ background:var(--panel); }
+.yan-hediye .hediye-bag.aktif{ background:var(--murekkep); color:#F2E6DB; }
+.yan-hediye .hediye-bag .n{ color:var(--sisik); font-size:12px; }
+.yan-hediye .hediye-bag.aktif .n{ color:#C4B0A0; }
+.yan-hediye .hediye-bag.temizle{ color:var(--nar); justify-content:flex-start; gap:6px; }
+
+/* ---- ürün ızgarası: kartlar "en çok satanlar" boyutunda (204-240px), sığdığı kadar sütun ---- */
+.izgara{ display:grid; grid-template-columns:repeat(auto-fill,minmax(204px,1fr)); gap:16px; }
 .urun{
   position:relative;
   background:var(--yuzey);
@@ -1397,6 +1414,8 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   .arama-sarmal{ grid-column:1 / -1; grid-row:2; }
   .ust-eylem{ justify-self:end; }
   .katalog-govde{ grid-template-columns:1fr; }
+  .katalog-yerlesim{ grid-template-columns:1fr; }
+  .katalog-yan{ display:none; }
   .yan{ position:static; display:grid; grid-template-columns:1fr 1fr; gap:2px 30px; margin-bottom:24px; padding-top:22px; }
   .yan-el{ grid-column:1 / -1; }
   .nozul-yol{ display:none; }
@@ -2324,7 +2343,16 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 </section>
 
 <main id="katalog">
-  <div class="kap">
+  <div class="kap kap-genis">
+  <div class="katalog-yerlesim">
+    <!-- Sol yapışkan menü (Emre, 20.08.2026): müşteri gezerken sabit kalır -->
+    <aside class="katalog-yan" id="katalog-yan" hidden>
+      <div class="yan-kart">
+        <h3 class="yan-baslik">Kime hediye?</h3>
+        <div class="yan-hediye" id="yan-hediye"></div>
+      </div>
+    </aside>
+    <div class="katalog-sag">
     <div class="govde-bas">
       <div>
         <h2 id="baslik">Tüm ürünler</h2>
@@ -2364,6 +2392,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
     <div class="marka-serit" id="marka-serit"></div>
     <div class="izgara" id="izgara"></div>
     <div class="sayfalama" id="sayfalama"></div>
+    </div><!-- /katalog-sag -->
+  </div><!-- /katalog-yerlesim -->
   </div>
 </main>
 </div><!-- /sayfa-katalog -->
@@ -3775,14 +3805,18 @@ function gitSayfa(n){ state.sayfa = n; cizIzgara(); document.getElementById('kat
 function cizHepsi(){ katBaglarCiz(); hediyeSeridiCiz(); markaSeridiCiz(); cizIzgara(); }
 // "Kime hediye?" şeridi: sadece içinde ürün olan koleksiyonlar çıkar (Emre panelden atar)
 function hediyeSeridiCiz(){
+  // Aynı liste iki yere çizilir: üst şerit (telefon) + sol yapışkan menü (masaüstü).
   const serit = document.getElementById('hediye-serit'), kutu = document.getElementById('hediye-baglar');
+  const yanKart = document.getElementById('katalog-yan'), yan = document.getElementById('yan-hediye');
   if(!serit || !kutu) return;
   const dolu = KOLEKSIYONLAR.map(k=>({ ...k, n: URUNLER.filter(u=>u.k === k.slug).length })).filter(k=>k.n > 0);
-  if(!dolu.length){ serit.hidden = true; return; }
+  if(!dolu.length){ serit.hidden = true; if(yanKart) yanKart.hidden = true; return; }
   serit.hidden = false;
-  kutu.innerHTML = dolu.map(k=>`<a class="hediye-bag ${state.koleksiyon===k.slug?'aktif':''}" href="#" data-k="${escHtml(k.slug)}">${escHtml(k.ikon||'🎁')} ${escHtml(k.ad)} <span class="n num">${k.n}</span></a>`).join('')
+  const html = dolu.map(k=>`<a class="hediye-bag ${state.koleksiyon===k.slug?'aktif':''}" href="#" data-k="${escHtml(k.slug)}"><span>${escHtml(k.ikon||'🎁')} ${escHtml(k.ad)}</span> <span class="n num">${k.n}</span></a>`).join('')
     + (state.koleksiyon ? '<a class="hediye-bag temizle" href="#" data-k="">✕ temizle</a>' : '');
-  kutu.querySelectorAll('.hediye-bag').forEach(a=>{
+  kutu.innerHTML = html;
+  if(yan && yanKart){ yanKart.hidden = false; yan.innerHTML = html; }
+  [kutu, yan].filter(Boolean).forEach(kap=>kap.querySelectorAll('.hediye-bag').forEach(a=>{
     a.addEventListener('click', e=>{
       e.preventDefault();
       state.koleksiyon = a.dataset.k === state.koleksiyon ? '' : a.dataset.k;
@@ -3791,7 +3825,7 @@ function hediyeSeridiCiz(){
       katalogaDon(); cizHepsi();
       document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
     });
-  });
+  }));
 }
 
 // ---- ürün detay ----
