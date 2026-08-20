@@ -1438,8 +1438,10 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 
 /* hareket azaltma: baskı hissi kalır, sıçrama gider */
 @media (prefers-reduced-motion: reduce){
-  /* Perde sahnesi tamamen atlanır: hareket istemeyen müşteri 7 ekran siyahta kalmasın */
-  .sahneDis{ display:none !important; }
+  /* Perde sahnesi GİZLENMEZ (Emre, 20.08.2026: "perde gitmiş" — Windows'un hareket
+     ayarı yüzünden kayboluyordu). Perde kaydırmayla sürülür, kendiliğinden oynamaz;
+     kontrol müşteride olduğu için hareket azaltmaya aykırı değil. CSS animasyonu
+     .001ms kuralıyla donacağından bu durumda perdeyi JS sürücüsü çizer. */
   *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
   .urun{ clip-path:none !important; opacity:1 !important; }
   .urun::before{ display:none; }
@@ -4411,7 +4413,9 @@ function cokSatanBagla(){
 (function(){
   const zorla = /perdejs=1/.test(location.search);
   const destek = window.CSS && CSS.supports && CSS.supports('animation-timeline: view()');
-  if(destek && !zorla) return;
+  // Hareketi azalt açıkken CSS animasyonları .001ms'ye düşüp donuyor — perdeyi JS çizer
+  const hareketAzalt = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(destek && !zorla && !hareketAzalt) return;
   const dis = document.querySelector('.v26dis'); if(!dis) return;
   document.documentElement.classList.add('perde-js');
   const bul = q=>dis.querySelector(q);
