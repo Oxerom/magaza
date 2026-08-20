@@ -310,7 +310,7 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 }
 .duyuru .kap{
   display:flex; align-items:center; justify-content:space-between;
-  gap:18px; min-height:40px; flex-wrap:wrap;
+  gap:18px; min-height:32px; flex-wrap:wrap;
 }
 .duyuru-sol{ display:flex; align-items:center; gap:10px; }
 .duyuru-metin{ width:100%; display:flex; justify-content:center; align-items:center; gap:14px; flex-wrap:wrap; font-weight:600; letter-spacing:.02em; text-align:center; }
@@ -333,10 +333,11 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 /* ============ 2. üst bar ============ */
 /* header + kategori şeridi birlikte sabitlenir, bkz. .ust-sabit */
 .ust-sabit{ position:sticky; top:0; z-index:60; }
-/* Telefonda aşağı kaydırınca duyuru + kategori şeridi katlanır (ekranın %22'sini yiyordu), yukarı kaydırınca döner */
+/* Telefonda aşağı kaydırınca kategori şeridi katlanır, yukarı kaydırınca döner.
+   (Duyuru ve hediye şeridi artık yapışkan blokta değil — kendiliğinden kayarlar.) */
 @media (max-width:640px){
-  .ust-sabit .duyuru, .ust-sabit .kat-serit{ transition:max-height .25s ease, opacity .2s ease; max-height:120px; overflow:hidden; }
-  .ust-sabit.katla .duyuru, .ust-sabit.katla .kat-serit{ max-height:0; opacity:0; border:0; }
+  .ust-sabit .kat-serit{ transition:max-height .25s ease, opacity .2s ease; max-height:120px; overflow:hidden; }
+  .ust-sabit.katla .kat-serit{ max-height:0; opacity:0; border:0; }
 }
 .ust{
   position:relative;
@@ -356,11 +357,11 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 
 .ust-govde{
   display:grid; grid-template-columns:auto minmax(0,1fr) auto;
-  align-items:center; gap:30px;
-  padding-top:15px; padding-bottom:15px;
+  align-items:center; gap:24px;
+  padding-top:9px; padding-bottom:9px;
 }
 .logo{ display:block; color:var(--murekkep); flex:none; transition:color .2s var(--e-cik); }
-.logo svg{ display:block; width:190px; height:42.6px; }
+.logo svg{ display:block; width:150px; height:33.6px; }
 .logo:hover{ color:var(--nar); }
 
 /* arama + öneri paneli (saf CSS) */
@@ -389,11 +390,11 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 .arama-girdi{
   flex:1 1 auto; min-width:0;
   border:0; background:transparent; outline:none;
-  padding:12px 15px; font-size:15px;
+  padding:9px 14px; font-size:14px;
 }
 .arama-girdi::placeholder{ color:#A99A90; }
 .hediye-serit{ background:var(--panel); border-bottom:1px solid var(--cizgi); }
-.hediye-kap{ display:flex; align-items:center; gap:12px; padding:8px 0; overflow-x:auto; }
+.hediye-kap{ display:flex; align-items:center; gap:12px; padding:6px 0; overflow-x:auto; }
 .hediye-etiket{ font-size:12.5px; font-weight:700; color:var(--soluk); white-space:nowrap; }
 .hediye-baglar{ display:flex; gap:8px; }
 .hediye-bag{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:13px; text-decoration:none;
@@ -478,22 +479,30 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 }
 .kat-serit .kap{ display:flex; align-items:center; gap:4px; }
 .kat-baglar{
-  display:flex; align-items:center; gap:2px 4px;
+  display:flex; align-items:center; gap:2px;
   flex:1 1 auto; min-width:0;
-  flex-wrap:wrap; padding:3px 0;
+  /* Asla ikinci satıra sarmaz (20.08.2026): sığmazsa yana kayar, sağdaki
+     soluklaşan kenar kaydırılabildiğini gösterir. Geniş ekranda zaten sığar. */
+  flex-wrap:nowrap; padding:0;
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:thin; scrollbar-color:var(--cizgi-koyu) transparent;
 }
+.kat-baglar::-webkit-scrollbar{ height:4px; }
+.kat-baglar::-webkit-scrollbar-thumb{ background:var(--cizgi-koyu); border-radius:3px; }
 .kat-bag{
   position:relative;
-  padding:11px 16px; font-size:15px; color:var(--murekkep); white-space:nowrap;
+  padding:8px 10px; font-size:14px; color:var(--murekkep); white-space:nowrap;
   transition:color .18s var(--e-cik);
 }
 /* seçili kategori belli olsun (JS 'aktif' sınıfını basıyordu ama karşılığı yoktu) */
 .kat-bag.aktif{ color:var(--nar); font-weight:600; }
 .kat-bag.aktif::after{ transform:scaleX(1); }
-.kat-bag .n{ color:var(--sisik); font-size:12px; margin-left:2px; }
+/* Kategori sayaçları şeritte gizli (20.08.2026): ~280px yer yiyip şeridi ikinci
+   satıra taşırıyordu — Emre "üst ekran çok sarkmış" dedi. Sayı bilgisi düşük değerli. */
+.kat-bag .n{ display:none; }
 /* alt çizgi ortadan açılır — kalıp değil, çizilmiş his */
 .kat-bag::after{
-  content:""; position:absolute; left:16px; right:16px; bottom:0; height:2px;
+  content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px;
   background:var(--nar); transform:scaleX(0); transform-origin:50% 50%;
   transition:transform .26s var(--e-cik);
 }
@@ -509,14 +518,9 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 /* Telefon: 9 kategori alt alta sarılınca ekranın üçte birini yiyor — orada parmakla
    yana kaydırma kalıyor, sağdaki soluklaşan kenar kaydırılabildiğini gösteriyor. */
 @media (max-width:660px){
-  .kat-baglar{
-    flex-wrap:nowrap; padding:0;
-    overflow-x:auto; overflow-y:hidden;
-    scrollbar-width:thin; scrollbar-color:var(--cizgi-koyu) transparent;
-  }
-  .kat-baglar::-webkit-scrollbar{ height:5px; }
-  .kat-baglar::-webkit-scrollbar-thumb{ background:var(--cizgi-koyu); border-radius:3px; }
   .kat-bag{ padding:12px 14px; font-size:14px; }
+}
+@media (max-width:1420px){
   .kat-serit::after{
     content:""; position:absolute; top:0; right:0; bottom:0; width:44px;
     background:linear-gradient(to right, transparent, var(--kagit) 75%);
@@ -866,7 +870,7 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 
 /* yan = atölye panosu */
 .yan{
-  position:sticky; top:160px;
+  position:sticky; top:118px;
   background-color:var(--yuzey);
   background-image:var(--tane);
   border:1px solid var(--cizgi);
@@ -1911,7 +1915,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 a.sepet-satir-ad{ color:inherit; text-decoration:none; }
 a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 .sepet-sayfa .sepet-sil{ align-self:flex-start; padding:0; }
-.sepet-ozet{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:18px 20px; position:sticky; top:150px; }
+.sepet-ozet{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:18px 20px; position:sticky; top:118px; }
 @media (max-width:900px){ .sepet-sayfa{ grid-template-columns:1fr; } .sepet-ozet{ position:static; } }
 .sepet-bas{ display:flex; align-items:center; justify-content:space-between; padding:20px 22px; border-bottom:1px solid var(--cizgi); }
 .sepet-bas h3{ margin:0; font-size:16px; }
@@ -2098,8 +2102,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 
 
 <!-- ============ duyuru ============ -->
-<div class="ust-sabit">
-<!-- Duyuru şeridi: her sayfada sabit (üst şeritle birlikte kayar). Rakamlar urunler.json → ayarlar'dan (duyuruYaz) -->
+<!-- Duyuru şeridi sayfayla birlikte kayar (20.08.2026: dört şerit üst üste yapışkandı,
+     ürünlere tek satır kalıyordu). Rakamlar urunler.json → ayarlar'dan (duyuruYaz) -->
 <div class="duyuru">
   <div class="kap">
     <div class="duyuru-metin" id="duyuru-metin">
@@ -2107,6 +2111,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
     </div>
   </div>
 </div>
+<div class="ust-sabit">
   <header class="ust">
     <div class="kap ust-govde">
       <a class="logo" href="#" aria-label="OXEROM ana sayfa" onclick="katalogaDon(); window.scrollTo({top:0, behavior:'smooth'}); return false;">
@@ -2134,13 +2139,13 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <div class="kat-baglar" id="kat-baglar"></div>
     </div>
   </nav>
-  <nav class="hediye-serit" id="hediye-serit" aria-label="Hediye koleksiyonları" hidden>
-    <div class="kap hediye-kap">
-      <span class="hediye-etiket">Kime hediye?</span>
-      <div class="hediye-baglar" id="hediye-baglar"></div>
-    </div>
-  </nav>
 </div>
+<nav class="hediye-serit" id="hediye-serit" aria-label="Hediye koleksiyonları" hidden>
+  <div class="kap hediye-kap">
+    <span class="hediye-etiket">Kime hediye?</span>
+    <div class="hediye-baglar" id="hediye-baglar"></div>
+  </div>
+</nav>
 
 <div id="sayfa-katalog">
 <section class="vitrin">
