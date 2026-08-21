@@ -2625,7 +2625,7 @@ let MARKALAR = [];
 let ARACLAR = null;
 // Hediye koleksiyonları (Emre panelden seçer): [{slug, ad, ikon}]. Hiç ürün atanmadıysa şerit çıkmaz.
 let KOLEKSIYONLAR = [];
-let state = { q: '', grup: 'tum', marka: 'tum', model: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24, fiyat: 'tum', koleksiyon: '' };
+let state = { q: '', grup: 'tum', marka: 'tum', model: 'tum', sayfa: 1, sirala: 'varsayilan', sayfaBasi: 24, fiyat: 'tum', koleksiyon: '', instagram: false };
 // ödeme motorunun adresi — motor (magaza-odeme/) Cloudflare'a yayınlanınca
 // gerçek adresle değiştirilecek. Değişene kadar site kendiliğinden misafir
 // WhatsApp siparişine düşer (üyelik/yorum/kart kapalı kalır).
@@ -3621,6 +3621,7 @@ function katBaglarCiz(){
       state.marka = 'tum';
       state.model = 'tum';
       state.koleksiyon = '';
+      state.instagram = false;
       state.sayfa = 1;
       cizHepsi();
       if(document.getElementById('sayfa-katalog').hidden) katalogaDon();
@@ -3683,6 +3684,10 @@ function filtreliListe(){
     // arama her zaman TÜM sitede arar — seçili kategori aramayı daraltmaz
     const qq = q.toLocaleLowerCase('tr-TR');
     l = l.filter(x=>x.t.toLocaleLowerCase('tr-TR').includes(qq) || x.cat.toLocaleLowerCase('tr-TR').includes(qq));
+  } else if(state.instagram){
+    // Instagram'da paylaşılanlar (#instagram): panelde basılan paylaşım damgasına
+    // göre, en son paylaşılan en üstte — bio linkinden gelen müşteri için (21.08.2026)
+    l = l.filter(x=>x.ig).sort((a,b)=>(b.ig||0)-(a.ig||0));
   } else if(state.koleksiyon){
     l = l.filter(x=>x.k === state.koleksiyon);
   } else {
@@ -3751,9 +3756,11 @@ function cizIzgara(){
   document.getElementById('sonuc-sayisi').textContent = liste.length + ' ürün';
   const kol = state.koleksiyon ? KOLEKSIYONLAR.find(k=>k.slug===state.koleksiyon) : null;
   document.getElementById('baslik').textContent = state.q.trim() ? `"${state.q.trim()}" için sonuçlar`
+    : state.instagram ? "Instagram'da Paylaştıklarımız"
     : kol ? `${kol.ikon||'🎁'} ${kol.ad} hediyelik` : grupAdi(state.grup);
   document.getElementById('alt-baslik').textContent = state.q.trim()
     ? 'tüm ürünlerde arandı'
+    : state.instagram ? 'paylaşım sırasıyla — en son paylaşılan en üstte'
     : 'gerçek stoktan, gerçek fiyatlarla';
 
   const toplamSayfa = Math.max(1, Math.ceil(liste.length / state.sayfaBasi));
@@ -3763,7 +3770,9 @@ function cizIzgara(){
 
   const izgara = document.getElementById('izgara');
   if(!sayfaListe.length){
-    izgara.innerHTML = '<div class="bos-durum">Bu aramayla eşleşen ürün yok.</div>';
+    izgara.innerHTML = state.instagram
+      ? '<div class="bos-durum">Yakında — Instagram\'da paylaştığımız ürünler burada listelenecek.</div>'
+      : '<div class="bos-durum">Bu aramayla eşleşen ürün yok.</div>';
   } else {
     izgara.innerHTML = sayfaListe.map(u=>urunKarti({...u, g_ad: grupAdi(u.g)})).join('');
     izgara.querySelectorAll('.urun').forEach(el=>{
@@ -3829,6 +3838,7 @@ function hediyeSeridiCiz(){
       e.preventDefault();
       state.koleksiyon = a.dataset.k === state.koleksiyon ? '' : a.dataset.k;
       state.grup = 'tum'; state.marka = 'tum'; state.model = 'tum'; state.q = ''; state.sayfa = 1;
+      state.instagram = false;
       const g = document.getElementById('arama'); if(g){ g.value = ''; }
       katalogaDon(); cizHepsi();
       document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
@@ -4294,6 +4304,16 @@ function sepeteGit(){
   sepetCiz();
   sayfaGoster('sepet');
 }
+function instagramAc(){
+  // Sabit link oxerom.com.tr/instagram -> #instagram: paylaşımdan gelen müşteri
+  // doğrudan paylaşılan ürünlerin listesine düşer, perdeyi kaydırmak zorunda kalmaz.
+  state.instagram = true; state.koleksiyon = ''; state.grup = 'tum';
+  state.marka = 'tum'; state.model = 'tum'; state.q = ''; state.sayfa = 1;
+  const g = document.getElementById('arama'); if(g) g.value = '';
+  cizHepsi();
+  sayfaGoster('katalog');
+  document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
+}
 function yolCoz(){
   const h = location.hash;
   const es = h.match(/^#u(\d+)$/);
@@ -4302,6 +4322,7 @@ function yolCoz(){
   if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
   if(h === '#takip'){ sayfaGoster('takip'); return; }
   if(h === '#promosyon'){ promosyonCiz(); sayfaGoster('promosyon'); return; }
+  if(h === '#instagram'){ instagramAc(); return; }
   sayfaGoster('katalog');
   if(h === '#katalog' || h === '#iletisim'){
     const hedef = document.getElementById(h.slice(1));
