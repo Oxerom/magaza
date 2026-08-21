@@ -1010,6 +1010,13 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 .katalog-yerlesim{ display:grid; grid-template-columns:208px minmax(0,1fr); gap:24px; align-items:start; }
 .katalog-yan{ position:sticky; top:118px; }
 .yan-kart{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:14px 14px 10px; }
+/* Sol menünün üstündeki sabit Instagram kapısı (21.08.2026) */
+.yan-ig{ display:flex; align-items:center; gap:8px; background:var(--yuzey); border:1px solid var(--cizgi);
+  border-radius:var(--r-m); padding:12px 13px; margin-bottom:12px; font-size:13.5px; font-weight:700; }
+.yan-ig:hover{ background:var(--panel); }
+.yan-ig .n{ margin-left:auto; color:var(--sisik); font-size:12px; font-weight:600; }
+.yan-ig.aktif{ background:var(--murekkep); color:#F2E6DB; }
+.yan-ig.aktif .n{ color:#C4B0A0; }
 .yan-baslik{ margin:0 0 10px; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--soluk); }
 .yan-hediye{ display:flex; flex-direction:column; gap:4px; }
 .yan-hediye .hediye-bag{ display:flex; justify-content:space-between; align-items:center; border:0; background:none;
@@ -2332,6 +2339,23 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   </div>
 </section>
 
+<!-- ============ Instagram'da paylaşılanlar (21.08.2026) ============ -->
+<!-- Panelde 📷 ile işaretlenen ürünler (ig damgası); en son paylaşılan en başta.
+     Hiç işaretli ürün yoksa bölüm görünmez. -->
+<section class="bolum" id="ig-bolum" hidden>
+  <div class="kap">
+    <div class="bolum-bas">
+      <div>
+        <div class="bas-cizgi" aria-hidden="true"></div>
+        <h2>Instagram'da Paylaştıklarımız</h2>
+        <p class="bas-alt">Instagram'da tanıttığımız ürünler — en son paylaşılan en başta.</p>
+      </div>
+      <a class="hepsi" href="#instagram" onclick="instagramAc(); return false;">Tümünü gör →</a>
+    </div>
+    <div class="serit-yatay" id="ig-serit"></div>
+  </div>
+</section>
+
 <!-- ============ güven şeridi ============ -->
 <section class="guven" aria-label="Alışveriş güvenceleri">
   <div class="kap guven-izgara">
@@ -2355,7 +2379,10 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   <div class="katalog-yerlesim">
     <!-- Sol yapışkan menü (Emre, 20.08.2026): müşteri gezerken sabit kalır -->
     <aside class="katalog-yan" id="katalog-yan" hidden>
-      <div class="yan-kart">
+      <a class="yan-ig" id="yan-ig" href="#instagram" onclick="instagramAc(); return false;" hidden>
+        <span aria-hidden="true">📷</span> Instagram'da Paylaştıklarımız <span class="n num" id="yan-ig-sayi"></span>
+      </a>
+      <div class="yan-kart" id="yan-hediye-kart">
         <h3 class="yan-baslik">Kime hediye?</h3>
         <div class="yan-hediye" id="yan-hediye"></div>
       </div>
@@ -3819,7 +3846,22 @@ function cizIzgara(){
 }
 function gitSayfa(n){ state.sayfa = n; cizIzgara(); document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'}); }
 
-function cizHepsi(){ katBaglarCiz(); hediyeSeridiCiz(); markaSeridiCiz(); cizIzgara(); }
+function cizHepsi(){ katBaglarCiz(); hediyeSeridiCiz(); yanGuncelle(); markaSeridiCiz(); cizIzgara(); }
+
+// Sol menünün üstündeki Instagram kapısı + menünün görünürlüğü (21.08.2026):
+// işaretli ürün yoksa kapı çıkmaz; kapı da hediye kartı da boşsa menü tümden gizlenir.
+function yanGuncelle(){
+  const yan = document.getElementById('katalog-yan'); if(!yan) return;
+  const igSayi = URUNLER.filter(u=>u.ig).length;
+  const igBag = document.getElementById('yan-ig');
+  if(igBag){
+    igBag.hidden = !igSayi;
+    igBag.classList.toggle('aktif', state.instagram);
+    const sayi = document.getElementById('yan-ig-sayi'); if(sayi) sayi.textContent = igSayi || '';
+  }
+  const hediyeKart = document.getElementById('yan-hediye-kart');
+  yan.hidden = !igSayi && (!hediyeKart || hediyeKart.hidden);
+}
 // "Kime hediye?" şeridi: sadece içinde ürün olan koleksiyonlar çıkar (Emre panelden atar)
 function hediyeSeridiCiz(){
   // Aynı liste iki yere çizilir: üst şerit (telefon) + sol yapışkan menü (masaüstü).
@@ -3827,12 +3869,13 @@ function hediyeSeridiCiz(){
   const yanKart = document.getElementById('katalog-yan'), yan = document.getElementById('yan-hediye');
   if(!serit || !kutu) return;
   const dolu = KOLEKSIYONLAR.map(k=>({ ...k, n: URUNLER.filter(u=>u.k === k.slug).length })).filter(k=>k.n > 0);
-  if(!dolu.length){ serit.hidden = true; if(yanKart) yanKart.hidden = true; return; }
+  const hediyeKart = document.getElementById('yan-hediye-kart');
+  if(!dolu.length){ serit.hidden = true; if(hediyeKart) hediyeKart.hidden = true; return; }
   serit.hidden = false;
   const html = dolu.map(k=>`<a class="hediye-bag ${state.koleksiyon===k.slug?'aktif':''}" href="#" data-k="${escHtml(k.slug)}"><span>${escHtml(k.ikon||'🎁')} ${escHtml(k.ad)}</span> <span class="n num">${k.n}</span></a>`).join('')
     + (state.koleksiyon ? '<a class="hediye-bag temizle" href="#" data-k="">✕ temizle</a>' : '');
   kutu.innerHTML = html;
-  if(yan && yanKart){ yanKart.hidden = false; yan.innerHTML = html; }
+  if(yan && hediyeKart){ hediyeKart.hidden = false; yan.innerHTML = html; }
   [kutu, yan].filter(Boolean).forEach(kap=>kap.querySelectorAll('.hediye-bag').forEach(a=>{
     a.addEventListener('click', e=>{
       e.preventDefault();
@@ -4593,10 +4636,8 @@ function fisKategorilerCiz(){
   ).join('');
 }
 
-// ---- "En çok satanlar" şeridi — gerçek sepete/detaya bağla ----
-function cokSatanBagla(){
-  const serit = document.querySelector('#cok-satan .serit-yatay');
-  if(!serit) return;
+// ---- yatay şerit kartları: kart detay açar, düğme sepete ekler (çok satan + Instagram) ----
+function seritBagla(serit){
   serit.querySelectorAll('.urun[data-id]').forEach(el=>{
     el.style.cursor = 'pointer';
     el.addEventListener('click', ()=> detayAc(parseInt(el.dataset.id)));
@@ -4610,6 +4651,31 @@ function cokSatanBagla(){
       setTimeout(()=>{ btn.textContent='Sepete ekle'; btn.classList.remove('eklendi'); }, 1100);
     });
   });
+}
+function cokSatanBagla(){
+  const serit = document.querySelector('#cok-satan .serit-yatay');
+  if(serit) seritBagla(serit);
+}
+
+// ---- "Instagram'da Paylaştıklarımız" şeridi: panelde 📷 ile işaretlenenler, en yeni başta ----
+function igSeritCiz(){
+  const bolum = document.getElementById('ig-bolum'), serit = document.getElementById('ig-serit');
+  if(!bolum || !serit) return;
+  const liste = URUNLER.filter(u=>u.ig).sort((a,b)=>(b.ig||0)-(a.ig||0)).slice(0, 12);
+  if(!liste.length){ bolum.hidden = true; return; }
+  bolum.hidden = false;
+  serit.innerHTML = liste.map(u=>`<article class="urun" data-id="${u.id}">
+    <div class="urun-gorsel">
+      <img src="${u.img}" alt="${escHtml(u.t)}" loading="lazy">
+      <span class="urun-etiket">${escHtml(grupAdi(u.g))}</span>
+    </div>
+    <div class="urun-govde">
+      <h3 class="urun-ad">${escHtml(u.t)}</h3>
+      <div class="fiyat-satir"><span class="fiyat num">${fiyatFmt(satisFiyati(u))}</span></div>
+      <div class="urun-dip"><button class="sepet-d" type="button" data-id="${u.id}">Sepete ekle</button></div>
+    </div>
+  </article>`).join('');
+  seritBagla(serit);
 }
 
 // ---- perde JS sürücüsü: kaydırmalı animasyon (animation-timeline) desteği yoksa ----
@@ -5094,6 +5160,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   cizHepsi();
   fisKategorilerCiz();
   cokSatanBagla();
+  igSeritCiz();
   trendyolYorumlari(0); // yorum özetlerini indir, kartlardaki yıldızları doldur
   // Paylaşılan ürün linkiyle (#u123) gelindiyse o ürünü aç
   yolCoz();
