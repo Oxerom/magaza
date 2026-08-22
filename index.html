@@ -4346,8 +4346,13 @@ function sayfaGoster(ad){
   window.scrollTo({top:0, behavior:'instant'});
 }
 function katalogaDon(){
-  // Ürün/sepet sayfasından katalog'a: adresi temizle, kataloğun olduğu yere dön
-  if(location.hash && location.hash !== '#katalog') history.pushState(null, '', location.pathname + location.search);
+  // Ürün/sepet sayfasından katalog'a: arama açıksa adres #ara=... olur, değilse temizlenir
+  const q = (state.q || '').trim();
+  if(q){
+    if(location.hash !== '#ara=' + encodeURIComponent(q)) history.pushState(null, '', '#ara=' + encodeURIComponent(q));
+  }else if(location.hash && location.hash !== '#katalog'){
+    history.pushState(null, '', location.pathname + location.search);
+  }
   sayfaGoster('katalog');
   document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
 }
@@ -4370,12 +4375,32 @@ function yolCoz(){
   const h = location.hash;
   const es = h.match(/^#u(\d+)$/);
   if(es){ detayAc(parseInt(es[1])); return; }
+  // #ara=... — arama adres çubuğunda taşınır (Emre, 22.08.2026): link paylaşılabilir,
+  // sayfa yenilenince arama kaybolmaz, geri tuşu aramadan çıkarır.
+  const ar = h.match(/^#ara=(.*)$/);
+  if(ar){
+    let q = ''; try{ q = decodeURIComponent(ar[1]); }catch(_){ q = ar[1]; }
+    state.q = q; state.sayfa = 1;
+    const g = document.getElementById('arama');
+    if(g){ g.value = q; document.getElementById('arama-temizle').classList.toggle('gorunur', !!q); }
+    cizIzgara();
+    sayfaGoster('katalog');
+    document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
+    return;
+  }
   if(h === '#sepet'){ sepetCiz(); sayfaGoster('sepet'); return; }
   if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
   if(h === '#takip'){ sayfaGoster('takip'); return; }
   if(h === '#promosyon'){ promosyonCiz(); sayfaGoster('promosyon'); return; }
   if(h === '#instagram'){ instagramAc(); return; }
   sayfaGoster('katalog');
+  if(!h && state.q){
+    // Geri tuşuyla aramasız adrese dönüldü — kutuyu ve süzgeci de temizle
+    state.q = ''; state.sayfa = 1;
+    const g = document.getElementById('arama');
+    if(g){ g.value = ''; document.getElementById('arama-temizle').classList.remove('gorunur'); }
+    cizIzgara();
+  }
   if(h === '#katalog' || h === '#iletisim'){
     const hedef = document.getElementById(h.slice(1));
     if(hedef) hedef.scrollIntoView({behavior:'smooth', block:'start'});
@@ -4600,6 +4625,14 @@ document.getElementById('sepet-ac').addEventListener('click', sepeteGit);
 // ---- arama ----
 const aramaGirdi = document.getElementById('arama');
 const aramaTemizle = document.getElementById('arama-temizle');
+// Aramayı adres çubuğuna yazar (#ara=...). replaceState: her tuş geçmişe yeni kayıt
+// açmasın, geri tuşu harf harf geri gitmesin. Ürün/sepet sayfasındayken adrese dokunulmaz.
+function aramaAdresiGuncelle(){
+  const q = (state.q || '').trim();
+  const h = location.hash;
+  if(h && !h.startsWith('#ara') && h !== '#katalog') return;
+  history.replaceState(null, '', q ? '#ara=' + encodeURIComponent(q) : location.pathname + location.search);
+}
 let aramaZamanlayici;
 aramaGirdi.addEventListener('input', ()=>{
   clearTimeout(aramaZamanlayici);
@@ -4607,6 +4640,7 @@ aramaGirdi.addEventListener('input', ()=>{
   aramaZamanlayici = setTimeout(()=>{
     state.q = aramaGirdi.value;
     state.sayfa = 1;
+    aramaAdresiGuncelle();
     cizIzgara();
     aramaOneriCiz();
   }, 120);
@@ -4647,6 +4681,7 @@ aramaTemizle.addEventListener('click', ()=>{
   aramaTemizle.classList.remove('gorunur');
   state.q = '';
   state.sayfa = 1;
+  aramaAdresiGuncelle();
   cizIzgara();
   aramaGirdi.focus();
 });
