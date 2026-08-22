@@ -1612,6 +1612,13 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .eski-fiyat{ font-size:12px; font-weight:400; color:var(--sisik); margin-left:4px; }
 .detay-fiyat .eski-fiyat{ font-size:15px; }
 .indirim-rozet{ display:inline-block; font-size:11px; font-weight:700; color:#2E7D4F; background:#EBF6EF; border-radius:6px; padding:3px 8px; margin-left:8px; vertical-align:middle; }
+/* Gün sonu sayacı (Emre, 22.08.2026): bugünkü indirimli fiyat gece 00:00'a kadar geçerli.
+   Söz gerçek — fiyatlar Trendyol'u izliyor, yarın değişebilir; o yüzden "fiyat geçerli" denir,
+   "indirim bitiyor" denmez (yanıltıcı aciliyet cezası riskine girmemek için). */
+.fiyat-sayac{ font-size:12.5px; color:#8A4B00; background:#FFF3E4; border:1px solid #F2DCC0; border-radius:8px; padding:6px 10px; margin:8px 0 2px; display:inline-block; }
+.fiyat-sayac .geri-sayim{ font-variant-numeric:tabular-nums; }
+.sayac-serit{ font-size:13px; color:#8A4B00; background:#FFF3E4; border:1px solid #F2DCC0; border-radius:10px; padding:8px 12px; margin:0 0 12px; }
+.sayac-serit .geri-sayim{ font-variant-numeric:tabular-nums; }
 .ty-satir{ font-size:11px; color:var(--sisik); display:flex; align-items:center; gap:4px; }
 .sepet-ekle{
   border:0; background:var(--panel-2); color:var(--murekkep); padding:9px 10px; border-radius:var(--r-s);
@@ -2395,6 +2402,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       </div>
       <div class="sonuc-sayisi" id="sonuc-sayisi"></div>
     </div>
+    <div class="sayac-serit">⏳ <b>Bugünkü indirimli fiyatlar gece 00:00'a kadar geçerli</b> — kalan <b class="geri-sayim num">--:--:--</b></div>
     <div class="liste-kontrol">
       <label>Sırala
         <select id="sirala-sec">
@@ -3983,7 +3991,8 @@ function detayAc(id){
       <span class="urun-kat">${escHtml(grupAdi(u.g))}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h2>${escHtml(u.t)}</h2>
       <div class="detay-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
-        <span class="indirim-rozet">Trendyol fiyatından %${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} ucuz</span></div>
+        <span class="indirim-rozet">%${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} indirim</span></div>
+      <div class="fiyat-sayac">⏳ Bugünkü indirimli fiyat gece <b>00:00</b>'a kadar geçerli — kalan <b class="geri-sayim num">--:--:--</b></div>
       <div class="detay-kargo">📦 ${kargoCumlesi()}</div>
       <button class="favori-dugme detay-favori ${favoriMi(u.id)?'dolu':''}" type="button" data-favori="${u.id}">${favoriMi(u.id)?'♥ Favorilerimde':'♡ Favorilerime ekle'}</button>
       <div class="paylas">
@@ -4222,7 +4231,7 @@ function detayAc(id){
   if(alt){
     alt.hidden = false;
     document.getElementById('detay-alt-fiyat').textContent = fiyatFmt(satisFiyati(u));
-    document.getElementById('detay-alt-eski').textContent = fiyatFmt(u.p) + ' Trendyol';
+    document.getElementById('detay-alt-eski').textContent = fiyatFmt(u.p);
     const altBtn = document.getElementById('detay-alt-ekle');
     altBtn.textContent = 'Sepete ekle';
     altBtn.onclick = ()=>{
@@ -4405,6 +4414,21 @@ async function galeriYukle(id){
     };
   });
 }
+
+// ---- gün sonu sayacı: gece 00:00'a kalan süre, sayfadaki bütün .geri-sayim'lere yazılır ----
+// (detay sayfası sonradan çizildiği için elemanlar her saniye yeniden aranır — ucuz bir sorgu)
+(function(){
+  function tik(){
+    const s = new Date();
+    const kalanSn = Math.max(0, Math.floor((new Date(s.getFullYear(), s.getMonth(), s.getDate()+1) - s) / 1000));
+    const yaz = String(Math.floor(kalanSn/3600)).padStart(2,'0') + ':'
+              + String(Math.floor(kalanSn/60)%60).padStart(2,'0') + ':'
+              + String(kalanSn%60).padStart(2,'0');
+    document.querySelectorAll('.geri-sayim').forEach(el=>{ el.textContent = yaz; });
+  }
+  tik();
+  setInterval(tik, 1000);
+})();
 
 // ---- ürün açıklamaları — ayrı dosyadan bir kere çekilir (sayfayı şişirmemek için) ----
 let ACIKLAMALAR = null;
