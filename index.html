@@ -1718,7 +1718,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .wa-balon:hover{ background:#1ebe5b; }
 @media (max-width:640px){ .wa-balon span{ display:none; } .wa-balon{ padding:12px; right:14px; bottom:14px; } }
 .talep{ margin:44px 0 0; padding:38px 0; background:var(--panel); border-top:1.5px solid var(--cizgi-koyu); border-bottom:1.5px solid var(--cizgi-koyu); }
-.talep-kap{ display:grid; grid-template-columns:1.1fr 1fr; gap:34px; align-items:start; }
+/* minmax(0,..) şart (22.08.2026): 1fr'nin taban genişliği içeriğin doğal genişliğidir;
+   formdaki yan yana iki kutu 390px telefonda sayfayı 18px yana taşırıyordu. */
+.talep-kap{ display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:34px; align-items:start; }
 .talep-metin h2{ font-size:24px; margin:0 0 10px; letter-spacing:-.01em; }
 .talep-metin p{ margin:0 0 10px; font-size:14.5px; line-height:1.6; color:var(--soluk); }
 .talep-not{ font-size:12.5px !important; color:var(--sisik) !important; }
@@ -1727,9 +1729,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-form .opsiyonel{ font-weight:400; color:var(--sisik); }
 .talep-form input, .talep-form textarea{ font:inherit; font-size:13.5px; font-weight:400; padding:8px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--kagit); color:var(--murekkep); }
 .talep-form input[type=file]{ padding:6px; }
-.talep-satir{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.talep-satir{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
-@media (max-width:760px){ .talep-kap{ grid-template-columns:1fr; } }
+@media (max-width:760px){ .talep-kap{ grid-template-columns:minmax(0,1fr); } }
 
 /* Müşterinin kendi fotoğrafı (Trendyol'dan gelen yorumlarda). Adres ölürse
    onerror ile sessizce kaldırılır — kırık resim görünmez. */
