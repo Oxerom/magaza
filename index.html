@@ -205,7 +205,7 @@
    OXEROM — "Sıcak Zanaat Pazarı" · 2. tur
    Tek ışık dünyası. Her süs, baskının kendisinden geliyor:
    tabla ızgarası, katman çizgisi, nozul yolu, kargo etiketi.
-   Trendyol turuncusu bilinçli olarak yok.
+   Pazaryeri turuncusu bilinçli olarak yok.
    ============================================================ */
 
 :root{
@@ -1107,15 +1107,6 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   color:var(--nar); background:var(--nar-soluk);
   border:1px solid #ECD5D0; padding:2px 6px; border-radius:3px;
 }
-.ty-kiyas{
-  display:flex; align-items:center; gap:5px;
-  font-size:11.5px; color:var(--sisik); text-decoration:none;
-  border-top:1px dashed var(--cizgi); padding-top:8px; margin-top:2px;
-  transition:color .16s var(--e-cik);
-}
-.ty-kiyas:hover{ color:var(--murekkep); }
-.ty-kiyas .ty-tutar{ font-weight:700; color:var(--murekkep); }
-.ty-kiyas svg{ flex:none; opacity:.7; }
 
 .urun-dip{ display:flex; gap:8px; align-items:center; }
 .sepet-d{
@@ -1493,6 +1484,8 @@ html{ scroll-behavior:smooth; }
 .sepet-dugme:hover{ background:#3a2e26; }
 .hesap-dugme{ background:transparent; color:var(--murekkep); border:1.5px solid var(--cizgi-koyu); }
 .hesap-dugme:hover{ background:var(--panel); }
+/* top-bar favorites heart (22.08.2026, Emre): favorites moved out of the category strip */
+.favori-ust .favori-kalp{ color:var(--nar); font-size:16px; line-height:1; }
 .sepet-rozet{
   background:var(--nar); color:#fff; border-radius:100px; font-size:11px; font-weight:800;
   min-width:19px; height:19px; display:flex; align-items:center; justify-content:center; padding:0 5px;
@@ -1585,7 +1578,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-fiyat .eski-fiyat{ font-size:15px; }
 .indirim-rozet{ display:inline-block; font-size:11px; font-weight:700; color:#2E7D4F; background:#EBF6EF; border-radius:6px; padding:3px 8px; margin-left:8px; vertical-align:middle; }
 /* Gün sonu sayacı (Emre, 22.08.2026): bugünkü indirimli fiyat gece 00:00'a kadar geçerli.
-   Söz gerçek — fiyatlar Trendyol'u izliyor, yarın değişebilir; o yüzden "fiyat geçerli" denir,
+   Söz gerçek — fiyatlar pazaryerini izliyor, yarın değişebilir; o yüzden "fiyat geçerli" denir,
    "indirim bitiyor" denmez (yanıltıcı aciliyet cezası riskine girmemek için). */
 .fiyat-sayac{ font-size:12.5px; color:#8A4B00; background:#FFF3E4; border:1px solid #F2DCC0; border-radius:8px; padding:6px 10px; margin:8px 0 2px; display:inline-block; }
 .fiyat-sayac .geri-sayim{ font-variant-numeric:tabular-nums; }
@@ -1733,7 +1726,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:minmax(0,1fr); } }
 
-/* Müşterinin kendi fotoğrafı (Trendyol'dan gelen yorumlarda). Adres ölürse
+/* Müşterinin kendi fotoğrafı (pazaryerinden gelen yorumlarda). Adres ölürse
    onerror ile sessizce kaldırılır — kırık resim görünmez. */
 .yorum-foto{ display:flex; gap:7px; flex-wrap:wrap; margin:8px 0 2px; }
 .yorum-foto img{ width:78px; height:78px; object-fit:cover; border-radius:8px; border:1px solid var(--cizgi); }
@@ -1803,7 +1796,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-video iframe{ width:100%; height:640px; border:0; border-radius:var(--r-m); background:var(--panel); }
 .video-not{ margin:6px 0 0; font-size:11.5px; color:var(--sisik); }
 
-/* ---- Trendyol'dan gelen yorumlar ---- */
+/* ---- pazaryerinden gelen yorumlar ---- */
 .yorum-kaynak{ font-size:12.5px; color:var(--soluk); margin:14px 0 8px; padding-top:12px; border-top:1px dashed var(--cizgi); }
 .yorum.ty .yorum-tarih{ color:var(--sisik); }
 
@@ -1869,7 +1862,6 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .promo-liste{ margin:0; padding-left:18px; font-size:14px; color:var(--soluk); line-height:1.75; }
 @media (max-width:860px){ .promo-isler{ grid-template-columns:1fr; } .promo-alt{ grid-template-columns:1fr; padding:20px; } }
 
-.kat-favori{ color:var(--nar) !important; }
 /* Şeritteki promosyon düğmesi: kategori değil, ayrı bir kapı — o yüzden farklı duruyor */
 .kat-promo{ color:var(--nar) !important; font-weight:700; }
 .kat-promo::before{ content:"✦"; margin-right:6px; font-size:11px; vertical-align:1px; }
@@ -2141,6 +2133,10 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <div class="arama-oneri" id="arama-oneri" hidden></div>
       </div>
       <div class="ust-eylem">
+        <button class="sepet-dugme hesap-dugme favori-ust" id="favori-ac" type="button" aria-label="Favorilerim">
+          <span class="favori-kalp" aria-hidden="true">♥</span> <span class="metin">Favorilerim</span>
+          <span class="sepet-rozet num" id="favori-rozet" hidden>0</span>
+        </button>
         <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button">
           👤 <span class="metin" id="hesap-dugme-metin">Hesabım</span>
         </button>
@@ -2623,7 +2619,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 let URUNLER = [];
 let GRUPLAR = [];
 let MARKALAR = [];
-// ARACLAR: marka -> model -> ürün id listesi (araclar.json, trendyol/arac-listesi.py üretir).
+// ARACLAR: marka -> model -> ürün id listesi (araclar.json, PC'deki program üretir).
 // Modeli başlığından çıkarılamayan ürünler markanın "genel" listesindedir ve
 // hangi model seçilirse seçilsin gösterilir — ürün kaybolmaz.
 let ARACLAR = null;
@@ -2678,7 +2674,7 @@ function sepetAdetAyarla(key, adet){
   sepetCiz();
 }
 
-// FİYAT KURALLARI (Emre, 15.08.2026 — deneme): Trendyol fiyatının %20 altı ·
+// FİYAT KURALLARI (Emre, 15.08.2026 — deneme): pazaryeri fiyatının %20 altı ·
 // sepet en az 250 TL (indirimli tutar) · kargo sabit 69,99 · bedava kargo eşiği YOK.
 // Ödeme motoru (magaza-odeme) aynı üç sayıyı kendi tarafında da uygular; değişirse ikisi birden.
 // Bunlar VARSAYILAN; canlı değerler urunler.json → ayarlar (panelden değiştirilir), açılışta yüklenir.
@@ -3317,6 +3313,10 @@ function siparisBolgeCiz(zorla){
 
   const uyeli = !!oturum.token;
   const adresler = uyeli ? (oturum.kullanici.adresler || []) : [];
+  // Guest contact info is remembered on this device (22.08.2026, Emre):
+  // e-mail is asked once, required, and never asked again — fields come prefilled.
+  let mzKayit = {};
+  try{ mzKayit = JSON.parse(localStorage.getItem('oxerom_misafir') || '{}') || {}; }catch(_){ mzKayit = {}; }
   bolge.innerHTML = `
     ${uyeli ? '' : `
     <p class="sepet-not">Üyeliksiz sipariş verebilirsiniz.
@@ -3326,11 +3326,11 @@ function siparisBolgeCiz(zorla){
     <div class="siparis-form">
       <span class="siparis-etiket">İletişim</span>
       <div class="satir-2">
-        <div><input id="mz-ad" type="text" placeholder="Ad" autocomplete="given-name"></div>
-        <div><input id="mz-soyad" type="text" placeholder="Soyad" autocomplete="family-name"></div>
+        <div><input id="mz-ad" type="text" placeholder="Ad" autocomplete="given-name" value="${escHtml(mzKayit.ad||'')}"></div>
+        <div><input id="mz-soyad" type="text" placeholder="Soyad" autocomplete="family-name" value="${escHtml(mzKayit.soyad||'')}"></div>
       </div>
-      <input id="mz-telefon" type="tel" placeholder="Telefon" autocomplete="tel">
-      <input id="mz-eposta" type="email" placeholder="E-posta (isteğe bağlı)" autocomplete="email">
+      <input id="mz-telefon" type="tel" placeholder="Telefon" autocomplete="tel" value="${escHtml(mzKayit.telefon||'')}">
+      <input id="mz-eposta" type="email" placeholder="E-posta" autocomplete="email" value="${escHtml(mzKayit.eposta||'')}">
     </div>`}
     <div class="siparis-form">
       <span class="siparis-etiket">Teslimat adresi</span>
@@ -3417,7 +3417,14 @@ function siparisVerileriniTopla(){
       telefon: document.getElementById('mz-telefon').value.trim(),
       eposta: document.getElementById('mz-eposta').value.trim(),
     };
-    if(!misafir.ad || !misafir.telefon){ siparisHata('Ad ve telefon girin — siparişiniz için size ulaşacağız.'); return null; }
+    if(!misafir.ad || !misafir.telefon || !misafir.eposta){
+      siparisHata('Ad, telefon ve e-posta girin — sipariş bildirimi ve makbuz için gerekli.'); return null;
+    }
+    if(!/^\S+@\S+\.\S+$/.test(misafir.eposta)){
+      siparisHata('E-posta adresi geçerli görünmüyor — kontrol edin.'); return null;
+    }
+    // remember for next time so the same info is never asked twice on this device
+    try{ localStorage.setItem('oxerom_misafir', JSON.stringify(misafir)); }catch(_){}
   }
 
   const adresSec = document.getElementById('ts-adres-sec');
@@ -3612,11 +3619,8 @@ function katBaglarCiz(){
   GRUPLAR.forEach(g=>{
     html += `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#kategori=${g.slug}" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`;
   });
-  // Favoriler: üye olmayan müşteri de görebilsin diye şeritte kendi düğmesi var.
-  // Boşken düğme hiç çıkmıyor — dolu olmayan bir kapı müşteriyi boş sayfaya götürmesin.
-  if(FAVORILER.length){
-    html += `<a class="kat-bag kat-favori ${state.grup==='favori'?'aktif':''}" href="#" data-grup="favori">♥ Favorilerim <span class="n num" id="favori-sayi">${FAVORILER.length}</span></a>`;
-  }
+  // Favorites open from the top-bar heart only (22.08.2026, Emre) — the strip
+  // button made "Promosyon & Kurumsal" overflow, so it was removed for good.
   // Promosyon bir ürün grubu değil, ayrı bir kapı: kendi sayfasını açar
   html += `<a class="kat-bag kat-promo" href="#promosyon" onclick="promosyonAc(); return false;">Promosyon &amp; Kurumsal</a>`;
   document.getElementById('kat-baglar').innerHTML = html;
@@ -3781,7 +3785,9 @@ function cizIzgara(){
   if(!sayfaListe.length){
     izgara.innerHTML = state.instagram
       ? '<div class="bos-durum">Yakında — Instagram\'da paylaştığımız ürünler burada listelenecek.</div>'
-      : '<div class="bos-durum">Bu aramayla eşleşen ürün yok.</div>';
+      : (state.grup === 'favori' && !state.q.trim())
+        ? '<div class="bos-durum">Henüz favoriniz yok. Ürünlerin köşesindeki ♡ işaretine dokunarak buraya ekleyebilirsiniz.</div>'
+        : '<div class="bos-durum">Bu aramayla eşleşen ürün yok.</div>';
   } else {
     izgara.innerHTML = sayfaListe.map(u=>urunKarti({...u, g_ad: grupAdi(u.g)})).join('');
     izgara.querySelectorAll('.urun').forEach(el=>{
@@ -4071,7 +4077,7 @@ function detayAc(id){
     });
   }
   // ---- canlı yazı önizlemesi (Emre, 17.08.2026) ----
-  // Müşteri yazıyı yazarken ürün üstünde nasıl duracağını görsün diye. Trendyol'da
+  // Müşteri yazıyı yazarken ürün üstünde nasıl duracağını görsün diye. Pazaryerinde
   // en çok vakit alan iş "yazı ne olacak" yazışması; sitede baştan çözülüyor.
   const onizKutu = document.getElementById('yazi-onizleme');
   const plaka = document.getElementById('yazi-plaka');
@@ -4120,7 +4126,7 @@ function detayAc(id){
   // ---- Model no + isim satırları (Emre, 17.08.2026) ----
   // Motor plakalığında müşteri 50 hazır tasarımdan birini seçiyor. 2 adet alıyorsa
   // iki plakanın modeli ve ismi ayrı olabilir — adet arttıkça satır sayısı artar,
-  // yazılanlar kaybolmaz. Trendyol'da bu bilgi mesajlaşarak alınıyordu.
+  // yazılanlar kaybolmaz. Pazaryerinde bu bilgi mesajlaşarak alınıyordu.
   const MODEL_SAYISI = 50;
   const modelKutu = document.getElementById('model-satirlar');
   function modelSatirlariCiz(){
@@ -4261,7 +4267,7 @@ function benzerleriCiz(u){
   });
 }
 
-// Ürün özellikleri tablosu: sabit satırlar + ozellikler.json (Trendyol'daki ürün nitelikleri,
+// Ürün özellikleri tablosu: sabit satırlar + ozellikler.json (pazaryerindeki ürün nitelikleri,
 // PC'deki program üretir) + araç uyumu (araclar.json). Bilinmeyen satır yazılmaz, uydurulmaz.
 let OZELLIKLER = null;
 async function ozellikleriYukle(u){
@@ -4369,7 +4375,7 @@ function yolCoz(){
   if(kat){
     let slug = ''; try{ slug = decodeURIComponent(kat[1]); }catch(_){ slug = kat[1]; }
     const gecerli = slug === 'tum' || slug === 'kisisel'
-      || (slug === 'favori' && FAVORILER.length)
+      || slug === 'favori'
       || GRUPLAR.some(g=>g.slug === slug);
     state.grup = gecerli ? slug : 'tum';
     state.marka = 'tum'; state.model = 'tum'; state.koleksiyon = '';
@@ -4461,7 +4467,7 @@ async function urunAciklamaYukle(id){
     const metin = ACIKLAMALAR[String(id)];
     if(!hedef.isConnected) return;
     if(metin){
-      // Trendyol açıklamasındaki "Siyah olarak gönderilecektir" cümlesi renk seçiciyle çelişiyor — sitede gizlenir
+      // Pazaryeri açıklamasındaki "Siyah olarak gönderilecektir" cümlesi renk seçiciyle çelişiyor — sitede gizlenir
       hedef.innerHTML = metin.split(/;\s*|\n+/).map(s=>s.trim()).filter(Boolean)
         .filter(s=>!(RENK_ACIK && /siyah\s+(olarak\s+)?g[öo]nderil/i.test(s)))
         .map(s=>`<p>${escHtml(s)}</p>`).join('');
@@ -4519,7 +4525,7 @@ function yorumOzetiCikar(){
     if(o){ el.hidden = false; el.innerHTML = `${yildizlar(Math.round(o.ort))} <span class="n num">(${o.n})</span>`; }
   });
 }
-async function trendyolYorumlari(id){
+async function pazarYorumlari(id){
   if(!TY_YORUM){
     try{ const r = await fetch('yorumlar.json'); TY_YORUM = r.ok ? await r.json() : {}; }
     catch(e){ TY_YORUM = {}; }
@@ -4531,7 +4537,7 @@ async function yorumlariYukle(id){
   const hedef = document.getElementById('detay-yorumlar');
   const sayiEl = document.getElementById('detay-yorum-sayi');
   if(!hedef) return;
-  const tyYorum = await trendyolYorumlari(id);
+  const tyYorum = await pazarYorumlari(id);
   let yorumlar = [];
   let apiVar = true;
   try{
@@ -4708,7 +4714,7 @@ function cokSatanBagla(){
   const serit = document.querySelector('#cok-satan .serit-yatay');
   if(!serit) return;
   // Fiyat elle yazılmaz (22.08.2026, Emre): kart fiyatı urunler.json'daki canlı
-  // üründen gelir (indirim dahil, üstü çizili Trendyol fiyatıyla). Ürün satışta
+  // üründen gelir (indirim dahil, üstü çizili pazaryeri fiyatıyla). Ürün satışta
   // değilse (gizli/gizli_ty) kart hiç görünmez.
   serit.querySelectorAll('.urun[data-id]').forEach(el=>{
     const u = URUNLER.find(x=>x.id === parseInt(el.dataset.id));
@@ -5128,9 +5134,6 @@ function favoriDegistir(id){
   if(i >= 0) FAVORILER.splice(i, 1); else FAVORILER.unshift(s);
   favoriKaydet();
   favoriIsaretleriYenile();
-  // Favori listesi boşaldıysa şeritteki düğme de kalkmalı; favori sayfasındaysak ızgara yenilenir
-  const oncekiVar = !!document.querySelector('.kat-favori');
-  if(oncekiVar !== (FAVORILER.length > 0)) katBaglarCiz();
   favoriSayisiYaz();
   if(state.grup === 'favori') cizIzgara();
 }
@@ -5144,9 +5147,26 @@ function favoriIsaretleriYenile(){
   });
 }
 function favoriSayisiYaz(){
-  const el = document.getElementById('favori-sayi'); if(!el) return;
-  el.textContent = FAVORILER.length ? ' (' + FAVORILER.length + ')' : '';
+  // top-bar heart badge: count hidden at zero, button itself always visible
+  const el = document.getElementById('favori-rozet'); if(!el) return;
+  el.textContent = FAVORILER.length;
+  el.hidden = !FAVORILER.length;
 }
+// Top-bar heart (22.08.2026): opens the favorites view for guests and members alike.
+// Works with zero favorites too — the grid then shows a friendly empty message.
+document.getElementById('favori-ac').addEventListener('click', ()=>{
+  state.grup = 'favori';
+  state.marka = 'tum';
+  state.model = 'tum';
+  state.koleksiyon = '';
+  state.instagram = false;
+  state.sayfa = 1;
+  cizHepsi();
+  if(document.getElementById('sayfa-katalog').hidden) katalogaDon();
+  document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
+  if(location.hash !== '#kategori=favori') history.pushState(null, '', '#kategori=favori');
+});
+favoriSayisiYaz();
 // Giriş yapınca hesaptaki favorilerle cihazdaki birleşir — hiçbir taraf kaybolmasın
 async function favorileriEsitle(){
   if(!oturum.token) return;
@@ -5210,8 +5230,8 @@ if(oturum.token){
 sepetSayacGuncelle();
 fetch('urunler.json').then(r=>r.json()).then(veri=>{
   KOLEKSIYONLAR = Array.isArray(veri.koleksiyonlar) ? veri.koleksiyonlar : [];
-  URUNLER = veri.urunler.filter(u=>!u.gizli && !u.gizli_ty); // panelden gizlenen (gizli) veya Trendyol'da satışta olmayan (gizli_ty) ürünler müşteriye görünmez
-  // Trendyol'da satışı kapananlar (gizli_ty) listede çıkmaz ama linki/favorisi olan
+  URUNLER = veri.urunler.filter(u=>!u.gizli && !u.gizli_ty); // panelden gizlenen (gizli) veya pazaryerinde satışta olmayan (gizli_ty) ürünler müşteriye görünmez
+  // Pazaryerinde satışı kapananlar (gizli_ty) listede çıkmaz ama linki/favorisi olan
   // müşteri "gelince haber ver" sayfasını görür (9. madde, 20.08.2026). Emre'nin
   // bilerek gizledikleri (gizli) burada da YOK — onlar gerçekten görünmez.
   KAPALI_URUNLER = veri.urunler.filter(u=>u.gizli_ty && !u.gizli);
@@ -5227,7 +5247,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   fisKategorilerCiz();
   cokSatanBagla();
   igSeritCiz();
-  trendyolYorumlari(0); // yorum özetlerini indir, kartlardaki yıldızları doldur
+  pazarYorumlari(0); // yorum özetlerini indir, kartlardaki yıldızları doldur
   // Paylaşılan ürün linkiyle (#u123) gelindiyse o ürünü aç
   yolCoz();
   // Araç model listesi (yüklenemezse marka filtresi model satırı olmadan çalışır)
