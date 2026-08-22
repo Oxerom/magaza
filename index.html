@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OXEROM</title>
-<meta name="description" content="Trendyol'da sattığımız ürünler artık kendi mağazamızda — kendi makinemizde bastığımız ürünler, gerçek fiyatla.">
+<meta name="description" content="Kendi atölyemizde ürettiğimiz 3D baskı ürünler, kişiye özel baskılar ve hediyelikler — üreticiden, aracısız fiyatla.">
 <style>
 
 @font-face {
@@ -1099,35 +1099,7 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 }
 .urun:hover .urun-ad{ color:var(--nar); }
 
-/* —— atölye notu: gerçekten elle yazılmış kargo etiketi —— */
-.not-etiket{
-  position:relative;
-  margin:1px 0 2px;
-  background:var(--etiket);
-  border:1px solid #E7D8BF;
-  border-radius:2px;
-  padding:9px 32px 9px 12px;
-  transform:rotate(-1.05deg);
-  box-shadow:var(--g-etiket);
-  font-family:var(--el); font-weight:500;
-  font-size:16.5px; line-height:1.2; color:#3B2C21;
-  transition:transform .34s var(--e-cik), box-shadow .34s var(--e-cik);
-}
-.not-etiket::before{  /* bandın parlayan ucu */
-  content:""; position:absolute; top:-8px; left:14px; width:52px; height:17px;
-  background:linear-gradient(106deg, rgba(255,255,255,.55), rgba(226,210,182,.6) 48%, rgba(255,255,255,.4));
-  border-left:1px solid rgba(255,255,255,.5); border-right:1px solid rgba(196,178,148,.45);
-  transform:rotate(-6deg);
-  box-shadow:0 1px 2px rgba(70,45,30,.1);
-}
-.not-muhur{
-  position:absolute; right:7px; top:8px; width:22px; height:22px;
-  color:var(--nar); opacity:.13; transform:rotate(9deg);
-  transition:opacity .34s var(--e-cik), transform .5s var(--e-cik);
-}
-.urun:hover .not-etiket{ transform:rotate(-.2deg) translateY(-2px); box-shadow:var(--g2); }
-.urun:hover .not-muhur{ opacity:.3; transform:rotate(-4deg); }
-
+/* Not: "atölye notu" kağıtları 22.08.2026'da Emre'nin kararıyla tamamen kaldırıldı. */
 .fiyat-satir{ display:flex; align-items:baseline; gap:9px; margin-top:auto; padding-top:2px; }
 .fiyat{ font-size:19px; font-weight:700; letter-spacing:-.022em; }
 .ornek-cip{
@@ -1737,7 +1709,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .ozellik-tablo tr:last-child th, .ozellik-tablo tr:last-child td{ border-bottom:0; }
 .benzer{ margin-top:36px; }
 .wa-balon{
-  position:fixed; right:18px; bottom:18px; z-index:60; display:flex; align-items:center; gap:8px;
+  /* bottom 18 -> 60 (22.08.2026, Emre): balon alt bilgideki "Teslimat ve iade"
+     bağlantısının üstünü kapatıyordu, yasal sayfa tıklanamıyordu. */
+  position:fixed; right:18px; bottom:60px; z-index:60; display:flex; align-items:center; gap:8px;
   background:#25D366; color:#fff; text-decoration:none; font-weight:700; font-size:13.5px;
   padding:10px 14px 10px 12px; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,.18);
 }
@@ -2203,8 +2177,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 
       <div class="tabla-govde">
         <div class="tabla-yazi">
-          <h1>Trendyol'da sattığımız ürünler,<em>artık kendi mağazamızda.</em></h1>
-          <p>Aynı ürünleri kendi makinemizde basıyoruz, kendimiz paketleyip kargoya veriyoruz — Trendyol fiyatıyla karşılaştırabilirsin.</p>
+          <h1>Kendi atölyemizde üretiyoruz,<em>kendi mağazamızda satıyoruz.</em></h1>
+          <p>Ürünleri kendi makinemizde basıyor, kendimiz paketleyip kargoya veriyoruz — üreticiden aldığın için fiyat da aracısız.</p>
           <div class="tabla-dugmeler">
             <a class="d-birincil" href="#katalog">
               Ürünlere göz at
@@ -2253,9 +2227,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             </div>
             <div class="urun-govde">
               <h3 class="urun-ad">Askılı Kedi Raf Dekoru — 26 cm, LED Fenerli</h3>
-              <p class="not-etiket">Kancasını, rafın kenarına tam otursun diye inceltik.<svg class="not-muhur" viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur"/></svg></p>
               <div class="fiyat-satir">
-                <span class="fiyat num">189,99 TL</span>
+                <span class="fiyat num"></span>
               </div>
               <div class="urun-dip">
                 <button class="sepet-d" type="button" data-id="1164838277">Sepete ekle</button>
@@ -2269,9 +2242,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             </div>
             <div class="urun-govde">
               <h3 class="urun-ad">Kedi Figür Kapı Stoperi — Kapı Durdurucu</h3>
-              <p class="not-etiket">Kapının altına rahat girsin diye ucu ince basılıyor.<svg class="not-muhur" viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur"/></svg></p>
               <div class="fiyat-satir">
-                <span class="fiyat num">199,00 TL</span>
+                <span class="fiyat num"></span>
               </div>
               <div class="urun-dip">
                 <button class="sepet-d" type="button" data-id="1180640751">Sepete ekle</button>
@@ -2285,9 +2257,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             </div>
             <div class="urun-govde">
               <h3 class="urun-ad">Kalem Şeklinde Kalemlik — Kapaklı</h3>
-              <p class="not-etiket">Masada devrilmesin diye tabanını genişlettik.<svg class="not-muhur" viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur"/></svg></p>
               <div class="fiyat-satir">
-                <span class="fiyat num">299,99 TL</span>
+                <span class="fiyat num"></span>
               </div>
               <div class="urun-dip">
                 <button class="sepet-d" type="button" data-id="1180165751">Sepete ekle</button>
@@ -2301,9 +2272,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             </div>
             <div class="urun-govde">
               <h3 class="urun-ad">Rulo Düzenleyici Askı — Yapışkanlı</h3>
-              <p class="not-etiket">Vidasız: yapışkanlı, duvarı delmiyor.<svg class="not-muhur" viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur"/></svg></p>
               <div class="fiyat-satir">
-                <span class="fiyat num">75,00 TL</span>
+                <span class="fiyat num"></span>
               </div>
               <div class="urun-dip">
                 <button class="sepet-d" type="button" data-id="1180610391">Sepete ekle</button>
@@ -2317,9 +2287,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             </div>
             <div class="urun-govde">
               <h3 class="urun-ad">Sünger Bob Süngerlik</h3>
-              <p class="not-etiket">Suyu altından aksın diye tabanı delikli.<svg class="not-muhur" viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur"/></svg></p>
               <div class="fiyat-satir">
-                <span class="fiyat num">144,00 TL</span>
+                <span class="fiyat num"></span>
               </div>
               <div class="urun-dip">
                 <button class="sepet-d" type="button" data-id="367897367">Sepete ekle</button>
@@ -2333,9 +2302,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             </div>
             <div class="urun-govde">
               <h3 class="urun-ad">Dekoratif Gamer Kulaklık Standı — Siyah, 24 cm</h3>
-              <p class="not-etiket">Kulaklık bandı ezilmesin diye üst kısmı geniş.<svg class="not-muhur" viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur"/></svg></p>
               <div class="fiyat-satir">
-                <span class="fiyat num">129,99 TL</span>
+                <span class="fiyat num"></span>
               </div>
               <div class="urun-dip">
                 <button class="sepet-d" type="button" data-id="1180172853">Sepete ekle</button>
@@ -2615,7 +2583,6 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <div>
           <h5>Bize ulaşın</h5>
           <ul>
-            <li class="fis-satir"><a href="https://www.trendyol.com/magaza/oxerom-m-1173915" target="_blank" rel="noopener noreferrer">Trendyol mağazamız</a><span class="nk"></span><span class="sag">oxerom</span></li>
             <li class="fis-satir"><a href="https://instagram.com/emre_erden__" target="_blank" rel="noopener noreferrer">Instagram</a><span class="nk"></span><span class="sag">@emre_erden__</span></li>
             <li class="fis-satir"><a href="https://wa.me/905514823223" target="_blank" rel="noopener noreferrer">WhatsApp</a><span class="nk"></span><span class="sag">0551 482 32 23</span></li>
             <li class="fis-satir"><a href="mailto:oxerom9@gmail.com">E-posta</a><span class="nk"></span><span class="sag">oxerom9@gmail.com</span></li>
@@ -3634,12 +3601,14 @@ function escHtml(s){
 function katBaglarCiz(){
   const toplam = URUNLER.length;
   const kisiselSayi = URUNLER.filter(x=>x.kisisel).length;
-  let html = `<a class="kat-bag ${state.grup==='tum'?'aktif':''}" href="#" data-grup="tum">Tümü <span class="n num">${toplam}</span></a>`;
+  // Kategori bağlantıları paylaşılabilir (22.08.2026, Emre): href gerçek adres
+  // taşır (#kategori=...), sağ tık > bağlantıyı kopyala da çalışır.
+  let html = `<a class="kat-bag ${state.grup==='tum'?'aktif':''}" href="#katalog" data-grup="tum">Tümü <span class="n num">${toplam}</span></a>`;
   if(kisiselSayi){
-    html += `<a class="kat-bag ${state.grup==='kisisel'?'aktif':''}" href="#" data-grup="kisisel">Kişiye Özel Ürünler <span class="n num">${kisiselSayi}</span></a>`;
+    html += `<a class="kat-bag ${state.grup==='kisisel'?'aktif':''}" href="#kategori=kisisel" data-grup="kisisel">Kişiye Özel Ürünler <span class="n num">${kisiselSayi}</span></a>`;
   }
   GRUPLAR.forEach(g=>{
-    html += `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`;
+    html += `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#kategori=${g.slug}" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`;
   });
   // Favoriler: üye olmayan müşteri de görebilsin diye şeritte kendi düğmesi var.
   // Boşken düğme hiç çıkmıyor — dolu olmayan bir kapı müşteriyi boş sayfaya götürmesin.
@@ -3661,6 +3630,9 @@ function katBaglarCiz(){
       cizHepsi();
       if(document.getElementById('sayfa-katalog').hidden) katalogaDon();
       document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
+      // Adres çubuğu kategoriyi söylesin — Emre linki kopyalayıp paylaşabilsin
+      const yeniHash = a.dataset.grup === 'tum' ? '#katalog' : '#kategori=' + a.dataset.grup;
+      if(location.hash !== yeniHash) history.pushState(null, '', yeniHash);
     });
   });
 }
@@ -4388,6 +4360,25 @@ function yolCoz(){
     document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
     return;
   }
+  // #kategori=... — paylaşılabilir kategori linki (22.08.2026, Emre):
+  // Instagram'da "bio'daki linkten mutfak ürünlerine bak" denebilsin diye.
+  // Link açılınca o kategori seçili gelir; tanınmayan kategori tüm ürünlere düşer.
+  const kat = h.match(/^#kategori=(.+)$/);
+  if(kat){
+    let slug = ''; try{ slug = decodeURIComponent(kat[1]); }catch(_){ slug = kat[1]; }
+    const gecerli = slug === 'tum' || slug === 'kisisel'
+      || (slug === 'favori' && FAVORILER.length)
+      || GRUPLAR.some(g=>g.slug === slug);
+    state.grup = gecerli ? slug : 'tum';
+    state.marka = 'tum'; state.model = 'tum'; state.koleksiyon = '';
+    state.instagram = false; state.q = ''; state.sayfa = 1;
+    const g = document.getElementById('arama');
+    if(g){ g.value = ''; const t = document.getElementById('arama-temizle'); if(t) t.classList.remove('gorunur'); }
+    cizHepsi();
+    sayfaGoster('katalog');
+    document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
+    return;
+  }
   if(h === '#sepet'){ sepetCiz(); sayfaGoster('sepet'); return; }
   if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
   if(h === '#takip'){ sayfaGoster('takip'); return; }
@@ -4561,13 +4552,13 @@ async function yorumlariYukle(id){
         <span class="yorum-tarih">${escHtml(y.tarih||'')}</span>
       </div>`).join('');
     if(tyYorum.length){
-      icerik += `<p class="yorum-kaynak">Aşağıdakiler bu ürünü <b>Trendyol mağazamızdan</b> alan müşterilerin yorumları.</p>`
+      icerik += `<p class="yorum-kaynak">Aşağıdakiler bu ürünü daha önce satın alan müşterilerin yorumları.</p>`
         + tyYorum.map(y=>`
         <div class="yorum ty">
           <div class="yorum-bas"><b>${escHtml(y.ad)}</b><span class="yorum-puan">${yildizlar(y.puan)}</span></div>
           <p>${escHtml(y.metin)}</p>
           ${(y.foto||[]).length ? `<div class="yorum-foto">${y.foto.map(f=>`<img src="${escHtml(f)}" alt="Müşteri fotoğrafı" loading="lazy" onerror="this.remove()">`).join('')}</div>` : ''}
-          <span class="yorum-tarih">${escHtml(y.tarih||'')} · Trendyol</span>
+          <span class="yorum-tarih">${escHtml(y.tarih||'')}</span>
         </div>`).join('');
     }
   }else{
@@ -4713,7 +4704,21 @@ function seritBagla(serit){
 }
 function cokSatanBagla(){
   const serit = document.querySelector('#cok-satan .serit-yatay');
-  if(serit) seritBagla(serit);
+  if(!serit) return;
+  // Fiyat elle yazılmaz (22.08.2026, Emre): kart fiyatı urunler.json'daki canlı
+  // üründen gelir (indirim dahil, üstü çizili Trendyol fiyatıyla). Ürün satışta
+  // değilse (gizli/gizli_ty) kart hiç görünmez.
+  serit.querySelectorAll('.urun[data-id]').forEach(el=>{
+    const u = URUNLER.find(x=>x.id === parseInt(el.dataset.id));
+    if(!u){ el.remove(); return; }
+    const kutu = el.querySelector('.fiyat-satir');
+    if(kutu){
+      const simdiki = satisFiyati(u);
+      kutu.innerHTML = `<span class="fiyat num">${fiyatFmt(simdiki)}</span>`
+        + (u.p > simdiki ? ` <s class="eski-fiyat">${fiyatFmt(u.p)}</s>` : '');
+    }
+  });
+  seritBagla(serit);
 }
 
 // ---- "Instagram'da Paylaştıklarımız" şeridi: panelde 📷 ile işaretlenenler, en yeni başta ----
