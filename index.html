@@ -1549,6 +1549,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 
 .izgara{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
 .bos-durum{ padding:60px 20px; text-align:center; color:var(--soluk); }
+/* the base .bos-durum rule is display:none (old checkbox-gated boxes); the JS-injected
+   grid message (empty favorites / no search results) must actually show */
+#izgara .bos-durum{ display:block; }
 
 .urun{
   background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m);
