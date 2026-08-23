@@ -1720,7 +1720,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 /* ---- Nozul maskot (23.08.2026): sol kenarda dikey ortada, gözleri ve gövdesiyle
    fareyi izler; fare 3 sn durursa kendi bakınır (telefon da böyle). Tıklayınca
    yol gösteren balon açılır. Görsel Emre'nin ürettiği render (maskot.webp). ---- */
-.maskot-kap{ position:fixed; left:12px; top:50%; transform:translateY(-50%); z-index:55; cursor:pointer; }
+.maskot-kap{ position:fixed; left:12px; top:50%; transform:translateY(-50%); z-index:55; pointer-events:none; }
 .maskot{ position:relative; width:118px; transition:transform .14s ease-out; transform-origin:50% 85%;
   filter:drop-shadow(0 10px 14px rgba(70,45,30,.22)); }
 .maskot img{ display:block; width:100%; height:auto; pointer-events:none; }
@@ -1736,29 +1736,18 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   background:linear-gradient(180deg,#6E4A16 0%,#A87A24 55%,#C39135 100%);
   box-shadow:inset 0 -3px 6px rgba(60,35,5,.5); transform:scaleY(0); transform-origin:50% 0%; transition:transform .07s; }
 .maskot.kirp .kapak{ transform:scaleY(1); }
-.maskot.zipla{ animation:maskot-zipla .5s ease; }
-@keyframes maskot-zipla{ 30%{ transform:translateY(-12px) } 60%{ transform:translateY(3px) } }
-.maskot-balon{ position:fixed; left:148px; top:50%; transform:translateY(-110%); z-index:56; display:none;
-  background:var(--yuzey); border:1px solid var(--cizgi); border-radius:14px 14px 14px 4px; box-shadow:var(--g2);
-  padding:12px 14px; max-width:230px; font-size:13.5px; line-height:1.45; text-align:left; }
-.maskot-balon .b-satir{ display:flex; gap:8px; margin-top:10px; }
-.maskot-balon a, .maskot-balon button{ flex:1; text-align:center; font:inherit; font-size:12.5px; text-decoration:none;
-  padding:7px 6px; border-radius:999px; border:1px solid var(--cizgi); color:var(--murekkep); background:var(--yuzey); cursor:pointer; }
-.maskot-balon .ana{ background:#25D366; border-color:#25D366; color:#fff; font-weight:700; }
 /* 1560 altında sol kenar boşluğu kalmaz, maskot menülerin üstüne biner —
    o yüzden sol ALT köşeye iner ve küçülür (WhatsApp balonunun sol simetriği;
    bottom:60 wa-balon'la aynı sebepten — alt bilgi bağlantılarını kapatmasın). */
 @media (max-width:1559px){
   .maskot-kap{ top:auto; bottom:60px; transform:none; }
   .maskot{ width:66px; }
-  .maskot-balon{ top:auto; bottom:146px; left:14px; transform:none; border-radius:14px 14px 14px 4px; }
 }
 @media (max-width:900px){
   .maskot{ width:58px; }
   .maskot-kap{ left:8px; bottom:70px; }
-  .maskot-balon{ bottom:150px; left:10px; }
 }
-@media (prefers-reduced-motion: reduce){ .maskot, .maskot .bebek, .maskot .kapak{ transition:none } .maskot.zipla{ animation:none } }
+@media (prefers-reduced-motion: reduce){ .maskot, .maskot .bebek, .maskot .kapak{ transition:none } }
 .talep{ margin:44px 0 0; padding:38px 0; background:var(--panel); border-top:1.5px solid var(--cizgi-koyu); border-bottom:1.5px solid var(--cizgi-koyu); }
 /* minmax(0,..) şart (22.08.2026): 1fr'nin taban genişliği içeriğin doğal genişliğidir;
    formdaki yan yana iki kutu 390px telefonda sayfayı 18px yana taşırıyordu. */
@@ -2657,19 +2646,13 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   </div>
 </footer>
 
-<!-- Nozul maskot: sol kenarda, gözleriyle fareyi izler; tıklayınca yol gösterir -->
-<div class="maskot-kap" id="maskot-kap">
+<!-- Nozul maskot: sol kenarda durur, tek işi gözleri ve gövdesiyle fareyi izlemek.
+     Tıklanamaz (pointer-events:none) — altındaki sayfa normal çalışır. -->
+<div class="maskot-kap" id="maskot-kap" aria-hidden="true">
   <div class="maskot" id="maskot">
     <img src="maskot.webp" alt="" loading="lazy">
     <div class="goz sol"><div class="bebek"></div><div class="kapak"></div></div>
     <div class="goz sag"><div class="bebek"></div><div class="kapak"></div></div>
-  </div>
-</div>
-<div class="maskot-balon" id="maskot-balon">
-  Merhaba! 👋 Aradığını bulamadın mı?
-  <div class="b-satir">
-    <a class="ana" href="https://wa.me/905514823223?text=Merhaba%2C%20oxerom.com.tr%27den%20yaz%C4%B1yorum." target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
-    <button type="button" id="maskot-hediye">🎁 Kime Hediye</button>
   </div>
 </div>
 
@@ -5334,14 +5317,13 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
     '<p style="padding:40px;color:#6E6058">Ürünler yüklenemedi — lütfen sayfayı yenileyin.</p>';
 });
 
-// ---- Nozul maskot: gözler ve gövde fareyi izler, boşta bakınır, tıklayınca balon ----
+// ---- Nozul maskot: TEK işi gözleri ve gövdesiyle fareyi izlemek (Emre, 23.08.2026).
+//      Tıklama/balon bilerek yok. Fare 3 sn durursa (ve telefonda) kendi bakınır. ----
 (function(){
   const m = document.getElementById('maskot');
-  const kap = document.getElementById('maskot-kap');
-  const balon = document.getElementById('maskot-balon');
-  if(!m || !kap || !balon) return;
+  if(!m) return;
   const sakin = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let fx = innerWidth/2, fy = innerHeight/3, son = Date.now(), t = 0;
+  let fx = innerWidth/2, fy = innerHeight/3, son = 0, t = 0;
   addEventListener('mousemove', e=>{ fx = e.clientX; fy = e.clientY; son = Date.now(); });
   addEventListener('touchstart', e=>{
     if(e.touches[0]){ fx = e.touches[0].clientX; fy = e.touches[0].clientY; son = Date.now(); }
@@ -5354,7 +5336,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
       hy = innerHeight/2 + Math.cos(t*0.5) * innerHeight*0.25;
     }
     const r = m.getBoundingClientRect();
-    if(r.width && !m.classList.contains('zipla')){
+    if(r.width){
       const dx = hx - (r.left + r.width/2), dy = hy - (r.top + r.height/2);
       const acim = Math.atan2(dy, dx);
       const uz = Math.min(1, Math.hypot(dx, dy) / 300);
@@ -5376,29 +5358,6 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
       kirp();
     }, 2400 + Math.random()*3500);
   })();
-  kap.addEventListener('click', ()=>{
-    balon.style.display = (balon.style.display === 'block') ? 'none' : 'block';
-    m.classList.add('zipla');
-    setTimeout(()=>{ m.classList.remove('zipla'); m.style.transform=''; }, 520);
-  });
-  document.getElementById('maskot-hediye').addEventListener('click', ()=>{
-    balon.style.display = 'none';
-    // hediye şeridi: telefonda üst şerit, masaüstünde soldaki kart; ikisi de yoksa katalog
-    const hedefler = [document.getElementById('hediye-serit'),
-                      document.getElementById('yan-hediye-kart'),
-                      document.getElementById('katalog')];
-    for(const h of hedefler){
-      if(h && !h.hidden && h.offsetParent !== null){
-        h.scrollIntoView({behavior:'smooth', block:'center'}); return;
-      }
-    }
-  });
-  // balon dışına tıklanınca kapanır
-  document.addEventListener('click', e=>{
-    if(balon.style.display === 'block' && !balon.contains(e.target) && !kap.contains(e.target)){
-      balon.style.display = 'none';
-    }
-  });
 })();
 </script>
 </body>
