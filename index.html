@@ -1721,8 +1721,7 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
    fareyi izler; fare 3 sn durursa kendi bakınır (telefon da böyle). Tıklayınca
    yol gösteren balon açılır. Görsel Emre'nin ürettiği render (maskot.webp). ---- */
 .maskot-kap{ position:fixed; left:12px; top:50%; transform:translateY(-50%); z-index:55; pointer-events:none; }
-.maskot{ position:relative; width:118px; transition:transform .14s ease-out; transform-origin:50% 85%;
-  filter:drop-shadow(0 10px 14px rgba(70,45,30,.22)); }
+.maskot{ position:relative; width:200px; filter:drop-shadow(0 10px 14px rgba(70,45,30,.22)); }
 .maskot img{ display:block; width:100%; height:auto; pointer-events:none; }
 .maskot .goz{ position:absolute; border-radius:50%; overflow:hidden; }
 .maskot .goz.sol{ left:49.44%; top:47.15%; width:19.89%; height:16.28%; }
@@ -1740,11 +1739,11 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
    o yüzden sol ALT köşeye iner ve küçülür (WhatsApp balonunun sol simetriği;
    bottom:60 wa-balon'la aynı sebepten — alt bilgi bağlantılarını kapatmasın). */
 @media (max-width:1559px){
-  .maskot-kap{ top:auto; bottom:60px; transform:none; }
-  .maskot{ width:66px; }
+  .maskot-kap{ top:auto; bottom:16px; transform:none; }
+  .maskot{ width:132px; }
 }
 @media (max-width:900px){
-  .maskot{ width:58px; }
+  .maskot{ width:100px; }
   .maskot-kap{ left:8px; bottom:70px; }
 }
 @media (prefers-reduced-motion: reduce){ .maskot, .maskot .bebek, .maskot .kapak{ transition:none } }
@@ -5341,9 +5340,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
       const dx = hx - (r.left + r.width/2), dy = hy - (r.top + r.height/2);
       const acim = Math.atan2(dy, dx);
       const uz = Math.min(1, Math.hypot(dx, dy) / 300);
-      const don = Math.max(-6, Math.min(6, dx/60));
-      const kay = Math.max(-5, Math.min(5, dy/70));
-      m.style.transform = 'rotate(' + don + 'deg) translateY(' + kay + 'px)';
+      // gövde OYNAMAZ (Emre, 23.08): sadece göz bebekleri hareket eder
       const sinir = r.width * 0.024;
       m.querySelectorAll('.bebek').forEach(b=>{
         b.style.transform = 'translate(' + (Math.cos(acim)*sinir*uz) + 'px,' + (Math.sin(acim)*sinir*0.8*uz) + 'px)';
