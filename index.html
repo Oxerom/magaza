@@ -1717,6 +1717,48 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 }
 .wa-balon:hover{ background:#1ebe5b; }
 @media (max-width:640px){ .wa-balon span{ display:none; } .wa-balon{ padding:12px; right:14px; bottom:14px; } }
+/* ---- Nozul maskot (23.08.2026): sol kenarda dikey ortada, gözleri ve gövdesiyle
+   fareyi izler; fare 3 sn durursa kendi bakınır (telefon da böyle). Tıklayınca
+   yol gösteren balon açılır. Görsel Emre'nin ürettiği render (maskot.webp). ---- */
+.maskot-kap{ position:fixed; left:12px; top:50%; transform:translateY(-50%); z-index:55; cursor:pointer; }
+.maskot{ position:relative; width:118px; transition:transform .14s ease-out; transform-origin:50% 85%;
+  filter:drop-shadow(0 10px 14px rgba(70,45,30,.22)); }
+.maskot img{ display:block; width:100%; height:auto; pointer-events:none; }
+.maskot .goz{ position:absolute; border-radius:50%; overflow:hidden; }
+.maskot .goz.sol{ left:49.44%; top:47.15%; width:19.89%; height:16.28%; }
+.maskot .goz.sag{ left:75.71%; top:46.78%; width:17.05%; height:15.80%; }
+.maskot .bebek{ position:absolute; left:50%; top:50%; width:46%; aspect-ratio:1; margin:-23% 0 0 -23%;
+  border-radius:50%; background:radial-gradient(circle at 34% 30%, #6B4A2E 0%, #3A2313 45%, #1C0F06 100%);
+  transition:transform .1s ease-out; }
+.maskot .bebek::after{ content:''; position:absolute; left:20%; top:14%; width:32%; height:32%; border-radius:50%; background:#FFF; opacity:.92; }
+.maskot .bebek::before{ content:''; position:absolute; right:16%; bottom:18%; width:16%; height:16%; border-radius:50%; background:#FFF; opacity:.7; }
+.maskot .kapak{ position:absolute; inset:-4%; border-radius:50%;
+  background:linear-gradient(180deg,#6E4A16 0%,#A87A24 55%,#C39135 100%);
+  box-shadow:inset 0 -3px 6px rgba(60,35,5,.5); transform:scaleY(0); transform-origin:50% 0%; transition:transform .07s; }
+.maskot.kirp .kapak{ transform:scaleY(1); }
+.maskot.zipla{ animation:maskot-zipla .5s ease; }
+@keyframes maskot-zipla{ 30%{ transform:translateY(-12px) } 60%{ transform:translateY(3px) } }
+.maskot-balon{ position:fixed; left:148px; top:50%; transform:translateY(-110%); z-index:56; display:none;
+  background:var(--yuzey); border:1px solid var(--cizgi); border-radius:14px 14px 14px 4px; box-shadow:var(--g2);
+  padding:12px 14px; max-width:230px; font-size:13.5px; line-height:1.45; text-align:left; }
+.maskot-balon .b-satir{ display:flex; gap:8px; margin-top:10px; }
+.maskot-balon a, .maskot-balon button{ flex:1; text-align:center; font:inherit; font-size:12.5px; text-decoration:none;
+  padding:7px 6px; border-radius:999px; border:1px solid var(--cizgi); color:var(--murekkep); background:var(--yuzey); cursor:pointer; }
+.maskot-balon .ana{ background:#25D366; border-color:#25D366; color:#fff; font-weight:700; }
+/* 1560 altında sol kenar boşluğu kalmaz, maskot menülerin üstüne biner —
+   o yüzden sol ALT köşeye iner ve küçülür (WhatsApp balonunun sol simetriği;
+   bottom:60 wa-balon'la aynı sebepten — alt bilgi bağlantılarını kapatmasın). */
+@media (max-width:1559px){
+  .maskot-kap{ top:auto; bottom:60px; transform:none; }
+  .maskot{ width:66px; }
+  .maskot-balon{ top:auto; bottom:146px; left:14px; transform:none; border-radius:14px 14px 14px 4px; }
+}
+@media (max-width:900px){
+  .maskot{ width:58px; }
+  .maskot-kap{ left:8px; bottom:70px; }
+  .maskot-balon{ bottom:150px; left:10px; }
+}
+@media (prefers-reduced-motion: reduce){ .maskot, .maskot .bebek, .maskot .kapak{ transition:none } .maskot.zipla{ animation:none } }
 .talep{ margin:44px 0 0; padding:38px 0; background:var(--panel); border-top:1.5px solid var(--cizgi-koyu); border-bottom:1.5px solid var(--cizgi-koyu); }
 /* minmax(0,..) şart (22.08.2026): 1fr'nin taban genişliği içeriğin doğal genişliğidir;
    formdaki yan yana iki kutu 390px telefonda sayfayı 18px yana taşırıyordu. */
@@ -2614,6 +2656,22 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
     </div>
   </div>
 </footer>
+
+<!-- Nozul maskot: sol kenarda, gözleriyle fareyi izler; tıklayınca yol gösterir -->
+<div class="maskot-kap" id="maskot-kap">
+  <div class="maskot" id="maskot">
+    <img src="maskot.webp" alt="" loading="lazy">
+    <div class="goz sol"><div class="bebek"></div><div class="kapak"></div></div>
+    <div class="goz sag"><div class="bebek"></div><div class="kapak"></div></div>
+  </div>
+</div>
+<div class="maskot-balon" id="maskot-balon">
+  Merhaba! 👋 Aradığını bulamadın mı?
+  <div class="b-satir">
+    <a class="ana" href="https://wa.me/905514823223?text=Merhaba%2C%20oxerom.com.tr%27den%20yaz%C4%B1yorum." target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+    <button type="button" id="maskot-hediye">🎁 Kime Hediye</button>
+  </div>
+</div>
 
 <a class="wa-balon" href="https://wa.me/905514823223?text=Merhaba%2C%20oxerom.com.tr%27den%20yaz%C4%B1yorum." target="_blank" rel="noopener noreferrer" aria-label="WhatsApp'tan yaz">
   <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M16 3C9 3 3.3 8.7 3.3 15.7c0 2.5.7 4.9 2 7L3 29l6.5-2.1c2 1.1 4.2 1.7 6.5 1.7 7 0 12.7-5.7 12.7-12.7S23 3 16 3zm0 23.2c-2 0-4-.5-5.7-1.6l-.4-.2-3.9 1.3 1.3-3.8-.3-.4c-1.2-1.8-1.8-3.9-1.8-6 0-5.9 4.8-10.6 10.7-10.6S26.7 9.7 26.7 15.6 21.9 26.2 16 26.2zm5.8-7.9c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2s-.8 1-1 1.2c-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.5-1.6-.9-.8-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.6l.5-.5.3-.5c.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.3c.2.2 2.3 3.5 5.6 4.9.8.3 1.4.5 1.9.7.8.3 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5-.1-.2-.3-.2-.6-.4z"/></svg>
@@ -5276,6 +5334,72 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
     '<p style="padding:40px;color:#6E6058">Ürünler yüklenemedi — lütfen sayfayı yenileyin.</p>';
 });
 
+// ---- Nozul maskot: gözler ve gövde fareyi izler, boşta bakınır, tıklayınca balon ----
+(function(){
+  const m = document.getElementById('maskot');
+  const kap = document.getElementById('maskot-kap');
+  const balon = document.getElementById('maskot-balon');
+  if(!m || !kap || !balon) return;
+  const sakin = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let fx = innerWidth/2, fy = innerHeight/3, son = Date.now(), t = 0;
+  addEventListener('mousemove', e=>{ fx = e.clientX; fy = e.clientY; son = Date.now(); });
+  addEventListener('touchstart', e=>{
+    if(e.touches[0]){ fx = e.touches[0].clientX; fy = e.touches[0].clientY; son = Date.now(); }
+  }, {passive:true});
+  function kare(){
+    t += 0.016;
+    let hx = fx, hy = fy;
+    if(Date.now() - son > 3000){
+      hx = innerWidth/2  + Math.sin(t*0.7) * innerWidth*0.35;
+      hy = innerHeight/2 + Math.cos(t*0.5) * innerHeight*0.25;
+    }
+    const r = m.getBoundingClientRect();
+    if(r.width && !m.classList.contains('zipla')){
+      const dx = hx - (r.left + r.width/2), dy = hy - (r.top + r.height/2);
+      const acim = Math.atan2(dy, dx);
+      const uz = Math.min(1, Math.hypot(dx, dy) / 300);
+      const don = Math.max(-6, Math.min(6, dx/60));
+      const kay = Math.max(-5, Math.min(5, dy/70));
+      m.style.transform = 'rotate(' + don + 'deg) translateY(' + kay + 'px)';
+      const sinir = r.width * 0.024;
+      m.querySelectorAll('.bebek').forEach(b=>{
+        b.style.transform = 'translate(' + (Math.cos(acim)*sinir*uz) + 'px,' + (Math.sin(acim)*sinir*0.8*uz) + 'px)';
+      });
+    }
+    requestAnimationFrame(kare);
+  }
+  if(!sakin) requestAnimationFrame(kare);
+  (function kirp(){
+    setTimeout(()=>{
+      m.classList.add('kirp');
+      setTimeout(()=>m.classList.remove('kirp'), 150);
+      kirp();
+    }, 2400 + Math.random()*3500);
+  })();
+  kap.addEventListener('click', ()=>{
+    balon.style.display = (balon.style.display === 'block') ? 'none' : 'block';
+    m.classList.add('zipla');
+    setTimeout(()=>{ m.classList.remove('zipla'); m.style.transform=''; }, 520);
+  });
+  document.getElementById('maskot-hediye').addEventListener('click', ()=>{
+    balon.style.display = 'none';
+    // hediye şeridi: telefonda üst şerit, masaüstünde soldaki kart; ikisi de yoksa katalog
+    const hedefler = [document.getElementById('hediye-serit'),
+                      document.getElementById('yan-hediye-kart'),
+                      document.getElementById('katalog')];
+    for(const h of hedefler){
+      if(h && !h.hidden && h.offsetParent !== null){
+        h.scrollIntoView({behavior:'smooth', block:'center'}); return;
+      }
+    }
+  });
+  // balon dışına tıklanınca kapanır
+  document.addEventListener('click', e=>{
+    if(balon.style.display === 'block' && !balon.contains(e.target) && !kap.contains(e.target)){
+      balon.style.display = 'none';
+    }
+  });
+})();
 </script>
 </body>
 </html>
