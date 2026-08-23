@@ -5322,7 +5322,8 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
 (function(){
   const m = document.getElementById('maskot');
   if(!m) return;
-  const sakin = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // NOT: "hareket azaltma" ayarına BILEREK bakılmıyor — Emre'nin Windows'unda bu
+  // ayar açık (perde olayı, 20.08) ve maskotun tek görevi zaten bu hareket.
   let fx = innerWidth/2, fy = innerHeight/3, son = 0, t = 0;
   addEventListener('mousemove', e=>{ fx = e.clientX; fy = e.clientY; son = Date.now(); });
   addEventListener('touchstart', e=>{
@@ -5350,7 +5351,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
     }
     requestAnimationFrame(kare);
   }
-  if(!sakin) requestAnimationFrame(kare);
+  requestAnimationFrame(kare);
   (function kirp(){
     setTimeout(()=>{
       m.classList.add('kirp');
