@@ -1846,6 +1846,8 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .bayi-serit b{ color:#E8B04B; }
 .bayi-bekliyor{ background:#FFF6E5; border:1.5px solid #E4C77A; border-radius:var(--r-m); padding:13px 15px; font-size:13.5px; line-height:1.55; color:#6B5320; margin-bottom:14px; }
 .bayi-fiyat-not{ font-size:12px; color:var(--nar); font-weight:700; }
+.toptan-min-detay{ margin:6px 0 0; }
+.toptan-min-not{ color:var(--nar); font-weight:600; }
 
 /* ---- STL fiyat tahmini ---- */
 .tahmin-kutu{ background:#EBF6EF; border:1px solid #C9E4D4; border-radius:8px; padding:11px 13px; font-size:13px; line-height:1.5; color:#20573A; }
@@ -2058,6 +2060,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   .ust-govde{ gap:10px; }
   .logo span.wordmark{ display:none; }
   .sepet-dugme span.metin{ display:none; }
+  .uye-ol-ust{ display:none; }
   .govde-bas h1{ font-size:19px; }
   .detay-govde{ padding:22px 20px 28px; }
   .detay-fiyat{ font-size:23px; }
@@ -2174,8 +2177,11 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
           <span class="favori-kalp" aria-hidden="true">♥</span> <span class="metin">Favorilerim</span>
           <span class="sepet-rozet num" id="favori-rozet" hidden>0</span>
         </button>
-        <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button">
-          👤 <span class="metin" id="hesap-dugme-metin">Hesabım</span>
+        <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button" aria-label="Hesap">
+          👤 <span class="metin" id="hesap-dugme-metin">Giriş yap</span>
+        </button>
+        <button class="sepet-dugme hesap-dugme uye-ol-ust" id="uye-ol-ust" type="button">
+          <span class="metin">Üye ol</span>
         </button>
         <button class="sepet-dugme" id="sepet-ac" type="button">
           🛒 <span class="metin">Sepetim</span>
@@ -2710,6 +2716,11 @@ function sepeteEkle(id, adet, not, renk){
   else sepet[key] = { id, adet };
   if(not) sepet[key].not = not;
   if(renk){ sepet[key].renk = renk; sepet[key].fark = true; }
+  // Dealer mode: a line below the wholesale minimum is raised to it (rule 24.08.2026)
+  if(bayiOrani()){
+    const min = toptanMinAdet(u, sepet[key]);
+    if(sepet[key].adet < min) sepet[key].adet = min;
+  }
   olayGonder('sepet', id);
   kaydetSepet();
   sepetCiz();
@@ -2725,6 +2736,14 @@ function olayGonder(tip, id){
 }
 function sepetAdetAyarla(key, adet){
   if(adet <= 0){ sepettenSil(key); return; }
+  // Dealer mode never goes below the wholesale minimum — removing the line is
+  // done with the "kaldır" button, not by clicking minus repeatedly.
+  const satir = sepet[key];
+  const u = satir && URUNLER.find(x=>x.id===satir.id);
+  if(u && bayiOrani()){
+    const min = toptanMinAdet(u, satir);
+    if(adet < min) adet = min;
+  }
   sepet[key].adet = adet;
   kaydetSepet();
   sepetCiz();
@@ -2801,20 +2820,28 @@ function kargoCumlesi(){
   const kaldi = s.getHours() < KARGO_SON_SAAT;
   return (kaldi ? 'Bugün ' + KARGO_SON_SAAT + ':00\'a kadar sipariş verirsen ' : 'Siparişin ')
     + '<b>' + kargoGunuMetni() + ' kargoda</b>'
-    + ' (' + g_tarihYaz(kargoGunu()) + ')';
+    + ' (' + g_tarihYaz(kargoGunu()) + ')'
+    + (bayiOrani() ? ' · Toptan siparişlerde kargo alıcıya aittir (karşı ödemeli)' : '');
 }
 function g_tarihYaz(d){ return d.getDate() + ' ' + AY_ADI[d.getMonth()] + ' ' + GUN_ADI[d.getDay()]; }
 function duyuruYaz(){
   const el = document.getElementById('duyuru-metin'); if(!el) return;
   const par = [];
-  if(MIN_SEPET > 0) par.push(fiyatFmt(MIN_SEPET).replace(',00','') + ' Minimum Sipariş Tutarı');
-  if(BEDAVA_ESIK > 0) par.push(fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' Üzeri Ücretsiz Kargo');
+  // Dealer mode has its own basket/cargo rules — never show the retail promises
+  if(bayiOrani()){
+    par.push('Toptan Asgari Sepet ' + fiyatFmt(TOPTAN_MIN_SEPET).replace(',00',''));
+    par.push('Toptan Kargolar Alıcıya Ait (Karşı Ödemeli)');
+  }else{
+    if(MIN_SEPET > 0) par.push(fiyatFmt(MIN_SEPET).replace(',00','') + ' Minimum Sipariş Tutarı');
+    if(BEDAVA_ESIK > 0) par.push(fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' Üzeri Ücretsiz Kargo');
+  }
   if(KAMPANYA === 'ikinci') par.push('🎉 2. Ürüne %' + KAMPANYA_YUZDE + ' İndirim');
   if(KAMPANYA === '3al2') par.push('🎉 3 Al 2 Öde');
   par.push(KARGO_SON_SAAT + ':00\'a Kadar Sipariş ' + (kargoGunuMetni() === 'yarın' ? 'Yarın' : kargoGunuMetni().replace(' günü','')) + ' Kargoda');
   el.innerHTML = par.map(x=>'<span>'+x+'</span>').join('<i class="ayrac">—</i>');
   const kl = document.getElementById('sepet-kargo-etiket');
-  if(kl) kl.textContent = BEDAVA_ESIK > 0 ? '(' + fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' üzeri bedava)' : '(sabit)';
+  if(kl) kl.textContent = bayiOrani() ? '(alıcıya ait — karşı ödemeli)'
+    : BEDAVA_ESIK > 0 ? '(' + fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' üzeri bedava)' : '(sabit)';
 }
 // Onaylı toptan bayi tüm ürünlerde ek indirim görür (Emre'nin kararı: %25, tek oran).
 // Rakam motordan gelir; onay yoksa 0 döner, yani bekleyen başvuru bayi fiyatı GÖRMEZ.
@@ -2827,20 +2854,52 @@ function satisFiyati(u){
   const fiyat = u.p * (1 - oran) * (1 - bayiOrani() / 100);
   return Math.round(fiyat * 100) / 100;
 }
+// Price WITHOUT the dealer discount — this is what gets SENT to the engine:
+// the engine applies the dealer discount itself and does not trust browser prices.
+// Sending the already-discounted price made the discount apply twice (caught 24.08.2026).
+function satisFiyatiBayisiz(u){
+  const oran = (u.indirim != null) ? (+u.indirim) / 100 : INDIRIM;
+  return Math.round(u.p * (1 - oran) * 100) / 100;
+}
+// Wholesale minimum per cart line (Emre's rule, 24.08.2026): at least 5 pcs of any
+// product, AND each line must reach 1.000 TL at the discounted (wholesale) price.
+// Derived from the live price on purpose — site prices track the marketplace every
+// 30 min, so a stored quantity list would go stale. The engine validates the same rule.
+const TOPTAN_MIN_ADET = 5, TOPTAN_MIN_TUTAR = 1000;
+function toptanMinAdet(u, satir){
+  if(!bayiOrani()) return 1;
+  const bf = satir ? satirBirimFiyat(u, satir) : satisFiyati(u);
+  if(!(bf > 0)) return TOPTAN_MIN_ADET;
+  return Math.max(TOPTAN_MIN_ADET, Math.ceil(TOPTAN_MIN_TUTAR / bf));
+}
+// Wholesale basket minimum (Emre, 24.08.2026): 5.000 TL at the discounted total —
+// replaces the retail 250 TL rule in dealer mode. Cargo on dealer orders is the
+// BUYER's (karşı ödemeli): no cargo fee is collected on the site, the retail
+// 99,99 / free-over-750 rule does not apply. The engine enforces both too.
+const TOPTAN_MIN_SEPET = 5000;
+function minSepetTutari(){ return bayiOrani() ? TOPTAN_MIN_SEPET : MIN_SEPET; }
+function kargoMetni(kargo){
+  if(bayiOrani()) return 'Alıcıya ait (karşı ödemeli)';
+  return kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
+}
 // Bayi girişi yapılınca üstte şerit çıksın — hangi fiyatı gördüğü belirsiz kalmasın
 function bayiSeridiCiz(){
   let el = document.getElementById('bayi-serit');
   const oran = bayiOrani();
-  if(!oran){ if(el) el.remove(); return; }
+  if(!oran){ if(el) el.remove(); duyuruYaz(); return; } // logout: retail duyuru back
   if(!el){
     el = document.createElement('div');
     el.id = 'bayi-serit'; el.className = 'bayi-serit';
     document.querySelector('.ust-sabit').prepend(el);
   }
   const b = oturum.kullanici.bayi;
-  el.innerHTML = 'Toptan bayi fiyatlarını görüyorsunuz — <b>tüm ürünlerde %' + oran + ' indirimli</b>' + (b.firma ? ' · ' + escHtml(b.firma) : '');
+  el.innerHTML = 'Toptan bayi fiyatlarını görüyorsunuz — <b>tüm ürünlerde %' + oran + ' indirimli</b> · asgari: ürün başına 5 adet ve 1.000 TL, sepet 5.000 TL · kargo alıcıya ait (karşı ödemeli)' + (b.firma ? ' · ' + escHtml(b.firma) : '');
+  duyuruYaz(); // top strip switches to the dealer rules too
 }
-function kargoHesapla(araToplam){ return (BEDAVA_ESIK > 0 && araToplam >= BEDAVA_ESIK) ? 0 : KARGO_UCRET; }
+function kargoHesapla(araToplam){
+  if(bayiOrani()) return 0; // dealer orders ship karşı ödemeli — buyer pays the carrier
+  return (BEDAVA_ESIK > 0 && araToplam >= BEDAVA_ESIK) ? 0 : KARGO_UCRET;
+}
 // Sepet kampanyası: birimler pahalıdan ucuza dizilir; "2. ürüne %X"te her çiftin ucuzu
 // %X iner, "3 al 2 öde"de her üçlünün en ucuzu bedava. Motor birebir aynı hesabı yapar.
 function kampanyaHesapla(){
@@ -2865,6 +2924,20 @@ function kampanyaHesapla(){
 function sepetCiz(){
   const liste = document.getElementById('sepet-liste');
   const keys = Object.keys(sepet);
+  // Dealer mode: lines added before the dealer logged in may sit below the
+  // wholesale minimum — raise them here. Locked lines (model+note) are left
+  // alone; the checkout validation explains them instead of guessing models.
+  if(bayiOrani()){
+    let degisti = false;
+    for(const key of keys){
+      const satir = sepet[key];
+      const u = URUNLER.find(x=>x.id===satir.id);
+      if(!u || (u.modelli && satir.not)) continue;
+      const min = toptanMinAdet(u, satir);
+      if(satir.adet < min){ satir.adet = min; degisti = true; }
+    }
+    if(degisti) kaydetSepet();
+  }
   if(!keys.length){
     const cokIds = [...document.querySelectorAll('#cok-satan .urun[data-id]')].map(el=>parseInt(el.dataset.id));
     const oneri = cokIds.map(id=>URUNLER.find(x=>x.id===id)).filter(Boolean).slice(0,4);
@@ -2893,6 +2966,7 @@ function sepetCiz(){
         <a class="sepet-satir-ad" href="#u${u.id}" onclick="detayAc(${u.id}); return false;">${escHtml(u.t)}</a>
         ${satir.renk ? `<div class="sepet-satir-not">Renk: ${escHtml(satir.renk)}${satir.fark ? ` <small>(+${fiyatFmt(RENK_FARK)}/adet)</small>` : ''}</div>` : ''}
         ${satir.not ? `<div class="sepet-satir-not">Yazı: "${escHtml(satir.not)}"</div>` : ''}
+        ${bayiOrani() ? `<div class="sepet-satir-not toptan-min-not">Toptan asgari: ${toptanMinAdet(u, satir)} adet</div>` : ''}
         <div class="sepet-satir-alt">
           ${u.modelli && satir.not ? `<div class="sepet-adet kilitli"><span class="num">${satir.adet}</span> adet <small>(değiştirmek için ürün sayfasından yeniden ekle)</small></div>` : `<div class="sepet-adet">
             <button type="button" onclick="sepetAdetAyarla('${key}', ${satir.adet-1})">−</button>
@@ -2912,7 +2986,7 @@ function sepetCiz(){
   if(KUPON && toplam < KUPON.min_gerekli) kuponKaldir();
   const indirim = KUPON ? Math.min(KUPON.indirim, Math.max(0, toplam - kamp.tutar)) : 0;
   document.getElementById('sepet-ara').textContent = fiyatFmt(toplam);
-  document.getElementById('sepet-kargo').textContent = kargo === 0 ? 'Bedava' : fiyatFmt(kargo);
+  document.getElementById('sepet-kargo').textContent = kargoMetni(kargo);
   const kms = document.getElementById('kampanya-satir');
   if(kms){
     kms.hidden = !kamp.tutar;
@@ -2964,7 +3038,8 @@ function sepetOnerileriCiz(keys){
 // "Ücretsiz kargoya X TL kaldı" çubuğu — asgari sepet geçildikten sonra, eşiğe kadar
 function bedavaCubukCiz(toplam){
   const el = document.getElementById('bedava-cubuk'); if(!el) return;
-  if(!(BEDAVA_ESIK > 0) || toplam < MIN_SEPET){ el.hidden = true; return; }
+  // Dealer mode: cargo is the buyer's — the free-cargo progress bar makes no sense
+  if(bayiOrani() || !(BEDAVA_ESIK > 0) || toplam < MIN_SEPET){ el.hidden = true; return; }
   el.hidden = false;
   if(toplam >= BEDAVA_ESIK){ el.innerHTML = '<b>🎉 Kargo bedava!</b>'; return; }
   const kalan = BEDAVA_ESIK - toplam, yuzde = Math.min(100, Math.round(toplam / BEDAVA_ESIK * 100));
@@ -3017,7 +3092,8 @@ function oturumKaydet(){
 }
 function hesapDugmeGuncelle(){
   document.getElementById('hesap-dugme-metin').textContent =
-    oturum.kullanici ? oturum.kullanici.ad : 'Hesabım';
+    oturum.kullanici ? oturum.kullanici.ad : 'Giriş yap';
+  document.getElementById('uye-ol-ust').hidden = !!oturum.kullanici;
 }
 async function apiIstek(yol, govde, metod){
   return fetch(ODEME_API + yol, {
@@ -3215,7 +3291,7 @@ async function hesabimCiz(sekme){
           <div class="hs-tarih">${escHtml((s.olusturuldu||'').slice(0,10))}</div>
           <div class="hs-urunler">${s.urunler.map(u=>`${escHtml(u.ad)} ×${u.adet}${u.not?` <i>("${escHtml(u.not)}")</i>`:''}`).join('<br>')}</div>
           <div class="hs-toplam">Toplam: <b class="num">${fiyatFmt(s.toplam)}</b>
-            <small>(kargo ${s.kargoUcreti>0?fiyatFmt(s.kargoUcreti):'bedava'})</small></div>
+            <small>(kargo ${s.karsiOdemeli?'alıcıya ait — karşı ödemeli':(s.kargoUcreti>0?fiyatFmt(s.kargoUcreti):'bedava')})</small></div>
           ${s.kargoBilgi ? `<div class="hs-kargo">📦 ${escHtml(s.kargoBilgi.firma)} — Takip no: <b>${escHtml(s.kargoBilgi.takip)}</b></div>` : ''}
         </div>`).join('');
     }catch(e){
@@ -3332,18 +3408,19 @@ function siparisBolgeCiz(zorla){
   const bolge = document.getElementById('siparis-bolge');
   if(!bolge) return;
   const dolu = Object.keys(sepet).length > 0;
-  const azTutar = dolu && SEPET_ARA_TOPLAM < MIN_SEPET;
+  const minSepet = minSepetTutari(); // dealer: 5.000 TL, retail: MIN_SEPET
+  const azTutar = dolu && SEPET_ARA_TOPLAM < minSepet;
   const durumAnahtari = (oturum.token ? 'u' : 'z') + (dolu ? 'd' : 'b') + (azTutar ? 'a' : 't') + API_DURUM;
   if(!zorla && bolge.dataset.durum === durumAnahtari && !azTutar) return; // yazılanları silmemek için gereksiz çizim yok
   bolge.dataset.durum = durumAnahtari;
 
   if(!dolu){ bolge.innerHTML = ''; return; }
   if(azTutar){
-    const kalan = MIN_SEPET - SEPET_ARA_TOPLAM;
-    const yuzde = Math.min(100, Math.round(SEPET_ARA_TOPLAM / MIN_SEPET * 100));
+    const kalan = minSepet - SEPET_ARA_TOPLAM;
+    const yuzde = Math.min(100, Math.round(SEPET_ARA_TOPLAM / minSepet * 100));
     bolge.innerHTML = `
       <div class="min-sepet">
-        <b>Asgari sipariş tutarı ${fiyatFmt(MIN_SEPET)}</b>
+        <b>${bayiOrani() ? 'Toptan asgari sepet tutarı' : 'Asgari sipariş tutarı'} ${fiyatFmt(minSepet)}</b>
         <div class="min-sepet-cubuk"><i style="width:${yuzde}%"></i></div>
         <span>Sipariş verebilmek için sepetinize <b>${fiyatFmt(kalan)}</b> daha ekleyin.</span>
         <a href="#" onclick="katalogaDon(); return false;">Alışverişe devam et →</a>
@@ -3469,6 +3546,26 @@ function siparisHata(mesaj){
 
 // formdan teslimat+fatura+onay verilerini toplar; sorun varsa null döner ve hatayı gösterir
 function siparisVerileriniTopla(){
+  // Wholesale minimum check (24.08.2026): every line >= 5 pcs and >= 1.000 TL at the
+  // discounted price. The engine validates the same rule — this just tells the
+  // customer earlier, in their own screen, before the request is sent.
+  if(bayiOrani()){
+    for(const key of Object.keys(sepet)){
+      const satir = sepet[key];
+      const u = URUNLER.find(x=>x.id===satir.id);
+      if(!u) continue;
+      const min = toptanMinAdet(u, satir);
+      if(satir.adet < min){
+        siparisHata('Toptan alımda "' + u.t + '" için asgari ' + min + ' adet gerekir — her ürün satırı en az 5 adet ve 1.000 TL olmalı. Adedi ' + min + ' yapıp tekrar deneyin.');
+        return null;
+      }
+    }
+    // Dealer basket minimum: 5.000 TL at the discounted total (engine re-checks)
+    if(SEPET_ARA_TOPLAM < TOPTAN_MIN_SEPET){
+      siparisHata('Toptan asgari sepet tutarı ' + fiyatFmt(TOPTAN_MIN_SEPET) + ' — sepetinize ' + fiyatFmt(TOPTAN_MIN_SEPET - SEPET_ARA_TOPLAM) + ' daha ekleyin.');
+      return null;
+    }
+  }
   // Misafirse önce iletişim bilgileri (ad + telefon zorunlu)
   let misafir = null;
   if(!oturum.token){
@@ -3531,7 +3628,15 @@ function sepetUrunleri(){
     const satir = sepet[key];
     const u = URUNLER.find(x=>x.id===satir.id);
     if(!u) return null;
-    return { id: u.id, ad: u.t, adet: satir.adet, fiyat: satirBirimFiyat(u, satir), not: satirNotu(satir) };
+    // fiyat: WITHOUT the dealer discount — the engine applies that itself and
+    // does not trust browser prices; sending the discounted price made the
+    // discount apply twice (caught 24.08.2026).
+    // gosterim: what the customer sees on screen (dealer-discounted) — used
+    // only for the WhatsApp order text, never sent as the line price.
+    return { id: u.id, ad: u.t, adet: satir.adet,
+      fiyat: satisFiyatiBayisiz(u) + (satir.fark ? RENK_FARK : 0),
+      gosterim: satirBirimFiyat(u, satir),
+      not: satirNotu(satir) };
   }).filter(Boolean);
 }
 function siparisNotu(){ const el = document.getElementById('siparis-notu'); return el ? el.value.trim().slice(0,300) : ''; }
@@ -3552,7 +3657,7 @@ function misafirWhatsapp(){
   if(!urunler.length) return;
   let toplam = 0;
   const satirlar = urunler.map(u=>{
-    const st = u.fiyat * u.adet;
+    const st = (u.gosterim || u.fiyat) * u.adet; // ekrandaki (bayi indirimli) fiyat
     toplam += st;
     let s = `• ${u.ad} — ${u.adet} adet — ${fiyatFmt(st)}`;
     if(u.not) s += `\n  Not: "${u.not}"`;
@@ -3560,7 +3665,7 @@ function misafirWhatsapp(){
   }).join('\n');
   const kargo = kargoHesapla(toplam);
   const kamp = kampanyaHesapla();
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargoMetni(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
   window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
 }
 
@@ -3605,7 +3710,7 @@ async function siparisiOnaylaWhatsapp(){
 
   let toplam = 0;
   const satirlar = urunler.map(u=>{
-    const st = u.fiyat * u.adet;
+    const st = (u.gosterim || u.fiyat) * u.adet; // ekrandaki (bayi indirimli) fiyat
     toplam += st;
     let s = `• ${u.ad} — ${u.adet} adet — ${fiyatFmt(st)}`;
     if(u.not) s += `\n  Not: "${u.not}"`;
@@ -3614,7 +3719,7 @@ async function siparisiOnaylaWhatsapp(){
   const kargo = kargoHesapla(toplam);
   const kamp = kampanyaHesapla();
   const k = oturum.kullanici || veri.misafir;
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargo===0?'Bedava':fiyatFmt(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}`
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargoMetni(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}`
     + (sipNo ? `\nSipariş No: ${sipNo}` : '')
     + `\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
   const adres = 'https://wa.me/905514823223?text=' + encodeURIComponent(mesaj);
@@ -4025,6 +4130,9 @@ function detayAc(id){
     : `Teslim aldıktan sonra <b>14 gün içinde</b> iade hakkınız var; ürün kullanılmamış
        ve orijinal ambalajında olmalı. Kırık/hasarlı gelen ürünü fotoğrafıyla bize iletin, ücretsiz
        yenisini basıp gönderiyoruz. <a href="yasal/iade.html" target="_blank" rel="noopener">İade koşulları</a>`;
+  // Wholesale minimum for this product (1 for retail customers) — the quantity
+  // box starts here and the minus button never goes below it (rule 24.08.2026).
+  const toptanMin = toptanMinAdet(u);
   document.getElementById('detay-govde').innerHTML = `
     <div class="detay-gorsel"><img src="${u.img}" alt="${escHtml(u.t)}">
       <div class="detay-galeri" id="detay-galeri" style="display:none"></div></div>
@@ -4048,9 +4156,10 @@ function detayAc(id){
       ${notAlani}
       <div class="detay-adet">
         <button class="adet-dugme" type="button" id="detay-eksi">−</button>
-        <span class="num" id="detay-adet-sayi">1</span>
+        <span class="num" id="detay-adet-sayi">${toptanMin}</span>
         <button class="adet-dugme" type="button" id="detay-arti">+</button>
       </div>
+      ${toptanMin > 1 ? `<p class="bayi-fiyat-not toptan-min-detay">Toptan asgari: ${toptanMin} adet</p>` : ''}
       <button class="detay-sepet" type="button" id="detay-sepet-ekle">Sepete ekle</button>
       ${ty}
       <div class="detay-bolumler">
@@ -4114,7 +4223,7 @@ function detayAc(id){
     else kopyala(igBtn, 'Instagram');
   };
 
-  let adet = 1;
+  let adet = toptanMin;
   const notElBaslangic = document.getElementById('detay-not-metin');
   if(notElBaslangic){
     notElBaslangic.addEventListener('input', ()=>{
@@ -4122,7 +4231,7 @@ function detayAc(id){
       document.getElementById('detay-not-hata').classList.remove('gorunur');
     });
   }
-  document.getElementById('detay-eksi').onclick = ()=>{ if(adet>1){ adet--; document.getElementById('detay-adet-sayi').textContent=adet; modelSatirlariCiz(); } };
+  document.getElementById('detay-eksi').onclick = ()=>{ if(adet>toptanMin){ adet--; document.getElementById('detay-adet-sayi').textContent=adet; modelSatirlariCiz(); } };
   document.getElementById('detay-arti').onclick = ()=>{ adet++; document.getElementById('detay-adet-sayi').textContent=adet; modelSatirlariCiz(); };
   // Renk seçimi — ürünün kendi rengi seçili doğar
   let seciliRenk = uRenk;
@@ -5276,6 +5385,7 @@ document.getElementById('sayfa-basi-sec').addEventListener('change', e=>{
 });
 // ---- hesap paneli aç/kapat ----
 document.getElementById('hesap-ac').addEventListener('click', ()=> hesapAc());
+document.getElementById('uye-ol-ust').addEventListener('click', ()=> hesapAc('kayit'));
 hesapDugmeGuncelle();
 
 // oturum hâlâ geçerli mi kontrol et (sunucu tarafı süresi dolmuş olabilir)
