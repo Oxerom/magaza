@@ -1486,6 +1486,13 @@ html{ scroll-behavior:smooth; }
 .sepet-dugme:hover{ background:#3a2e26; }
 .hesap-dugme{ background:transparent; color:var(--murekkep); border:1.5px solid var(--cizgi-koyu); }
 .hesap-dugme:hover{ background:var(--panel); }
+/* Giriş sayfası: solda giriş, sağda üye ol daveti (24.08.2026, Emre) */
+.giris-iki{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; align-items:start; }
+.uye-kutu{ background:var(--panel); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m);
+  padding:22px 20px; display:flex; flex-direction:column; gap:10px; }
+.uye-kutu h2{ margin:0; font-size:17px; }
+.uye-kutu ul{ margin:0; padding-left:18px; font-size:13px; line-height:1.7; color:var(--sisik); }
+@media (max-width:700px){ .giris-iki{ grid-template-columns:1fr; } }
 /* top-bar favorites heart (22.08.2026, Emre): favorites moved out of the category strip */
 .favori-ust .favori-kalp{ color:var(--nar); font-size:16px; line-height:1; }
 .sepet-rozet{
@@ -1761,7 +1768,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-form input[type=file]{ padding:6px; }
 .talep-satir{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
-/* ---- toptan satış başvuru sonucu ---- */
+/* ---- toptan satış başvurusu ---- */
+.talep-form .onay-satir{ flex-direction:row; font-weight:400; }
+.talep-form .onay-satir input{ width:auto; padding:0; margin-top:2px; }
 .toptan-sonuc{ background:var(--yuzey); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m);
   padding:22px 20px; text-align:center; }
 .toptan-sonuc .t-no{ font-size:26px; font-weight:800; letter-spacing:1px; margin:8px 0 2px;
@@ -2071,7 +2080,6 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   .ust-govde{ gap:10px; }
   .logo span.wordmark{ display:none; }
   .sepet-dugme span.metin{ display:none; }
-  .uye-ol-ust{ display:none; }
   .govde-bas h1{ font-size:19px; }
   .detay-govde{ padding:22px 20px 28px; }
   .detay-fiyat{ font-size:23px; }
@@ -2189,10 +2197,10 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
           <span class="sepet-rozet num" id="favori-rozet" hidden>0</span>
         </button>
         <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button" aria-label="Hesap">
-          👤 <span class="metin" id="hesap-dugme-metin">Giriş yap</span>
+          👤 <span class="metin" id="hesap-dugme-metin">Giriş yap / Üye ol</span>
         </button>
-        <button class="sepet-dugme hesap-dugme uye-ol-ust" id="uye-ol-ust" type="button">
-          <span class="metin">Üye ol</span>
+        <button class="sepet-dugme hesap-dugme" id="toptan-ust" type="button" aria-label="Toptan Satış">
+          📦 <span class="metin">Toptan Satış</span>
         </button>
         <button class="sepet-dugme" id="sepet-ac" type="button">
           🛒 <span class="metin">Sepetim</span>
@@ -2580,7 +2588,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
     <h1 class="sayfa-baslik">Toptan Satış</h1>
     <p class="promo-giris">Dükkânına, mağazasına ya da kendi satış kanalına toptan ürün almak isteyenlere
       özel fiyat uyguluyoruz. Formu doldurun; başvurunuzu inceleyip WhatsApp'tan dönüş yapalım.
-      Onaylandığında buradaki e-postayla üye olup giriş yaptığınızda tüm ürünleri toptan fiyatıyla görürsünüz.</p>
+      Başvuruyla birlikte bayi üyeliğiniz de açılır — onaylandığında girişinizde tüm ürünleri toptan fiyatıyla görürsünüz.</p>
     <form class="talep-form" id="toptan-form" novalidate>
       <label>Firma adı <input type="text" name="firma" maxlength="120" required autocomplete="organization"></label>
       <label>Yetkili adı soyadı <input type="text" name="yetkili" maxlength="80" required autocomplete="name"></label>
@@ -2591,6 +2599,9 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <label>İş yeri adresi <textarea name="adres" rows="2" maxlength="400" required placeholder="Açık adres — il/ilçe ile"></textarea></label>
       <label>Not <span class="opsiyonel">(isteğe bağlı: hangi ürünler, tahmini adet)</span><textarea name="not" rows="2" maxlength="600"></textarea></label>
       <label>Vergi levhası <span class="opsiyonel">(isteğe bağlı — pdf ya da fotoğraf; başvuruyu hızlandırır)</span><input type="file" name="dosya" accept=".pdf,.png,.jpg,.jpeg,.webp"></label>
+      <label id="toptan-sifre-satir">Şifre <span class="opsiyonel">(bayi üyeliğiniz için — en az 6 karakter)</span><input type="password" name="sifre" maxlength="80" autocomplete="new-password"></label>
+      <label class="onay-satir" id="toptan-kvkk-satir"><input type="checkbox" id="toptan-kvkk">
+        <span><a href="yasal/gizlilik.html" target="_blank" rel="noopener">KVKK Aydınlatma Metni</a>'ni okudum, kişisel verilerimin sipariş süreçleri için işlenmesini onaylıyorum. <b>(zorunlu)</b></span></label>
       <p class="detay-not-hata" id="toptan-hata"></p>
       <button class="detay-sepet" type="submit" id="toptan-gonder">Başvuruyu gönder</button>
     </form>
@@ -3130,8 +3141,7 @@ function oturumKaydet(){
 }
 function hesapDugmeGuncelle(){
   document.getElementById('hesap-dugme-metin').textContent =
-    oturum.kullanici ? oturum.kullanici.ad : 'Giriş yap';
-  document.getElementById('uye-ol-ust').hidden = !!oturum.kullanici;
+    oturum.kullanici ? oturum.kullanici.ad : 'Giriş yap / Üye ol';
 }
 async function apiIstek(yol, govde, metod){
   return fetch(ODEME_API + yol, {
@@ -3155,14 +3165,26 @@ function hesapCiz(gorunum){
   const govde = document.getElementById('hesap-govde');
   const baslik = document.getElementById('hesap-baslik');
   if(gorunum === 'giris'){
-    baslik.textContent = 'Giriş yap';
+    // Solda giriş, sağda üye ol daveti (Emre, 24.08.2026): tek düğmeden iki kapı
+    baslik.textContent = 'Giriş yap / Üye ol';
     govde.innerHTML = `
-      <div class="siparis-form hesap-form">
-        <input id="g-eposta" type="email" placeholder="E-posta" autocomplete="email">
-        <input id="g-sifre" type="password" placeholder="Şifre" autocomplete="current-password">
-        <p class="siparis-hata" id="g-hata"></p>
-        <button class="sepet-tamamla" type="button" id="g-dugme">Giriş yap</button>
-        <p class="hesap-gecis">Üyeliğiniz yok mu? <a href="#" onclick="hesapCiz('kayit'); return false;">Üye olun</a> · Üye olmadan sipariş verdiyseniz: <a href="#takip" onclick="history.pushState({takip:true},'','#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a></p>
+      <div class="giris-iki">
+        <div class="siparis-form hesap-form">
+          <input id="g-eposta" type="email" placeholder="E-posta" autocomplete="email">
+          <input id="g-sifre" type="password" placeholder="Şifre" autocomplete="current-password">
+          <p class="siparis-hata" id="g-hata"></p>
+          <button class="sepet-tamamla" type="button" id="g-dugme">Giriş yap</button>
+          <p class="hesap-gecis">Üye olmadan sipariş verdiyseniz: <a href="#takip" onclick="history.pushState({takip:true},'','#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a></p>
+        </div>
+        <div class="uye-kutu">
+          <h2>Üye değil misiniz?</h2>
+          <ul>
+            <li>Siparişlerinizi tek yerden takip edin</li>
+            <li>Adresleriniz kayıtlı kalsın, hızlı sipariş verin</li>
+            <li>Favorileriniz her cihazda sizinle gelsin</li>
+          </ul>
+          <button class="sepet-tamamla" type="button" onclick="hesapCiz('kayit')">Üye ol</button>
+        </div>
       </div>`;
     document.getElementById('g-dugme').onclick = girisYap;
     document.getElementById('g-sifre').addEventListener('keydown', e=>{ if(e.key==='Enter') girisYap(); });
@@ -3181,21 +3203,11 @@ function hesapCiz(gorunum){
           <span><a href="yasal/gizlilik.html" target="_blank" rel="noopener">KVKK Aydınlatma Metni</a>'ni okudum, kişisel verilerimin sipariş süreçleri için işlenmesini onaylıyorum. <b>(zorunlu)</b></span></label>
         <label class="onay-satir"><input type="checkbox" id="k-kampanya">
           <span>Kampanya ve indirimlerden WhatsApp/SMS ile haberdar olmak istiyorum. (isteğe bağlı)</span></label>
-        <label class="onay-satir bayi-secim"><input type="checkbox" id="k-bayi">
-          <span><b>Toptan bayilik başvurusu yapıyorum.</b> Onaylanan bayiler tüm ürünlerde indirimli fiyat görür. Başvuru elle onaylanır.</span></label>
-        <div class="bayi-alan" id="k-bayi-alan" hidden>
-          <input id="k-firma" type="text" placeholder="Firma adı (zorunlu)" autocomplete="organization">
-          <input id="k-sosyal" type="text" placeholder="Sosyal medya hesabı — Instagram, site vb. (zorunlu)">
-          <p class="bayi-not">Telefon numarası bayilikte zorunludur; onay için sizi arayabiliriz.</p>
-        </div>
         <p class="siparis-hata" id="k-hata"></p>
         <button class="sepet-tamamla" type="button" id="k-dugme">Üye ol</button>
-        <p class="hesap-gecis">Zaten üye misiniz? <a href="#" onclick="hesapCiz('giris'); return false;">Giriş yapın</a></p>
+        <p class="hesap-gecis">Zaten üye misiniz? <a href="#" onclick="hesapCiz('giris'); return false;">Giriş yapın</a> · Toptan alım için: <a href="#toptan" onclick="toptanAc(); return false;">Toptan Satış başvurusu</a></p>
       </div>`;
     document.getElementById('k-dugme').onclick = kayitOl;
-    document.getElementById('k-bayi').onchange = e=>{
-      document.getElementById('k-bayi-alan').hidden = !e.target.checked;
-    };
   }else{
     hesabimCiz('siparislerim');
   }
@@ -3236,20 +3248,14 @@ async function kayitOl(){
   const sifre = document.getElementById('k-sifre').value;
   const kvkk = document.getElementById('k-kvkk').checked;
   const kampanya = document.getElementById('k-kampanya').checked;
-  const bayi = document.getElementById('k-bayi').checked;
-  const firma = document.getElementById('k-firma').value.trim();
-  const sosyal = document.getElementById('k-sosyal').value.trim();
   if(!ad || !soyad || !eposta || !telefon || !sifre){
     hata.textContent = 'Tüm alanları doldurun.'; hata.classList.add('gorunur'); return;
   }
   if(!kvkk){ hata.textContent = 'KVKK onayı olmadan üyelik oluşturulamıyor.'; hata.classList.add('gorunur'); return; }
-  if(bayi && (!firma || !sosyal)){
-    hata.textContent = 'Bayilik için firma adı ve sosyal medya hesabı zorunlu.'; hata.classList.add('gorunur'); return;
-  }
   document.getElementById('k-dugme').textContent = 'Kaydediliyor…';
   try{
-    const res = await apiIstek('/api/kayit', { ad, soyad, eposta, telefon, sifre, kvkkOnay:true, kampanyaIzni:kampanya,
-      bayi, firma: bayi ? firma : '', sosyal: bayi ? sosyal : '' });
+    // Bayilik alanları buradan KALKTI (Emre, 24.08.2026): bayilik artık Toptan Satış formundan
+    const res = await apiIstek('/api/kayit', { ad, soyad, eposta, telefon, sifre, kvkkOnay:true, kampanyaIzni:kampanya });
     const v = await res.json();
     if(!res.ok) throw new Error(v.hata || 'üyelik oluşturulamadı');
     oturum = { token: v.token, kullanici: v.kullanici };
@@ -3827,8 +3833,7 @@ function katBaglarCiz(){
   // button made "Promosyon & Kurumsal" overflow, so it was removed for good.
   // Promosyon bir ürün grubu değil, ayrı bir kapı: kendi sayfasını açar
   html += `<a class="kat-bag kat-promo" href="#promosyon" onclick="promosyonAc(); return false;">Promosyon &amp; Kurumsal</a>`;
-  // Toptan Satış da ayrı bir kapı (24.08.2026, Emre): üyeliksiz başvuru formu açar
-  html += `<a class="kat-bag kat-promo kat-toptan" href="#toptan" onclick="toptanAc(); return false;">Toptan Satış</a>`;
+  // Toptan Satış şeritte DEĞİL, üst barda durur (Emre, 24.08.2026 akşam)
   document.getElementById('kat-baglar').innerHTML = html;
   document.querySelectorAll('.kat-bag[data-grup]').forEach(a=>{
     a.addEventListener('click', e=>{
@@ -4604,7 +4609,7 @@ function yolCoz(){
   if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
   if(h === '#takip'){ sayfaGoster('takip'); return; }
   if(h === '#promosyon'){ promosyonCiz(); sayfaGoster('promosyon'); return; }
-  if(h === '#toptan'){ sayfaGoster('toptan'); return; }
+  if(h === '#toptan'){ toptanAc(); return; }
   if(h === '#instagram'){ instagramAc(); return; }
   sayfaGoster('katalog');
   if(!h && state.q){
@@ -5082,6 +5087,16 @@ function promosyonAc(){
 }
 function toptanAc(){
   if(location.hash !== '#toptan') history.pushState({toptan:true}, '', '#toptan');
+  // Zaten giriş yapmışsa şifre/KVKK istenmez (üyeliği var), e-postası hazır yazılır
+  const f = document.getElementById('toptan-form');
+  if(f && oturum.kullanici){
+    f.querySelector('[name=eposta]').value = oturum.kullanici.eposta || '';
+    document.getElementById('toptan-sifre-satir').hidden = true;
+    document.getElementById('toptan-kvkk-satir').hidden = true;
+  }else if(f){
+    document.getElementById('toptan-sifre-satir').hidden = false;
+    document.getElementById('toptan-kvkk-satir').hidden = false;
+  }
   sayfaGoster('toptan');
 }
 // Toptan satış başvurusu (24.08.2026, Emre): üyeliksiz form → B'li başvuru numarası →
@@ -5103,12 +5118,25 @@ function toptanAc(){
     if(dosya && dosya.name && dosya.size > 15*1024*1024) return goster('Dosya en fazla 15 MB olabilir.');
     if(dosya && dosya.name && !/\.(pdf|png|jpe?g|webp)$/i.test(dosya.name))
       return goster('Vergi levhası için pdf ya da fotoğraf (png/jpg) yükle.');
+    // Bayi üyeliği başvuruyla birlikte açılır (Emre, 24.08.2026): şifre + KVKK da burada.
+    // Giriş yapmış kullanıcıda bu satırlar gizli — üyeliği zaten var, motor şifreyi istemez.
+    if(!oturum.kullanici){
+      if(String(fd.get('sifre')||'').length < 6) return goster('Bayi üyeliğin için en az 6 karakterli bir şifre belirle.');
+      if(!document.getElementById('toptan-kvkk').checked) return goster('KVKK onayı olmadan başvuru alınamıyor.');
+      fd.set('kvkkOnay', 'true');
+    }
     const btn = document.getElementById('toptan-gonder');
     btn.disabled = true; btn.textContent = 'Gönderiliyor…';
     try{
       const res = await fetch(ODEME_API + '/api/toptan-basvuru', { method:'POST', body: fd });
       const v = await res.json().catch(()=>({}));
       if(!res.ok) throw new Error(v.hata || 'gönderilemedi');
+      // Yeni üyelik açıldıysa oturum da başlar — üst düğmede adı görünür
+      if(v.token && v.kullanici){
+        oturum = { token: v.token, kullanici: v.kullanici };
+        oturumKaydet();
+        favorileriEsitle();
+      }
       f.hidden = true;
       const sonuc = document.getElementById('toptan-sonuc');
       const waMetin = 'Merhaba, toptan satış başvurusu yaptım. Başvuru numaram: ' + v.id;
@@ -5120,8 +5148,9 @@ function toptanAc(){
           başvurunuzu numaranızla eşleştirip dönüş yapalım.</div>
         <a class="toptan-wa" href="https://wa.me/905514823223?text=${encodeURIComponent(waMetin)}"
           target="_blank" rel="noopener noreferrer">WhatsApp'tan numaramı gönder</a>
-        <p class="t-not">Onaylandığında bu e-postayla üye olup giriş yaptığınızda
-          tüm ürünleri toptan fiyatıyla görürsünüz.</p>`;
+        <p class="t-not">${v.token ? 'Bayi üyeliğiniz açıldı ve giriş yaptınız — onaylandığında toptan fiyatlar kendiliğinden görünür.'
+          : v.uyeVar ? 'Bu e-postayla üyeliğiniz zaten var — onaylandığında mevcut girişinizle toptan fiyatları görürsünüz.'
+          : 'Onaylandığında bu e-postayla giriş yaptığınızda tüm ürünleri toptan fiyatıyla görürsünüz.'}</p>`;
       sonuc.hidden = false;
       window.scrollTo({top:0, behavior:'instant'});
     }catch(err){
@@ -5479,7 +5508,7 @@ document.getElementById('sayfa-basi-sec').addEventListener('change', e=>{
 });
 // ---- hesap paneli aç/kapat ----
 document.getElementById('hesap-ac').addEventListener('click', ()=> hesapAc());
-document.getElementById('uye-ol-ust').addEventListener('click', ()=> hesapAc('kayit'));
+document.getElementById('toptan-ust').addEventListener('click', ()=> toptanAc());
 hesapDugmeGuncelle();
 
 // oturum hâlâ geçerli mi kontrol et (sunucu tarafı süresi dolmuş olabilir)
