@@ -2710,10 +2710,19 @@ function sepeteEkle(id, adet, not, renk){
   else sepet[key] = { id, adet };
   if(not) sepet[key].not = not;
   if(renk){ sepet[key].renk = renk; sepet[key].fark = true; }
+  olayGonder('sepet', id);
   kaydetSepet();
   sepetCiz();
 }
 function sepettenSil(key){ delete sepet[key]; kaydetSepet(); sepetCiz(); }
+// Anonim ilgi sayacı (23.08.2026): panele "kaç kişi sepete attı / favoriledi" der.
+// Sadece ürün numarası gider — kişi bilgisi yok. Hata olursa sessizce yutar.
+function olayGonder(tip, id){
+  try{
+    fetch(ODEME_API + '/api/olay', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tip, id }), keepalive:true }).catch(()=>{});
+  }catch(e){}
+}
 function sepetAdetAyarla(key, adet){
   if(adet <= 0){ sepettenSil(key); return; }
   sepet[key].adet = adet;
@@ -2977,9 +2986,14 @@ async function kuponUygula(kod){
   if(!temiz){ kuponMesaj('İndirim kodunu yaz.'); return; }
   kuponMesaj('Kontrol ediliyor…');
   try{
+    // satirlar: ürün bazlı kodlar için — motor hangi ürünler sepette görsün (23.08.2026)
+    const satirlar = Object.values(sepet).map(s=>{
+      const u = URUNLER.find(x=>x.id===s.id);
+      return { id: s.id, adet: s.adet, fiyat: u ? satisFiyati(u) + (s.fark ? RENK_FARK : 0) : 0 };
+    });
     const res = await fetch(ODEME_API + '/api/kupon-kontrol', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ kod: temiz, araToplam: SEPET_ARA_TOPLAM }),
+      body: JSON.stringify({ kod: temiz, araToplam: SEPET_ARA_TOPLAM, satirlar }),
     });
     const v = await res.json().catch(()=>({}));
     if(!res.ok) throw new Error(v.hata || 'kod uygulanamadı');
@@ -5183,6 +5197,7 @@ function favoriDegistir(id){
   const s = String(id);
   const i = FAVORILER.indexOf(s);
   if(i >= 0) FAVORILER.splice(i, 1); else FAVORILER.unshift(s);
+  olayGonder(i >= 0 ? 'favori_cik' : 'favori', id);
   favoriKaydet();
   favoriIsaretleriYenile();
   favoriSayisiYaz();
