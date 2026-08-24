@@ -1761,6 +1761,17 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .talep-form input[type=file]{ padding:6px; }
 .talep-satir{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
+/* ---- toptan satış başvuru sonucu ---- */
+.toptan-sonuc{ background:var(--yuzey); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m);
+  padding:22px 20px; text-align:center; }
+.toptan-sonuc .t-no{ font-size:26px; font-weight:800; letter-spacing:1px; margin:8px 0 2px;
+  font-variant-numeric:tabular-nums; }
+.toptan-sonuc .t-sart{ background:#FFF6E5; border:1.5px solid #E4C77A; border-radius:var(--r-s);
+  padding:11px 13px; font-size:13.5px; line-height:1.5; color:#6B5320; margin:14px 0; text-align:left; }
+.toptan-wa{ display:inline-block; background:#25D366; color:#fff; font-weight:700; font-size:14.5px;
+  padding:12px 22px; border-radius:999px; text-decoration:none; }
+.toptan-wa:hover{ background:#1DAF54; }
+.toptan-sonuc .t-not{ font-size:12.5px; color:var(--sisik); margin-top:12px; }
 @media (max-width:760px){ .talep-kap{ grid-template-columns:minmax(0,1fr); } }
 
 /* Müşterinin kendi fotoğrafı (pazaryerinden gelen yorumlarda). Adres ölürse
@@ -2557,6 +2568,33 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <p class="talep-ok" id="promo-ok" hidden>✓ Aldık. Fiyat ve süreyle WhatsApp'tan döneceğiz.</p>
       </form>
     </div>
+  </div>
+</section>
+
+<!-- ============ TOPTAN SATIŞ SAYFASI (tam sayfa, #toptan — 24.08.2026, Emre) ============
+     Üyeliksiz başvuru: firma + yetkili + telefon + e-posta + adres zorunlu, vergi levhası
+     İSTEĞE BAĞLI. Başvurana B'li numara verilir ve WhatsApp'tan göndermesi istenir. -->
+<section class="sayfa" id="sayfa-toptan" hidden>
+  <div class="kap kap-dar">
+    <a class="sayfa-geri" href="#" onclick="katalogaDon(); return false;">← Alışverişe dön</a>
+    <h1 class="sayfa-baslik">Toptan Satış</h1>
+    <p class="promo-giris">Dükkânına, mağazasına ya da kendi satış kanalına toptan ürün almak isteyenlere
+      özel fiyat uyguluyoruz. Formu doldurun; başvurunuzu inceleyip WhatsApp'tan dönüş yapalım.
+      Onaylandığında buradaki e-postayla üye olup giriş yaptığınızda tüm ürünleri toptan fiyatıyla görürsünüz.</p>
+    <form class="talep-form" id="toptan-form" novalidate>
+      <label>Firma adı <input type="text" name="firma" maxlength="120" required autocomplete="organization"></label>
+      <label>Yetkili adı soyadı <input type="text" name="yetkili" maxlength="80" required autocomplete="name"></label>
+      <div class="talep-satir">
+        <label>Telefon <input type="tel" name="telefon" maxlength="20" required placeholder="05xx xxx xx xx" autocomplete="tel"></label>
+        <label>E-posta <input type="email" name="eposta" maxlength="120" required autocomplete="email"></label>
+      </div>
+      <label>İş yeri adresi <textarea name="adres" rows="2" maxlength="400" required placeholder="Açık adres — il/ilçe ile"></textarea></label>
+      <label>Not <span class="opsiyonel">(isteğe bağlı: hangi ürünler, tahmini adet)</span><textarea name="not" rows="2" maxlength="600"></textarea></label>
+      <label>Vergi levhası <span class="opsiyonel">(isteğe bağlı — pdf ya da fotoğraf; başvuruyu hızlandırır)</span><input type="file" name="dosya" accept=".pdf,.png,.jpg,.jpeg,.webp"></label>
+      <p class="detay-not-hata" id="toptan-hata"></p>
+      <button class="detay-sepet" type="submit" id="toptan-gonder">Başvuruyu gönder</button>
+    </form>
+    <div class="toptan-sonuc" id="toptan-sonuc" hidden></div>
   </div>
 </section>
 
@@ -3789,6 +3827,8 @@ function katBaglarCiz(){
   // button made "Promosyon & Kurumsal" overflow, so it was removed for good.
   // Promosyon bir ürün grubu değil, ayrı bir kapı: kendi sayfasını açar
   html += `<a class="kat-bag kat-promo" href="#promosyon" onclick="promosyonAc(); return false;">Promosyon &amp; Kurumsal</a>`;
+  // Toptan Satış da ayrı bir kapı (24.08.2026, Emre): üyeliksiz başvuru formu açar
+  html += `<a class="kat-bag kat-promo kat-toptan" href="#toptan" onclick="toptanAc(); return false;">Toptan Satış</a>`;
   document.getElementById('kat-baglar').innerHTML = html;
   document.querySelectorAll('.kat-bag[data-grup]').forEach(a=>{
     a.addEventListener('click', e=>{
@@ -4483,14 +4523,17 @@ function sayfaGoster(ad){
   document.getElementById('sayfa-hesap').hidden   = ad !== 'hesap';
   document.getElementById('sayfa-takip').hidden   = ad !== 'takip';
   document.getElementById('sayfa-promosyon').hidden = ad !== 'promosyon';
-  // Promosyon sayfasındayken şeritte "Tümü" değil promosyon işaretli dursun
-  const promoBag = document.querySelector('.kat-promo');
+  document.getElementById('sayfa-toptan').hidden = ad !== 'toptan';
+  // Promosyon/Toptan sayfasındayken şeritte "Tümü" değil kendi bağı işaretli dursun
+  const promoBag = document.querySelector('.kat-promo:not(.kat-toptan)');
   if(promoBag){
     promoBag.classList.toggle('aktif', ad === 'promosyon');
     document.querySelectorAll('.kat-bag[data-grup]').forEach(x=>{
-      x.classList.toggle('aktif', ad !== 'promosyon' && x.dataset.grup === state.grup);
+      x.classList.toggle('aktif', ad !== 'promosyon' && ad !== 'toptan' && x.dataset.grup === state.grup);
     });
   }
+  const toptanBag = document.querySelector('.kat-toptan');
+  if(toptanBag) toptanBag.classList.toggle('aktif', ad === 'toptan');
   const altC = document.getElementById('detay-alt'); if(altC && ad !== 'urun') altC.hidden = true;
   if(ad !== 'urun') document.title = 'OXEROM';
   window.scrollTo({top:0, behavior:'instant'});
@@ -4561,6 +4604,7 @@ function yolCoz(){
   if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
   if(h === '#takip'){ sayfaGoster('takip'); return; }
   if(h === '#promosyon'){ promosyonCiz(); sayfaGoster('promosyon'); return; }
+  if(h === '#toptan'){ sayfaGoster('toptan'); return; }
   if(h === '#instagram'){ instagramAc(); return; }
   sayfaGoster('katalog');
   if(!h && state.q){
@@ -5036,6 +5080,56 @@ function promosyonAc(){
   promosyonCiz();
   sayfaGoster('promosyon');
 }
+function toptanAc(){
+  if(location.hash !== '#toptan') history.pushState({toptan:true}, '', '#toptan');
+  sayfaGoster('toptan');
+}
+// Toptan satış başvurusu (24.08.2026, Emre): üyeliksiz form → B'li başvuru numarası →
+// "numarayı WhatsApp'tan bize gönderin" şartı ekranda yazar; yazmayanı Emre panelden görür.
+(function(){
+  const f = document.getElementById('toptan-form'); if(!f) return;
+  const hata = document.getElementById('toptan-hata');
+  const goster = m=>{ hata.textContent = m; hata.classList.add('gorunur'); };
+  f.addEventListener('submit', async e=>{
+    e.preventDefault();
+    hata.classList.remove('gorunur');
+    const fd = new FormData(f);
+    const dosya = fd.get('dosya');
+    if(!String(fd.get('firma')||'').trim()) return goster('Firma adını yaz.');
+    if(!String(fd.get('yetkili')||'').trim()) return goster('Yetkili adını soyadını yaz.');
+    if(String(fd.get('telefon')||'').replace(/\D/g,'').length < 10) return goster('Geçerli bir telefon numarası yaz (05xx xxx xx xx).');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(fd.get('eposta')||'').trim())) return goster('Geçerli bir e-posta yaz.');
+    if(!String(fd.get('adres')||'').trim()) return goster('İş yeri adresini yaz.');
+    if(dosya && dosya.name && dosya.size > 15*1024*1024) return goster('Dosya en fazla 15 MB olabilir.');
+    if(dosya && dosya.name && !/\.(pdf|png|jpe?g|webp)$/i.test(dosya.name))
+      return goster('Vergi levhası için pdf ya da fotoğraf (png/jpg) yükle.');
+    const btn = document.getElementById('toptan-gonder');
+    btn.disabled = true; btn.textContent = 'Gönderiliyor…';
+    try{
+      const res = await fetch(ODEME_API + '/api/toptan-basvuru', { method:'POST', body: fd });
+      const v = await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(v.hata || 'gönderilemedi');
+      f.hidden = true;
+      const sonuc = document.getElementById('toptan-sonuc');
+      const waMetin = 'Merhaba, toptan satış başvurusu yaptım. Başvuru numaram: ' + v.id;
+      sonuc.innerHTML = `
+        <p style="font-weight:700; font-size:16px; margin:0">✓ Başvurunuz alındı</p>
+        <p class="t-no num">${escHtml(v.id)}</p>
+        <p style="font-size:12.5px; margin:0">başvuru numaranız</p>
+        <div class="t-sart"><b>Onay şartı:</b> Bu numarayı WhatsApp'tan bize gönderin —
+          başvurunuzu numaranızla eşleştirip dönüş yapalım.</div>
+        <a class="toptan-wa" href="https://wa.me/905514823223?text=${encodeURIComponent(waMetin)}"
+          target="_blank" rel="noopener noreferrer">WhatsApp'tan numaramı gönder</a>
+        <p class="t-not">Onaylandığında bu e-postayla üye olup giriş yaptığınızda
+          tüm ürünleri toptan fiyatıyla görürsünüz.</p>`;
+      sonuc.hidden = false;
+      window.scrollTo({top:0, behavior:'instant'});
+    }catch(err){
+      goster('Gönderilemedi: ' + err.message + ' — WhatsApp\'tan da yazabilirsin: 0551 482 32 23');
+      btn.disabled = false; btn.textContent = 'Başvuruyu gönder';
+    }
+  });
+})();
 function promosyonCiz(){
   const kutu = document.getElementById('promo-ornek'); if(!kutu) return;
   const bul = id => URUNLER.find(u=>String(u.id)===String(id));
