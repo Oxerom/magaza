@@ -2835,14 +2835,24 @@ function ayarlariUygula(a){
 }
 // Ürünün KENDİ rengi (Emre, 17.08.2026): fotoğraftaki renk ücretsiz, diğerleri +RENK_FARK.
 // Sıra: panelde elle seçilen renk > başlıkta geçen renk > listenin ilk rengi.
+// Ürünün renk seçenekleri (25.08.2026, Emre): genel liste + ürüne panelden yazılan
+// "ek renkler" (u.renkler, virgülle — örn. "Yeşil, Mavi"). Ek renkler de aynı kurala
+// uyar: ürünün kendi rengi ücretsiz, diğer her renk +RENK_FARK.
+function urunRenkListesi(u){
+  const hepsi = RENKLER.slice();
+  const ek = (u && typeof u.renkler === 'string') ? u.renkler.split(',').map(x=>x.trim()).filter(Boolean) : [];
+  for(const r of ek) if(!hepsi.some(x=>x.toLocaleLowerCase('tr') === r.toLocaleLowerCase('tr'))) hepsi.push(r);
+  return hepsi;
+}
 function urunRengi(u){
   if(!u) return RENKLER[0] || '';
-  const esit = a=>RENKLER.find(r=>r.toLocaleLowerCase('tr') === String(a||'').toLocaleLowerCase('tr'));
+  const liste = urunRenkListesi(u);
+  const esit = a=>liste.find(r=>r.toLocaleLowerCase('tr') === String(a||'').toLocaleLowerCase('tr'));
   const elle = esit(u.renk);
   if(elle) return elle;
   const t = String(u.t || '').toLocaleLowerCase('tr');
-  for(const r of RENKLER) if(t.includes(r.toLocaleLowerCase('tr'))) return r;
-  return RENKLER[0] || '';
+  for(const r of liste) if(t.includes(r.toLocaleLowerCase('tr'))) return r;
+  return liste[0] || '';
 }
 // Sepet satırının birim fiyatı: ürün fiyatı + (standart dışı renk seçildiyse renk farkı)
 function satirBirimFiyat(u, satir){ return satisFiyati(u) + ((satir && satir.fark) ? RENK_FARK : 0); }
@@ -4181,7 +4191,7 @@ function detayAc(id){
       <div class="detay-renk">
         <label>Renk <span class="opsiyonel">(${escHtml(uRenk)} ücretsiz · diğer renkler +${RENK_FARK} TL/adet)</span></label>
         <div class="renk-secenek" id="detay-renkler">
-          ${RENKLER.map(r=>`<button type="button" class="renk-d${r===uRenk?' secili':''}" data-renk="${escHtml(r)}">${escHtml(r)}${r===uRenk?'':' +' + RENK_FARK + ' TL'}</button>`).join('')}
+          ${urunRenkListesi(u).map(r=>`<button type="button" class="renk-d${r===uRenk?' secili':''}" data-renk="${escHtml(r)}">${escHtml(r)}${r===uRenk?'':' +' + RENK_FARK + ' TL'}</button>`).join('')}
         </div>
       </div>` : '';
   const iadeIcerik = u.kisisel
@@ -4525,7 +4535,7 @@ async function ozellikleriYukle(u){
   if(RENK_ACIK && !u.kisisel){
     const ur = urunRengi(u);
     satirlar.push(['Renk', ur + ' (ürünün kendi rengi, ücretsiz) · ' +
-      RENKLER.filter(r=>r !== ur).join(', ') + ' +' + fiyatFmt(RENK_FARK) + '/adet']);
+      urunRenkListesi(u).filter(r=>r !== ur).join(', ') + ' +' + fiyatFmt(RENK_FARK) + '/adet']);
   }
   satirlar.push(['Kişiye özel', u.kisisel ? 'Evet — üstüne yazı/isim basılır, iade edilemez' : 'Hayır']);
   satirlar.push(['Kargo', KARGO_SON_SAAT + ':00\'a kadar verilen sipariş ertesi gün kargoda (pazar hariç)']);
