@@ -1723,6 +1723,12 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
   padding:10px 14px 10px 12px; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,.18);
 }
 .wa-balon:hover{ background:#1ebe5b; }
+/* Sepet sayfası açıkken balon GİZLENİR (25.08.2026, derin tur bulgusu): sabit balon
+   sepet satırlarındaki "kaldır" bağlantısının üstüne binebiliyor, müşteri ürünü
+   silemiyor ya da yanlışlıkla WhatsApp'a gidiyordu. 22.08 bottom:60 kuralı diğer
+   sayfalarda aynen durur; iki seçici de aynı işi görür (~ eski tarayıcı yedeği). */
+#sayfa-sepet:not([hidden]) ~ .wa-balon,
+body:has(#sayfa-sepet:not([hidden])) .wa-balon{ display:none; }
 @media (max-width:640px){ .wa-balon span{ display:none; } .wa-balon{ padding:12px; right:14px; bottom:14px; } }
 /* ---- Nozul maskot (23.08.2026): sol kenarda dikey ortada, gözleri ve gövdesiyle
    fareyi izler; fare 3 sn durursa kendi bakınır (telefon da böyle). Tıklayınca
