@@ -3454,6 +3454,10 @@ async function hesabimCiz(sekme){
 // alındığında bu kendiliğinden üyelikli düzene döner, site dosyasına dokunmak gerekmez.
 let API_DURUM = 'bilinmiyor';
 let KART_AKTIF = false; // PayTR anahtarları motora girilince kendiliğinden true olur
+// WhatsApp'la sipariş onayı KAPALI (Emre, 25.08.2026): ödeme sadece kartla alınır.
+// Emniyet: kart bir sebeple kapanırsa (PayTR anahtarı düşerse) WhatsApp düğmesi
+// kendiliğinden geri gelir ki satış tamamen durmasın. Tekrar açmak: WA_SIPARIS = true.
+const WA_SIPARIS = false;
 fetch(ODEME_API + '/api/durum').then(async r=>{
   API_DURUM = r.ok ? 'var' : 'yok';
   if(r.ok){ try{ const d = await r.json(); KART_AKTIF = d.kart === true; }catch(e){} }
@@ -3568,7 +3572,7 @@ function siparisBolgeCiz(zorla){
     <p class="sepet-not">📦 Siparişler ertesi gün kargoya verilir (pazar hariç).</p>
     <div class="odeme-secenekleri">
       ${KART_AKTIF ? `<button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>` : ''}
-      <button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>
+      ${(WA_SIPARIS || !KART_AKTIF) ? `<button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>` : ''}
     </div>`;
 
   const adresSec = document.getElementById('ts-adres-sec');
@@ -3591,7 +3595,8 @@ function siparisBolgeCiz(zorla){
   };
   const kartBtn = document.getElementById('sepet-kart-btn');
   if(kartBtn) kartBtn.onclick = siparisiOnaylaKartla;
-  document.getElementById('sepet-tamamla-btn').onclick = siparisiOnaylaWhatsapp;
+  const waBtn = document.getElementById('sepet-tamamla-btn');
+  if(waBtn) waBtn.onclick = siparisiOnaylaWhatsapp;
 }
 
 function siparisHata(mesaj){
@@ -4228,8 +4233,8 @@ function detayAc(id){
           <summary>Ödeme seçenekleri</summary>
           <div class="detay-bolum-icerik">
             Kredi/banka kartı ile güvenli ödeme (PayTR altyapısı — taksit seçenekleri ödeme
-            ekranında görünür) veya WhatsApp üzerinden sipariş. Kart bilgileriniz sitemizden
-            hiç geçmez. Kargo ücreti ve asgari sipariş tutarı sepette gösterilir; eşiği aşan siparişlerde kargo bedava.
+            ekranında görünür). Kart bilgileriniz sitemizden hiç geçmez. Kargo ücreti ve
+            asgari sipariş tutarı sepette gösterilir; eşiği aşan siparişlerde kargo bedava.
           </div>
         </details>
         <details class="detay-bolum">
