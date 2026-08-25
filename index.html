@@ -1771,6 +1771,11 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 /* ---- toptan satış başvurusu ---- */
 .talep-form .onay-satir{ flex-direction:row; font-weight:400; }
 .talep-form .onay-satir input{ width:auto; padding:0; margin-top:2px; }
+.toptan-giris{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  background:var(--panel); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m);
+  padding:14px 16px; margin-bottom:16px; font-size:13.5px; line-height:1.5; }
+.toptan-giris button{ flex:none; width:auto; padding:10px 26px; }
+.toptan-form-baslik{ font-size:17px; margin:0 0 10px; }
 .toptan-sonuc{ background:var(--yuzey); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m);
   padding:22px 20px; text-align:center; }
 .toptan-sonuc .t-no{ font-size:26px; font-weight:800; letter-spacing:1px; margin:8px 0 2px;
@@ -2589,6 +2594,13 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
     <p class="promo-giris">Dükkânına, mağazasına ya da kendi satış kanalına toptan ürün almak isteyenlere
       özel fiyat uyguluyoruz. Formu doldurun; başvurunuzu inceleyip WhatsApp'tan dönüş yapalım.
       Başvuruyla birlikte bayi üyeliğiniz de açılır — onaylandığında girişinizde tüm ürünleri toptan fiyatıyla görürsünüz.</p>
+    <!-- Bayi girişi (25.08.2026, Emre): başvurup üyelik açan bayinin buradan da girebileceği alan -->
+    <div class="toptan-giris" id="toptan-giris-kutu">
+      <div><b>Bayi üyeliğiniz zaten var mı?</b><br>
+        <small>Başvurunuz onaylandıysa giriş yaptığınızda tüm ürünler toptan fiyatıyla görünür.</small></div>
+      <button class="sepet-tamamla" type="button" onclick="hesapAc('giris')">Giriş yap</button>
+    </div>
+    <h2 class="toptan-form-baslik" id="toptan-form-baslik">Yeni bayi başvurusu — üye ol</h2>
     <form class="talep-form" id="toptan-form" novalidate>
       <label>Firma adı <input type="text" name="firma" maxlength="120" required autocomplete="organization"></label>
       <label>Yetkili adı soyadı <input type="text" name="yetkili" maxlength="80" required autocomplete="name"></label>
@@ -5089,13 +5101,19 @@ function toptanAc(){
   if(location.hash !== '#toptan') history.pushState({toptan:true}, '', '#toptan');
   // Zaten giriş yapmışsa şifre/KVKK istenmez (üyeliği var), e-postası hazır yazılır
   const f = document.getElementById('toptan-form');
+  const girisKutu = document.getElementById('toptan-giris-kutu');
+  const formBaslik = document.getElementById('toptan-form-baslik');
   if(f && oturum.kullanici){
     f.querySelector('[name=eposta]').value = oturum.kullanici.eposta || '';
     document.getElementById('toptan-sifre-satir').hidden = true;
     document.getElementById('toptan-kvkk-satir').hidden = true;
+    if(girisKutu) girisKutu.hidden = true;           // zaten giriş yapmış
+    if(formBaslik) formBaslik.textContent = 'Bayi başvurusu';
   }else if(f){
     document.getElementById('toptan-sifre-satir').hidden = false;
     document.getElementById('toptan-kvkk-satir').hidden = false;
+    if(girisKutu) girisKutu.hidden = false;
+    if(formBaslik) formBaslik.textContent = 'Yeni bayi başvurusu — üye ol';
   }
   sayfaGoster('toptan');
 }
