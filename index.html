@@ -1760,6 +1760,10 @@ body:has(#sayfa-sepet:not([hidden])) .wa-balon{ display:none; }
   .maskot-kap{ left:8px; bottom:70px; }
 }
 @media (prefers-reduced-motion: reduce){ .maskot, .maskot .bebek, .maskot .kapak{ transition:none } }
+/* Sepet sayfasında maskot hiç görünmez (26.08.2026): 1560 altında sol alta indiği
+   için öneri kartlarının ve Sepete ekle düğmesinin üstüne biniyordu. Ödeme
+   sayfasında dikkat dağıtmasın diye her genişlikte gizli. */
+body[data-sayfa="sepet"] .maskot-kap{ display:none; }
 .talep{ margin:44px 0 0; padding:38px 0; background:var(--panel); border-top:1.5px solid var(--cizgi-koyu); border-bottom:1.5px solid var(--cizgi-koyu); }
 /* minmax(0,..) şart (22.08.2026): 1fr'nin taban genişliği içeriğin doğal genişliğidir;
    formdaki yan yana iki kutu 390px telefonda sayfayı 18px yana taşırıyordu. */
@@ -3480,6 +3484,46 @@ fetch(ODEME_API + '/api/durum').then(async r=>{
   siparisBolgeCiz(true);
 }).catch(()=>{ API_DURUM = 'yok'; siparisBolgeCiz(true); });
 
+// Sipariş formu hafızası (26.08.2026): sepet asgari tutarın altına inince form
+// yerine "asgari tutar" kutusu çizilir ve yazılanlar kayboluyordu. Her yeniden
+// çizimden ÖNCE ekrandaki değerler buraya ezberlenir, form geri gelince aynen
+// yazılır — onay kutuları ve fatura tipi dahil. Sayfa yenilenince sıfırlanır
+// (misafir iletişim bilgileri zaten localStorage'dan ayrıca gelir).
+let SIPARIS_FORM_HAFIZA = {};
+function siparisFormunuEzberle(){
+  const h = SIPARIS_FORM_HAFIZA;
+  ['mz-ad','mz-soyad','mz-telefon','mz-eposta','ts-adres-sec','ts-adres-yeni',
+   'ft-tckn','ft-unvan','ft-vd','ft-vkn','ft-adres','mg-ad','mg-adres'].forEach(id=>{
+    const el = document.getElementById(id); if(el) h[id] = el.value;
+  });
+  ['ts-adres-kaydet','ft-ayni','sz-onay','mg-onay'].forEach(id=>{
+    const el = document.getElementById(id); if(el) h[id] = el.checked;
+  });
+  const tip = document.querySelector('input[name="ft-tip"]:checked'); if(tip) h['ft-tip'] = tip.value;
+}
+function siparisFormunuUygula(){
+  const h = SIPARIS_FORM_HAFIZA;
+  ['mz-ad','mz-soyad','mz-telefon','mz-eposta','ts-adres-yeni',
+   'ft-tckn','ft-unvan','ft-vd','ft-vkn','ft-adres','mg-ad','mg-adres'].forEach(id=>{
+    const el = document.getElementById(id); if(el && h[id] !== undefined) el.value = h[id];
+  });
+  ['ts-adres-kaydet','ft-ayni','sz-onay','mg-onay'].forEach(id=>{
+    const el = document.getElementById(id); if(el && h[id] !== undefined) el.checked = h[id];
+  });
+  const sec = document.getElementById('ts-adres-sec');
+  if(sec && h['ts-adres-sec'] !== undefined && [...sec.options].some(o=>o.value===h['ts-adres-sec'])) sec.value = h['ts-adres-sec'];
+  if(h['ft-tip']){
+    const r = document.querySelector(`input[name="ft-tip"][value="${h['ft-tip']}"]`);
+    if(r) r.checked = true;
+  }
+  // görünürlükleri (yeni adres kutusu, kurumsal fatura alanları, fatura adresi)
+  // kendi change işleyicileriyle eşitle
+  ['ts-adres-sec','ft-ayni'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.dispatchEvent(new Event('change'));
+  });
+  const tip = document.querySelector('input[name="ft-tip"]:checked');
+  if(tip) tip.dispatchEvent(new Event('change'));
+}
 function siparisBolgeCiz(zorla){
   const bolge = document.getElementById('siparis-bolge');
   if(!bolge) return;
@@ -3489,6 +3533,7 @@ function siparisBolgeCiz(zorla){
   const durumAnahtari = (oturum.token ? 'u' : 'z') + (dolu ? 'd' : 'b') + (azTutar ? 'a' : 't') + API_DURUM;
   if(!zorla && bolge.dataset.durum === durumAnahtari && !azTutar) return; // yazılanları silmemek için gereksiz çizim yok
   bolge.dataset.durum = durumAnahtari;
+  siparisFormunuEzberle(); // form silinmeden önce yazılanları sakla
 
   if(!dolu){ bolge.innerHTML = ''; return; }
   if(azTutar){
@@ -3522,6 +3567,7 @@ function siparisBolgeCiz(zorla){
         <button class="sepet-tamamla" type="button" id="mg-whatsapp">WhatsApp'tan siparişi onayla</button>
       </div>`;
     document.getElementById('mg-whatsapp').onclick = misafirWhatsapp;
+    siparisFormunuUygula(); // önceki çizimde yazılanlar geri gelsin
     return;
   }
 
@@ -3613,6 +3659,7 @@ function siparisBolgeCiz(zorla){
   if(kartBtn) kartBtn.onclick = siparisiOnaylaKartla;
   const waBtn = document.getElementById('sepet-tamamla-btn');
   if(waBtn) waBtn.onclick = siparisiOnaylaWhatsapp;
+  siparisFormunuUygula(); // asgari tutarın altına inip çıkınca yazılanlar geri gelsin
 }
 
 function siparisHata(mesaj){
@@ -4552,6 +4599,10 @@ async function ozellikleriYukle(u){
 // Üç tam sayfa görünüm: katalog (varsayılan) · ürün (#u123) · sepet (#sepet).
 // Adres çubuğu her zaman doğru sayfayı söyler; geri tuşu ve paylaşılan link çalışır.
 function sayfaGoster(ad){
+  // Maskot sepet sayfasında gizlenir (26.08.2026): dar ekranlarda sol alta indiği
+  // için öneri kartlarının ve Sepete ekle düğmesinin üstüne biniyordu — CSS
+  // body[data-sayfa] üzerinden gizler.
+  document.body.dataset.sayfa = ad;
   // Perde açılışı sadece katalogda; ürün/sepet sayfası perdesiz, üstten başlar
   const perde = document.querySelector('.sahneDis');
   if(perde) perde.hidden = ad !== 'katalog';
