@@ -3205,8 +3205,8 @@ function hesapCiz(gorunum){
           <input id="g-eposta" type="email" placeholder="E-posta" autocomplete="email">
           <input id="g-sifre" type="password" placeholder="Şifre" autocomplete="current-password">
           <p class="siparis-hata" id="g-hata"></p>
-          <p class="hesap-gecis" id="g-unuttum" hidden>Şifrenizi mi unuttunuz?
-            <a href="#" target="_blank" rel="noopener">WhatsApp'tan yazın</a>, yeni şifrenizi belirleyip size iletelim.</p>
+          <p class="hesap-gecis" id="g-unuttum">Şifrenizi mi unuttunuz?
+            <a href="#" onclick="sifremiUnuttum(); return false;">Sıfırlama linki gönder</a></p>
           <button class="sepet-tamamla" type="button" id="g-dugme">Giriş yap</button>
           <p class="hesap-gecis">Üye olmadan sipariş verdiyseniz: <a href="#takip" onclick="history.pushState({takip:true},'','#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a></p>
         </div>
@@ -3266,22 +3266,70 @@ async function girisYap(){
     hesapCiz('hesabim');
     siparisBolgeCiz(true);
   }catch(e){
-    const baglanti = e.message === 'Failed to fetch';
-    hata.textContent = baglanti ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
+    hata.textContent = e.message === 'Failed to fetch' ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
     hata.classList.add('gorunur');
-    // Şifre unutan müşteri sıkışıp kalmasın (26.08.2026): giriş hatasında WhatsApp
-    // yolu gösterilir; panelde "Şifre belirle" ile yeni şifre verilir. Bağlantı
-    // hatasında gösterilmez — sorun şifre değildir.
-    const unuttum = document.getElementById('g-unuttum');
-    if(unuttum){
-      unuttum.hidden = baglanti;
-      if(!baglanti){
-        const mesaj = 'Merhaba, oxerom.com.tr üyeliğimin şifresini unuttum. E-posta adresim: ' + (eposta || '(yazınız)');
-        unuttum.querySelector('a').href = 'https://wa.me/905514823223?text=' + encodeURIComponent(mesaj);
-      }
-    }
     document.getElementById('g-dugme').textContent = 'Giriş yap';
   }
+}
+
+// ---- şifre sıfırlama (27.08.2026): mail ile tek kullanımlık link ----
+async function sifremiUnuttum(){
+  const hata = document.getElementById('g-hata');
+  hata.textContent = ''; hata.classList.remove('gorunur');
+  const eposta = document.getElementById('g-eposta').value.trim();
+  if(!eposta){ hata.textContent = 'Önce yukarıya e-posta adresinizi yazın.'; hata.classList.add('gorunur'); return; }
+  const satir = document.getElementById('g-unuttum');
+  satir.textContent = 'Gönderiliyor…';
+  try{
+    const res = await apiIstek('/api/sifre-sifirla', { eposta });
+    const v = await res.json();
+    if(!res.ok) throw new Error(v.hata || 'gönderilemedi');
+    satir.innerHTML = '📩 Sıfırlama linki <b>' + escHtml(eposta) + '</b> adresine gönderildi — gelen kutunuza ve gereksiz (spam) klasörüne bakın. Link 30 dakika geçerli.';
+  }catch(e){
+    satir.innerHTML = 'Şifrenizi mi unuttunuz? <a href="#" onclick="sifremiUnuttum(); return false;">Sıfırlama linki gönder</a>';
+    hata.textContent = e.message === 'Failed to fetch' ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
+    hata.classList.add('gorunur');
+  }
+}
+
+// Mailde gelen linkin açtığı ekran: #sifre-yenile=<64 haneli tek kullanımlık kod>
+function sifreYenileAc(token){
+  const govde = document.getElementById('hesap-govde');
+  document.getElementById('hesap-baslik').textContent = 'Yeni şifre belirle';
+  govde.innerHTML = `
+    <div class="siparis-form hesap-form">
+      <input id="sy-sifre" type="password" placeholder="Yeni şifre (en az 6 karakter)" autocomplete="new-password">
+      <input id="sy-sifre2" type="password" placeholder="Yeni şifre (tekrar)" autocomplete="new-password">
+      <p class="siparis-hata" id="sy-hata"></p>
+      <button class="sepet-tamamla" type="button" id="sy-dugme">Şifreyi değiştir</button>
+    </div>`;
+  document.getElementById('sy-dugme').onclick = async ()=>{
+    const hata = document.getElementById('sy-hata');
+    hata.textContent = ''; hata.classList.remove('gorunur');
+    const s1 = document.getElementById('sy-sifre').value;
+    const s2 = document.getElementById('sy-sifre2').value;
+    if(s1.length < 6){ hata.textContent = 'Şifre en az 6 karakter olmalı.'; hata.classList.add('gorunur'); return; }
+    if(s1 !== s2){ hata.textContent = 'Şifreler birbirini tutmuyor.'; hata.classList.add('gorunur'); return; }
+    const btn = document.getElementById('sy-dugme');
+    btn.textContent = 'Kaydediliyor…';
+    try{
+      const res = await apiIstek('/api/sifre-yenile', { token, sifre: s1 });
+      const v = await res.json();
+      if(!res.ok) throw new Error(v.hata || 'şifre değiştirilemedi');
+      // şifre değişti + otomatik giriş — müşteri bir daha şifre yazmaz
+      oturum = { token: v.token, kullanici: v.kullanici };
+      oturumKaydet();
+      bayiSeridiCiz(); cizHepsi(); favorileriEsitle();
+      govde.innerHTML = '<p class="sepet-not">✓ Şifreniz değiştirildi ve giriş yapıldı. Hesabınıza yönlendiriliyorsunuz…</p>';
+      history.replaceState(null, '', '#hesap');
+      setTimeout(()=>hesapCiz('hesabim'), 1500);
+    }catch(e){
+      btn.textContent = 'Şifreyi değiştir';
+      hata.textContent = e.message === 'Failed to fetch' ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
+      hata.classList.add('gorunur');
+    }
+  };
+  sayfaGoster('hesap');
 }
 
 async function kayitOl(){
@@ -4705,6 +4753,7 @@ function yolCoz(){
   }
   if(h === '#sepet'){ sepetCiz(); sayfaGoster('sepet'); return; }
   if(h === '#hesap'){ hesapCiz(oturum.kullanici ? 'hesabim' : 'giris'); sayfaGoster('hesap'); return; }
+  if(h.startsWith('#sifre-yenile=')){ sifreYenileAc(h.slice('#sifre-yenile='.length)); return; }
   if(h === '#takip'){ sayfaGoster('takip'); return; }
   if(h === '#promosyon'){ promosyonCiz(); sayfaGoster('promosyon'); return; }
   if(h === '#toptan'){ toptanAc(); return; }
