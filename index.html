@@ -3205,6 +3205,8 @@ function hesapCiz(gorunum){
           <input id="g-eposta" type="email" placeholder="E-posta" autocomplete="email">
           <input id="g-sifre" type="password" placeholder="Şifre" autocomplete="current-password">
           <p class="siparis-hata" id="g-hata"></p>
+          <p class="hesap-gecis" id="g-unuttum" hidden>Şifrenizi mi unuttunuz?
+            <a href="#" target="_blank" rel="noopener">WhatsApp'tan yazın</a>, yeni şifrenizi belirleyip size iletelim.</p>
           <button class="sepet-tamamla" type="button" id="g-dugme">Giriş yap</button>
           <p class="hesap-gecis">Üye olmadan sipariş verdiyseniz: <a href="#takip" onclick="history.pushState({takip:true},'','#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a></p>
         </div>
@@ -3264,8 +3266,20 @@ async function girisYap(){
     hesapCiz('hesabim');
     siparisBolgeCiz(true);
   }catch(e){
-    hata.textContent = e.message === 'Failed to fetch' ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
+    const baglanti = e.message === 'Failed to fetch';
+    hata.textContent = baglanti ? 'Bağlantı kurulamadı, tekrar deneyin.' : e.message;
     hata.classList.add('gorunur');
+    // Şifre unutan müşteri sıkışıp kalmasın (26.08.2026): giriş hatasında WhatsApp
+    // yolu gösterilir; panelde "Şifre belirle" ile yeni şifre verilir. Bağlantı
+    // hatasında gösterilmez — sorun şifre değildir.
+    const unuttum = document.getElementById('g-unuttum');
+    if(unuttum){
+      unuttum.hidden = baglanti;
+      if(!baglanti){
+        const mesaj = 'Merhaba, oxerom.com.tr üyeliğimin şifresini unuttum. E-posta adresim: ' + (eposta || '(yazınız)');
+        unuttum.querySelector('a').href = 'https://wa.me/905514823223?text=' + encodeURIComponent(mesaj);
+      }
+    }
     document.getElementById('g-dugme').textContent = 'Giriş yap';
   }
 }
