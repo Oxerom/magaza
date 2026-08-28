@@ -1764,6 +1764,10 @@ body:has(#sayfa-sepet:not([hidden])) .wa-balon{ display:none; }
    için öneri kartlarının ve Sepete ekle düğmesinin üstüne biniyordu. Ödeme
    sayfasında dikkat dağıtmasın diye her genişlikte gizli. */
 body[data-sayfa="sepet"] .maskot-kap{ display:none; }
+/* Ürün detayında da 1560 altında sol alta iniyor ve ürünün ana fotoğrafına
+   biniyordu (28.08.2026 denetimi) — dar ekranda ürün sayfasında da gizli.
+   Geniş ekranda sol boşlukta durduğu için görünmeye devam eder. */
+@media (max-width:1559px){ body[data-sayfa="urun"] .maskot-kap{ display:none; } }
 .talep{ margin:44px 0 0; padding:38px 0; background:var(--panel); border-top:1.5px solid var(--cizgi-koyu); border-bottom:1.5px solid var(--cizgi-koyu); }
 /* minmax(0,..) şart (22.08.2026): 1fr'nin taban genişliği içeriğin doğal genişliğidir;
    formdaki yan yana iki kutu 390px telefonda sayfayı 18px yana taşırıyordu. */
@@ -2000,6 +2004,11 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 .sepet-sayfa .sepet-sil{ align-self:flex-start; padding:0; }
 .sepet-ozet{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:18px 20px; position:sticky; top:118px; }
 @media (max-width:900px){ .sepet-sayfa{ grid-template-columns:1fr; } .sepet-ozet{ position:static; } }
+/* Sol sütun sağdaki ödeme formundan kısa kalınca sayfa yarım görünüyordu
+   (28.08.2026 denetimi) — en alta kısa güven bloğu eklenir. */
+.sepet-guven{ background:var(--yuzey); border:1px solid var(--cizgi); border-radius:var(--r-m); padding:16px 18px; display:flex; flex-direction:column; gap:10px; }
+.sepet-guven b{ font-size:13.5px; }
+.sepet-guven span{ font-size:13px; color:var(--soluk); display:flex; gap:8px; align-items:flex-start; line-height:1.5; }
 .sepet-bas{ display:flex; align-items:center; justify-content:space-between; padding:20px 22px; border-bottom:1px solid var(--cizgi); }
 .sepet-bas h3{ margin:0; font-size:16px; }
 .sepet-kapat{ border:0; background:transparent; font-size:18px; cursor:pointer; color:var(--soluk); }
@@ -2312,7 +2321,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
           </article>
           <article class="urun k-ev" data-id="1180640751">
             <div class="urun-gorsel">
-              <img src="https://cdn.dsmcdn.com/ty1942/prod/QC_PREP/20260503/17/61238213-8fa1-346a-977f-1912caa82a92/1_org_zoom.jpg" alt="Kedi figürlü kapı stoperi" loading="lazy">
+              <img src="https://cdn.dsmcdn.com/ty1900/prod/QC_PREP/20260805/20/5fc7651a-58b5-3959-ad72-152e38e0ac24/1_org_zoom.jpg" alt="Kedi figürlü kapı stoperi" loading="lazy">
               <span class="urun-etiket">Ev &amp; Dekorasyon</span>
             </div>
             <div class="urun-govde">
@@ -3088,7 +3097,21 @@ function sepetCiz(){
   SEPET_ARA_TOPLAM = toplam;
   bedavaCubukCiz(toplam);
   sepetOnerileriCiz(keys);
+  sepetGuvenCiz();
   siparisBolgeCiz();
+}
+// Sol sütunun altındaki boşluğu dolduran güven bloğu (28.08.2026 denetimi).
+// Sadece sitede zaten yazan bilgiler kullanılır — yeni vaat eklenmez.
+function sepetGuvenCiz(){
+  const liste = document.getElementById('sepet-liste'); if(!liste) return;
+  const kutu = document.createElement('div');
+  kutu.className = 'sepet-guven';
+  kutu.innerHTML = `<b>Neden OXEROM?</b>
+    <span>🖨️ Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.</span>
+    <span>📦 Siparişler ertesi gün kargoya verilir (pazar hariç).</span>
+    ${KART_AKTIF ? '<span>🔒 PayTR güvenli ödeme — kart bilgileriniz sitemizden hiç geçmez.</span>' : ''}
+    ${(!bayiOrani() && BEDAVA_ESIK > 0) ? `<span>🚚 ${fiyatFmt(BEDAVA_ESIK)} üzeri kargo bedava.</span>` : ''}`;
+  liste.appendChild(kutu);
 }
 // ---- 6b) "Bunlarla iyi gider" (20.08.2026): ödeme adımından önce, sepettekilerle
 // alakalı en çok 4 ürün. Önce aynı araç modeli, sonra aynı marka, sonra aynı kategori.
@@ -4833,9 +4856,14 @@ async function urunAciklamaYukle(id){
     const metin = ACIKLAMALAR[String(id)];
     if(!hedef.isConnected) return;
     if(metin){
-      // Pazaryeri açıklamasındaki "Siyah olarak gönderilecektir" cümlesi renk seçiciyle çelişiyor — sitede gizlenir
+      // Tedarikçi açıklamasındaki "Siyah/Beyaz olarak üretilecektir/gönderilecektir"
+      // kalıbı renk seçiciyle çelişiyor (28.08.2026 denetimi: 99 üründe açıklama ile
+      // renk alanı ters) — cümle renk-nötr karşılığıyla değiştirilir, veri dosyasına
+      // dokunulmaz (eşitlemede geri gelirdi).
       hedef.innerHTML = metin.split(/;\s*|\n+/).map(s=>s.trim()).filter(Boolean)
-        .filter(s=>!(RENK_ACIK && /siyah\s+(olarak\s+)?g[öo]nderil/i.test(s)))
+        .map(s=>(RENK_ACIK && /\b(siyah|beyaz|gri|kırmızı|kirmizi|mavi|yeşil|yesil|turuncu|sarı|sari|mor|pembe|bej|kahverengi|lacivert|şeffaf|seffaf)\s+(renk\s+)?olarak\s+(üretil|uretil|gönderil|gonderil)/i.test(s))
+          ? 'Seçtiğiniz renkte üretilir.' : s)
+        .filter((s,i,d)=>d.indexOf(s)===i)
         .map(s=>`<p>${escHtml(s)}</p>`).join('');
     }else{
       hedef.textContent = 'Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.';
