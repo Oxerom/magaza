@@ -4857,13 +4857,11 @@ async function urunAciklamaYukle(id){
     if(!hedef.isConnected) return;
     if(metin){
       // Tedarikçi açıklamasındaki "Siyah/Beyaz olarak üretilecektir/gönderilecektir"
-      // kalıbı renk seçiciyle çelişiyor (28.08.2026 denetimi: 99 üründe açıklama ile
-      // renk alanı ters) — cümle renk-nötr karşılığıyla değiştirilir, veri dosyasına
-      // dokunulmaz (eşitlemede geri gelirdi).
+      // cümlesi renk seçiciyle çelişebilir (müşteri başka renk seçebilir) — sitede
+      // gösterilmez. Renk alanları 28.08.2026'da açıklamalarla eşitlendi; ölçüt
+      // seçicideki renk, cümle değil. (Emre: "istediğiniz renkte üretilir" yazılmaz.)
       hedef.innerHTML = metin.split(/;\s*|\n+/).map(s=>s.trim()).filter(Boolean)
-        .map(s=>(RENK_ACIK && /\b(siyah|beyaz|gri|kırmızı|kirmizi|mavi|yeşil|yesil|turuncu|sarı|sari|mor|pembe|bej|kahverengi|lacivert|şeffaf|seffaf)\s+(renk\s+)?olarak\s+(üretil|uretil|gönderil|gonderil)/i.test(s))
-          ? 'Seçtiğiniz renkte üretilir.' : s)
-        .filter((s,i,d)=>d.indexOf(s)===i)
+        .filter(s=>!(RENK_ACIK && /\b(siyah|beyaz|gri|kırmızı|kirmizi|mavi|yeşil|yesil|turuncu|sarı|sari|mor|pembe|bej|kahverengi|lacivert|şeffaf|seffaf)\s+(renk\s+)?olarak\s+(üretil|uretil|gönderil|gonderil)/i.test(s)))
         .map(s=>`<p>${escHtml(s)}</p>`).join('');
     }else{
       hedef.textContent = 'Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.';
