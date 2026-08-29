@@ -1102,7 +1102,9 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 .urun:hover .urun-ad{ color:var(--nar); }
 
 /* Not: "atölye notu" kağıtları 22.08.2026'da Emre'nin kararıyla tamamen kaldırıldı. */
-.fiyat-satir{ display:flex; align-items:baseline; gap:9px; margin-top:auto; padding-top:2px; }
+/* wrap ŞART (29.08.2026): 320px telefonda fiyat + üstü çizili eski fiyat kartın
+   dışına taşıp sayfayı yana kaydırıyordu. */
+.fiyat-satir{ display:flex; flex-wrap:wrap; align-items:baseline; gap:9px; margin-top:auto; padding-top:2px; }
 .fiyat{ font-size:19px; font-weight:700; letter-spacing:-.022em; }
 .ornek-cip{
   font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
