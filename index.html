@@ -1382,9 +1382,12 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   .hat-govde::before{ display:none; }
 }
 @media (max-width:960px){
-  .ust-govde{ grid-template-columns:auto 1fr; row-gap:14px; }
+  /* minmax(0,1fr) + min-width:0 ŞART (29.08.2026): 1fr'nin taban genişliği içeriğin
+     doğal genişliğidir; 4 düğme + logo sığmayınca ızgara ekranı taşırıyor ve TÜM
+     sayfa yana kayıyordu (telefonda sepeti görmek için sağa kaydırmak gerekiyordu). */
+  .ust-govde{ grid-template-columns:auto minmax(0,1fr); row-gap:14px; }
   .arama-sarmal{ grid-column:1 / -1; grid-row:2; }
-  .ust-eylem{ justify-self:end; }
+  .ust-eylem{ justify-self:end; min-width:0; }
   .katalog-govde{ grid-template-columns:1fr; }
   .katalog-yerlesim{ grid-template-columns:1fr; }
   .katalog-yan{ display:none; }
@@ -1748,26 +1751,21 @@ body:has(#sayfa-sepet:not([hidden])) .wa-balon{ display:none; }
   background:linear-gradient(180deg,#6E4A16 0%,#A87A24 55%,#C39135 100%);
   box-shadow:inset 0 -3px 6px rgba(60,35,5,.5); transform:scaleY(0); transform-origin:50% 0%; transition:transform .07s; }
 .maskot.kirp .kapak{ transform:scaleY(1); }
-/* 1560 altında sol kenar boşluğu kalmaz, maskot menülerin üstüne biner —
-   o yüzden sol ALT köşeye iner ve küçülür (WhatsApp balonunun sol simetriği;
-   bottom:60 wa-balon'la aynı sebepten — alt bilgi bağlantılarını kapatmasın). */
-@media (max-width:1559px){
-  .maskot-kap{ top:auto; bottom:16px; transform:none; }
-  .maskot{ width:132px; }
-}
-@media (max-width:900px){
-  .maskot{ width:100px; }
-  .maskot-kap{ left:8px; bottom:70px; }
-}
+/* Maskot SADECE gerçekten yer varken görünür (29.08.2026, Emre: "maskot ürün
+   kartlarının ve metinlerin üzerine biniyor").
+   Hesap: içerik en fazla 1300px ve ortalanır, yani sol boşluk = (ekran-1300)/2.
+   Maskot 200px + 12px kenar = 212px yer ister → ekran 1300+2*212 = 1724px'ten
+   geniş olmalı. Eski 1560px eşiği yanlıştı (orada boşluk 130px, maskot 200px)
+   ve altında maskotu sol ALT köşeye indiriyordu — asıl bindirme oradan
+   geliyordu: her sayfada kartların, düğmelerin ve yazıların üstüne oturuyordu.
+   Sol alt köşe çözümü KALDIRILDI; dar ekranda maskot hiç çizilmez.
+   Kaybı yok: maskotun tek işi FAREYİ izlemek, telefonda fare yok. */
+.maskot-kap{ display:none; }
+@media (min-width:1750px){ .maskot-kap{ display:block; } }
 @media (prefers-reduced-motion: reduce){ .maskot, .maskot .bebek, .maskot .kapak{ transition:none } }
-/* Sepet sayfasında maskot hiç görünmez (26.08.2026): 1560 altında sol alta indiği
-   için öneri kartlarının ve Sepete ekle düğmesinin üstüne biniyordu. Ödeme
-   sayfasında dikkat dağıtmasın diye her genişlikte gizli. */
+/* Sepet sayfasında ödeme adımında dikkat dağıtmasın diye her genişlikte gizli
+   (26.08.2026 kararı korunuyor). */
 body[data-sayfa="sepet"] .maskot-kap{ display:none; }
-/* Ürün detayında da 1560 altında sol alta iniyor ve ürünün ana fotoğrafına
-   biniyordu (28.08.2026 denetimi) — dar ekranda ürün sayfasında da gizli.
-   Geniş ekranda sol boşlukta durduğu için görünmeye devam eder. */
-@media (max-width:1559px){ body[data-sayfa="urun"] .maskot-kap{ display:none; } }
 .talep{ margin:44px 0 0; padding:38px 0; background:var(--panel); border-top:1.5px solid var(--cizgi-koyu); border-bottom:1.5px solid var(--cizgi-koyu); }
 /* minmax(0,..) şart (22.08.2026): 1fr'nin taban genişliği içeriğin doğal genişliğidir;
    formdaki yan yana iki kutu 390px telefonda sayfayı 18px yana taşırıyordu. */
@@ -2101,9 +2099,14 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 }
 @media (max-width:640px){
   .izgara{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-  .ust-govde{ gap:10px; }
+  .ust-govde{ gap:8px; }
   .logo span.wordmark{ display:none; }
   .sepet-dugme span.metin{ display:none; }
+  /* Telefonda dört düğme yazısız kalsa bile sığmıyordu — logo ve düğme dolgusu
+     küçülür, hepsi 390 px ekrana sığar (29.08.2026). */
+  .logo svg{ width:112px; height:25px; }
+  .ust-eylem{ gap:6px; }
+  .sepet-dugme{ padding:9px 11px; gap:6px; }
   .govde-bas h1{ font-size:19px; }
   .detay-govde{ padding:22px 20px 28px; }
   .detay-fiyat{ font-size:23px; }
