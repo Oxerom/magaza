@@ -1369,7 +1369,9 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 }
 .dip-serit a{ transition:color .18s; }
 .dip-serit a:hover{ color:#EFE2D6; }
-.dip-serit .sag{ display:flex; gap:20px; }
+/* wrap + satır aralığı (29.08.2026): dört yasal bağlantı 320px telefonda tek satıra
+   sığmayıp sayfayı 1px yana kaydırıyordu. */
+.dip-serit .sag{ display:flex; flex-wrap:wrap; gap:10px 20px; }
 
 /* ============ duyarlı ============ */
 @media (max-width:1180px){
