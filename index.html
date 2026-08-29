@@ -2099,11 +2099,16 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   .detay{ grid-template-columns:1fr; }
   .detay-gorsel img{ min-height:220px; }
 }
+/* Üst bardaki dört düğmenin YAZILARI 900 px altında gizlenir (29.08.2026).
+   Eski eşik 640 px'ti; 641-830 px arasında (tablet, küçük dizüstü) yazılı düğmeler
+   logoyla birlikte sığmıyor ve sayfa 88 px'e kadar yana kayıyordu. */
+@media (max-width:900px){
+  .sepet-dugme span.metin{ display:none; }
+}
 @media (max-width:640px){
   .izgara{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
   .ust-govde{ gap:8px; }
   .logo span.wordmark{ display:none; }
-  .sepet-dugme span.metin{ display:none; }
   /* Telefonda dört düğme yazısız kalsa bile sığmıyordu — logo ve düğme dolgusu
      küçülür, hepsi 390 px ekrana sığar (29.08.2026). */
   .logo svg{ width:112px; height:25px; }
