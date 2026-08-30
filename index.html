@@ -1646,6 +1646,17 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-govde h2{ font-family:var(--serif); font-size:23px; margin:0; line-height:1.3; }
 .detay-fiyat{ font-size:28px; font-weight:800; }
 .detay-kargo{ font-size:13px; color:#2E7D4F; background:#EBF6EF; border-radius:8px; padding:8px 12px; margin:2px 0 4px; }
+/* Ödeme rozetleri (30.08.2026 denetimi): güveni yazıdan önce göz görsün. Logolar
+   dışarıdan çekilmez, satır içi SVG/yazı — ek istek yok, çevrimdışı da çalışır. */
+.odeme-rozet{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0 2px; }
+.odeme-rozet .rz{ display:inline-flex; align-items:center; gap:6px; background:#fff;
+  border:1px solid var(--cizgi); border-radius:6px; padding:5px 9px; font-size:12px; line-height:1; color:var(--soluk); }
+.odeme-rozet .visa{ color:#1A1F71; font-weight:800; letter-spacing:.10em; font-style:italic; font-size:13px; }
+.odeme-rozet .paytr{ font-weight:600; color:#2E7D4F; }
+/* Ürün sayfasındaki kısa güven satırı — yorum boşluğunu kapatır (30.08.2026) */
+.detay-guven{ font-size:13px; color:var(--soluk); background:var(--panel); border:1px solid var(--cizgi);
+  border-radius:8px; padding:8px 12px; margin:10px 0 2px; line-height:1.5; }
+.detay-guven a{ color:var(--nar); }
 .detay-linki{ align-self:flex-start; background:none; border:1px dashed var(--cizgi); border-radius:8px; padding:5px 10px; font-size:12px; color:var(--soluk); cursor:pointer; margin-bottom:4px; }
 .detay-linki:hover{ color:var(--nar); border-color:var(--nar); }
 .paylas{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
@@ -3114,6 +3125,15 @@ function sepetCiz(){
 }
 // Sol sütunun altındaki boşluğu dolduran güven bloğu (28.08.2026 denetimi).
 // Sadece sitede zaten yazan bilgiler kullanılır — yeni vaat eklenmez.
+function odemeRozetHtml(){
+  return `<div class="odeme-rozet" aria-label="Kabul edilen kartlar ve ödeme altyapısı">
+    <span class="rz visa">VISA</span>
+    <span class="rz mc"><svg width="26" height="16" viewBox="0 0 26 16" aria-hidden="true" focusable="false">
+      <circle cx="10" cy="8" r="7" fill="#EB001B"></circle>
+      <circle cx="16" cy="8" r="7" fill="#F79E1B" fill-opacity=".85"></circle></svg>Mastercard</span>
+    <span class="rz paytr">🔒 PayTR ile güvenli ödeme</span>
+  </div>`;
+}
 function sepetGuvenCiz(){
   const liste = document.getElementById('sepet-liste'); if(!liste) return;
   const kutu = document.createElement('div');
@@ -3121,7 +3141,7 @@ function sepetGuvenCiz(){
   kutu.innerHTML = `<b>Neden OXEROM?</b>
     <span>🖨️ Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.</span>
     <span>📦 Siparişler ertesi gün kargoya verilir (pazar hariç).</span>
-    ${KART_AKTIF ? '<span>🔒 PayTR güvenli ödeme — kart bilgileriniz sitemizden hiç geçmez.</span>' : ''}
+    ${KART_AKTIF ? '<span>🔒 PayTR güvenli ödeme — kart bilgileriniz sitemizden hiç geçmez.</span>' + odemeRozetHtml() : ''}
     ${(!bayiOrani() && BEDAVA_ESIK > 0) ? `<span>🚚 ${fiyatFmt(BEDAVA_ESIK)} üzeri kargo bedava.</span>` : ''}`;
   liste.appendChild(kutu);
 }
@@ -3727,7 +3747,7 @@ function siparisBolgeCiz(zorla){
       <p class="siparis-hata" id="siparis-hata"></p>
     </div>
     ${KART_AKTIF ? `<p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart bilgileriniz
-      bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>` : ''}
+      bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>` + odemeRozetHtml() : ''}
     <p class="sepet-not">📦 Siparişler ertesi gün kargoya verilir (pazar hariç).</p>
     <div class="odeme-secenekleri">
       ${KART_AKTIF ? `<button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>` : ''}
@@ -4383,6 +4403,8 @@ function detayAc(id){
       </div>
       ${toptanMin > 1 ? `<p class="bayi-fiyat-not toptan-min-detay">Toptan asgari: ${toptanMin} adet</p>` : ''}
       <button class="detay-sepet" type="button" id="detay-sepet-ekle">Sepete ekle</button>
+      <p class="detay-guven">🖨️ Yıllardır kendi aile atölyemizde basıyoruz — tasarımı, baskısı ve paketi bize ait.
+        <a href="hakkimizda.html">Bizi tanıyın</a></p>
       ${ty}
       <div class="detay-bolumler">
         <details class="detay-bolum" open>
@@ -4975,7 +4997,7 @@ async function yorumlariYukle(id){
     }
   }else{
     if(sayiEl) sayiEl.textContent = '';
-    icerik = `<p class="yorum-bos">${apiVar ? 'Bu ürüne henüz yorum yapılmamış.' : 'Yorumlar yakında açılıyor.'}</p>`;
+    icerik = `<p class="yorum-bos">${apiVar ? 'Bu ürünün ilk yorumunu siz bırakın — ürünü satın aldıysanız görüşünüz burada yayınlanır.' : 'Yorumlar yakında açılıyor.'}</p>`;
   }
 
   // yorum yazma: sadece giriş yapmış ve bu ürünü satın almış üyeler (sunucu da kontrol eder)
