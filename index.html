@@ -3658,9 +3658,9 @@ function siparisBolgeCiz(zorla){
     const yuzde = Math.min(100, Math.round(SEPET_ARA_TOPLAM / minSepet * 100));
     bolge.innerHTML = `
       <div class="min-sepet">
-        <b>${bayiOrani() ? 'Toptan asgari sepet tutarı' : 'Asgari sipariş tutarı'} ${fiyatFmt(minSepet)}</b>
+        <div><b>${bayiOrani() ? 'Toptan asgari sepet tutarı' : 'Asgari sipariş tutarı'} ${fiyatFmt(minSepet)}</b> — kargo hariç ürün toplamına bakılır</div>
         <div class="min-sepet-cubuk"><i style="width:${yuzde}%"></i></div>
-        <span>Sipariş verebilmek için sepetinize <b>${fiyatFmt(kalan)}</b> daha ekleyin.</span>
+        <span>Ürün toplamınız <b>${fiyatFmt(SEPET_ARA_TOPLAM)}</b> — <b>${fiyatFmt(kalan)}</b> daha ekleyince ödemeye geçebilirsiniz.</span>
         <a href="#" onclick="katalogaDon(); return false;">Alışverişe devam et →</a>
       </div>`;
     return;
