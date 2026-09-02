@@ -1933,6 +1933,8 @@ body[data-sayfa="sepet"] .maskot-kap{ display:none; }
 .kupon-mesaj.oldu{ color:#2E7D4F; }
 .kupon-satir span:first-child{ color:#2E7D4F; font-weight:700; }
 .kupon-satir .num{ color:#2E7D4F; }
+.kupon-kaldir{ margin-left:6px; padding:1px 7px; font:inherit; font-size:11px; font-weight:600; border:1px solid var(--cizgi); border-radius:6px; background:transparent; color:#9C2F33; cursor:pointer; }
+.kupon-kaldir:hover{ border-color:#9C2F33; background:rgba(156,47,51,.06); }
 
 /* ---- promosyon / kurumsal sayfası ---- */
 .promo-giris{ font-size:16px; line-height:1.65; color:var(--soluk); max-width:62ch; margin:0 0 26px; }
@@ -3063,6 +3065,12 @@ function sepetCiz(){
     document.getElementById('sepet-ara').textContent = fiyatFmt(0);
     document.getElementById('sepet-kargo').textContent = '—';
     document.getElementById('sepet-toplam').textContent = fiyatFmt(0);
+    // Empty cart wipes the coupon state too (02.09.2026 audit): the code in the
+    // box, the error/success message and the discount row must not survive.
+    kuponSifirla();
+    const bosKupon = document.getElementById('kupon-satir'); if(bosKupon) bosKupon.hidden = true;
+    const bosKamp = document.getElementById('kampanya-satir'); if(bosKamp) bosKamp.hidden = true;
+    SEPET_ARA_TOPLAM = 0;
     siparisBolgeCiz();
     return;
   }
@@ -3094,31 +3102,30 @@ function sepetCiz(){
   }).join('');
   // Kargo bedava eşiğine İNDİRİMSİZ ara toplamdan bakılır — yoksa kupon dolaylı olarak
   // kargoyu da bedava yapardı. Motor tarafı da aynı sırayla hesaplıyor.
-  const kargo = kargoHesapla(toplam);
-  const kamp = kampanyaHesapla();
-  if(KUPON && toplam < KUPON.min_gerekli) kuponKaldir();
-  const indirim = KUPON ? Math.min(KUPON.indirim, Math.max(0, toplam - kamp.tutar)) : 0;
-  document.getElementById('sepet-ara').textContent = fiyatFmt(toplam);
-  document.getElementById('sepet-kargo').textContent = kargoMetni(kargo);
+  SEPET_ARA_TOPLAM = Math.round(toplam*100)/100;
+  kuponTazele(); // coupon re-validated on EVERY cart change (02.09.2026 audit)
+  const h = sepetHesapla(); // the ONE totals function — screen and messages share it
+  document.getElementById('sepet-ara').textContent = fiyatFmt(h.araToplam);
+  document.getElementById('sepet-kargo').textContent = kargoMetni(h.kargo);
   const kms = document.getElementById('kampanya-satir');
   if(kms){
-    kms.hidden = !kamp.tutar;
-    if(kamp.tutar){
-      document.getElementById('kampanya-etiket').textContent = 'Kampanya (' + kamp.etiket + ')';
-      document.getElementById('sepet-kampanya').textContent = '−' + fiyatFmt(kamp.tutar);
+    kms.hidden = !h.kamp.tutar;
+    if(h.kamp.tutar){
+      document.getElementById('kampanya-etiket').textContent = 'Kampanya (' + h.kamp.etiket + ')';
+      document.getElementById('sepet-kampanya').textContent = '−' + fiyatFmt(h.kamp.tutar);
     }
   }
   const ks = document.getElementById('kupon-satir');
   if(ks){
-    ks.hidden = !indirim;
-    if(indirim){
-      document.getElementById('kupon-etiket').textContent = 'İndirim (' + KUPON.kod + ')';
-      document.getElementById('sepet-kupon').textContent = '−' + fiyatFmt(indirim);
+    ks.hidden = !h.indirim;
+    if(h.indirim){
+      document.getElementById('kupon-etiket').innerHTML = 'İndirim (' + escHtml(KUPON.kod)
+        + ') <button type="button" class="kupon-kaldir" onclick="kuponElleKaldir()" aria-label="İndirim kodunu kaldır">kaldır ✕</button>';
+      document.getElementById('sepet-kupon').textContent = '−' + fiyatFmt(h.indirim);
     }
   }
-  document.getElementById('sepet-toplam').textContent = fiyatFmt(toplam - kamp.tutar - indirim + kargo);
-  SEPET_ARA_TOPLAM = toplam;
-  bedavaCubukCiz(toplam);
+  document.getElementById('sepet-toplam').textContent = fiyatFmt(h.toplam);
+  bedavaCubukCiz(h.araToplam);
   sepetOnerileriCiz(keys);
   sepetGuvenCiz();
   siparisBolgeCiz();
@@ -3183,40 +3190,123 @@ function bedavaCubukCiz(toplam){
 }
 let SEPET_ARA_TOPLAM = 0;
 
+// ---- THE ONE totals function (02.09.2026 audit) ----
+// The on-screen Toplam, the WhatsApp order text and the free-cargo bar all read
+// from here. Card payments never send an amount — the engine recomputes with the
+// same ordering and re-validates the coupon at order time — and because the
+// coupon here is re-checked against the engine on every cart change, the screen
+// and the charged amount cannot drift apart again.
+function sepetHesapla(){
+  let araToplam = 0;
+  for(const key of Object.keys(sepet)){
+    const satir = sepet[key];
+    const u = URUNLER.find(x=>x.id===satir.id); if(!u) continue;
+    araToplam += satirBirimFiyat(u, satir) * satir.adet;
+  }
+  araToplam = Math.round(araToplam*100)/100;
+  const kargo = kargoHesapla(araToplam);   // free-cargo threshold: UNdiscounted subtotal
+  const kamp = kampanyaHesapla();
+  const indirim = KUPON ? Math.min(KUPON.indirim, Math.max(0, araToplam - kamp.tutar)) : 0;
+  const toplam = Math.round((araToplam - kamp.tutar - indirim + kargo)*100)/100;
+  return { araToplam, kargo, kamp, indirim, toplam };
+}
+
 // ---- indirim kodu ----
 // Kod motorda doğrulanır; buradaki rakam sadece gösterim, sipariş anında sunucu yeniden bakar.
+// KUPON_KOD is the customer's intent (set by Uygula, cleared by "kaldır" or an
+// empty cart); KUPON is the engine's latest blessing {kod, indirim, aciklama}.
+// kuponTazele() re-asks the engine on every cart change: still valid → amount
+// refreshed; no longer valid → discount row AND the green tick leave the screen
+// with a short reason; condition met again → the discount returns by itself.
 let KUPON = JSON.parse(sessionStorage.getItem('oxerom_kupon') || 'null');
-function kuponKaldir(){ KUPON = null; sessionStorage.removeItem('oxerom_kupon'); }
+let KUPON_KOD = KUPON ? KUPON.kod : null;
+let kuponSira = 0, kuponBekleyen = null, kuponSonImza = null;
+function kuponKaydet(){
+  if(KUPON) sessionStorage.setItem('oxerom_kupon', JSON.stringify(KUPON));
+  else sessionStorage.removeItem('oxerom_kupon');
+}
+function kuponKaldir(){ KUPON = null; kuponKaydet(); }
+function kuponSifirla(){ // empty cart / "kaldır" button: clear without a trace
+  KUPON_KOD = null; kuponSonImza = null; kuponKaldir(); kuponMesaj('');
+  const kutu = document.getElementById('kupon-kod'); if(kutu) kutu.value = '';
+}
+function kuponElleKaldir(){ kuponSifirla(); sepetCiz(); }
 function kuponMesaj(metin, oldu){
   const el = document.getElementById('kupon-mesaj'); if(!el) return;
   el.hidden = !metin; el.textContent = metin || '';
   el.classList.toggle('oldu', !!oldu);
 }
+// satirlar: ürün bazlı kodlar için — motor hangi ürünler sepette görsün (23.08.2026)
+function kuponSatirlari(){
+  return Object.values(sepet).map(s=>{
+    const u = URUNLER.find(x=>x.id===s.id);
+    return { id: s.id, adet: s.adet, fiyat: u ? satisFiyati(u) + (s.fark ? RENK_FARK : 0) : 0 };
+  });
+}
+async function kuponDogrula(kod, satirlar){
+  const res = await fetch(ODEME_API + '/api/kupon-kontrol', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ kod, araToplam: SEPET_ARA_TOPLAM, satirlar }),
+  });
+  const v = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(v.hata || 'kod uygulanamadı');
+  return v;
+}
 async function kuponUygula(kod){
   const temiz = String(kod || '').trim();
   if(!temiz){ kuponMesaj('İndirim kodunu yaz.'); return; }
   kuponMesaj('Kontrol ediliyor…');
+  const sira = ++kuponSira;
+  const satirlar = kuponSatirlari();
   try{
-    // satirlar: ürün bazlı kodlar için — motor hangi ürünler sepette görsün (23.08.2026)
-    const satirlar = Object.values(sepet).map(s=>{
-      const u = URUNLER.find(x=>x.id===s.id);
-      return { id: s.id, adet: s.adet, fiyat: u ? satisFiyati(u) + (s.fark ? RENK_FARK : 0) : 0 };
-    });
-    const res = await fetch(ODEME_API + '/api/kupon-kontrol', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ kod: temiz, araToplam: SEPET_ARA_TOPLAM, satirlar }),
-    });
-    const v = await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(v.hata || 'kod uygulanamadı');
-    KUPON = { kod: v.kod, indirim: v.indirim, min_gerekli: SEPET_ARA_TOPLAM };
-    sessionStorage.setItem('oxerom_kupon', JSON.stringify(KUPON));
+    const v = await kuponDogrula(temiz, satirlar);
+    if(sira !== kuponSira) return; // a newer request/decision superseded this one
+    KUPON_KOD = v.kod;
+    KUPON = { kod: v.kod, indirim: v.indirim, aciklama: v.aciklama };
+    kuponKaydet();
+    // signature of the cart this validation was made against — if the cart
+    // changed mid-flight, the next sepetCiz sees a different signature and
+    // kuponTazele re-validates immediately
+    kuponSonImza = v.kod + '|' + JSON.stringify(satirlar);
     kuponMesaj('✓ ' + v.aciklama + ' uygulandı', true);
-    sepetCiz();
   }catch(err){
-    kuponKaldir();
-    kuponMesaj(err.message);
-    sepetCiz();
+    if(sira !== kuponSira) return;
+    KUPON_KOD = null; kuponKaldir();
+    kuponMesaj(err.message === 'Failed to fetch' ? 'Bağlantı kurulamadı — tekrar deneyin.' : err.message);
   }
+  sepetCiz();
+}
+// Re-validate the applied code against the engine whenever the cart changes.
+// Debounced (quantity buttons fire fast); a sequence number discards stale
+// responses; the signature stops re-asking for an unchanged cart (and stops
+// sepetCiz → kuponTazele → sepetCiz loops).
+function kuponTazele(){
+  if(!KUPON_KOD || !Object.keys(sepet).length) return;
+  const satirlar = kuponSatirlari();
+  const imza = KUPON_KOD + '|' + JSON.stringify(satirlar);
+  if(imza === kuponSonImza) return;
+  clearTimeout(kuponBekleyen);
+  kuponBekleyen = setTimeout(async ()=>{
+    const sira = ++kuponSira, kod = KUPON_KOD;
+    try{
+      const v = await kuponDogrula(kod, satirlar);
+      if(sira !== kuponSira || KUPON_KOD !== kod) return;
+      kuponSonImza = imza;
+      const degisti = !KUPON || KUPON.indirim !== v.indirim || KUPON.kod !== v.kod;
+      KUPON = { kod: v.kod, indirim: v.indirim, aciklama: v.aciklama };
+      kuponKaydet();
+      if(degisti){ kuponMesaj('✓ ' + v.aciklama + ' uygulandı', true); sepetCiz(); }
+    }catch(err){
+      if(sira !== kuponSira || KUPON_KOD !== kod) return;
+      kuponSonImza = imza; // don't hammer the engine for the same cart
+      const vardi = !!KUPON;
+      kuponKaldir(); // KUPON_KOD stays: if the cart meets the rule again, the discount returns
+      kuponMesaj(err.message === 'Failed to fetch'
+        ? 'İndirim kodu doğrulanamadı — bağlantıyı kontrol edip "Uygula"ya tekrar basın.'
+        : 'İndirim kaldırıldı: ' + err.message);
+      if(vardi) sepetCiz();
+    }
+  }, 250);
 }
 
 // ═══════════ ÜYELİK / OTURUM ═══════════
@@ -3896,17 +3986,14 @@ function misafirWhatsapp(){
   document.getElementById('siparis-hata').classList.remove('gorunur');
   const urunler = sepetUrunleri();
   if(!urunler.length) return;
-  let toplam = 0;
   const satirlar = urunler.map(u=>{
     const st = (u.gosterim || u.fiyat) * u.adet; // ekrandaki (bayi indirimli) fiyat
-    toplam += st;
     let s = `• ${u.ad} — ${u.adet} adet — ${fiyatFmt(st)}`;
     if(u.not) s += `\n  Not: "${u.not}"`;
     return s;
   }).join('\n');
-  const kargo = kargoHesapla(toplam);
-  const kamp = kampanyaHesapla();
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargoMetni(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
+  const h = sepetHesapla(); // same numbers the cart screen shows (02.09.2026)
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargoMetni(h.kargo)}${h.kamp.tutar?'\nKampanya ('+h.kamp.etiket+'): -'+fiyatFmt(h.kamp.tutar):''}${h.indirim?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(h.indirim):''}\nToplam: ${fiyatFmt(h.toplam)}\n\nAd Soyad: ${ad}\nAdres: ${adres}`;
   window.open('https://wa.me/905514823223?text=' + encodeURIComponent(mesaj), '_blank', 'noopener');
 }
 
@@ -3949,18 +4036,15 @@ async function siparisiOnaylaWhatsapp(){
   }catch(err){ /* kayıt düşmedi — WhatsApp'la devam */ }
   btn.disabled = false;
 
-  let toplam = 0;
   const satirlar = urunler.map(u=>{
     const st = (u.gosterim || u.fiyat) * u.adet; // ekrandaki (bayi indirimli) fiyat
-    toplam += st;
     let s = `• ${u.ad} — ${u.adet} adet — ${fiyatFmt(st)}`;
     if(u.not) s += `\n  Not: "${u.not}"`;
     return s;
   }).join('\n');
-  const kargo = kargoHesapla(toplam);
-  const kamp = kampanyaHesapla();
+  const h = sepetHesapla(); // same numbers the cart screen shows (02.09.2026)
   const k = oturum.kullanici || veri.misafir;
-  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargoMetni(kargo)}${kamp.tutar?'\nKampanya ('+kamp.etiket+'): -'+fiyatFmt(kamp.tutar):''}${KUPON?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(Math.min(KUPON.indirim,toplam)):''}\nToplam: ${fiyatFmt(toplam-kamp.tutar-(KUPON?Math.min(KUPON.indirim,toplam):0)+kargo)}`
+  const mesaj = `Merhaba, OXEROM sitesinden sipariş vermek istiyorum.\n\n${satirlar}\n\nKargo: ${kargoMetni(h.kargo)}${h.kamp.tutar?'\nKampanya ('+h.kamp.etiket+'): -'+fiyatFmt(h.kamp.tutar):''}${h.indirim?'\nIndirim ('+KUPON.kod+'): -'+fiyatFmt(h.indirim):''}\nToplam: ${fiyatFmt(h.toplam)}`
     + (sipNo ? `\nSipariş No: ${sipNo}` : '')
     + `\n\nAd Soyad: ${k.ad} ${k.soyad}\nTelefon: ${k.telefon}\nAdres: ${veri.teslimat.adres}`;
   const adres = 'https://wa.me/905514823223?text=' + encodeURIComponent(mesaj);
@@ -5698,7 +5782,7 @@ async function favorileriEsitle(){
 (function(){
   const dugme = document.getElementById('kupon-uygula'), kutu = document.getElementById('kupon-kod');
   if(!dugme || !kutu) return;
-  if(KUPON) kutu.value = KUPON.kod;
+  if(KUPON_KOD) kutu.value = KUPON_KOD;
   dugme.addEventListener('click', ()=>kuponUygula(kutu.value));
   kutu.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); kuponUygula(kutu.value); } });
 })();
