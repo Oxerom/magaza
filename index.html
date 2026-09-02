@@ -2044,6 +2044,9 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 .min-sepet a{ color:var(--nar); font-weight:700; }
 .sepet-alt{ border-top:1px solid var(--cizgi); padding:18px 22px 22px; display:flex; flex-direction:column; gap:12px; }
 .sepet-ara-satir{ display:flex; justify-content:space-between; font-size:13px; color:var(--soluk); }
+/* display:flex beats the hidden attribute — without this, a "hidden" discount/campaign
+   row stayed visible on screen (root cause of the 02.09.2026 ghost-discount finding) */
+.sepet-ara-satir[hidden]{ display:none; }
 .sepet-ara-satir small{ font-size:11px; color:var(--sisik); }
 .sepet-toplam{ display:flex; justify-content:space-between; font-size:16px; font-weight:800; }
 .siparis-form{ display:flex; flex-direction:column; gap:8px; }
