@@ -2248,8 +2248,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
           <span class="favori-kalp" aria-hidden="true">♥</span> <span class="metin">Favorilerim</span>
           <span class="sepet-rozet num" id="favori-rozet" hidden>0</span>
         </button>
-        <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button" aria-label="Hesap">
-          👤 <span class="metin" id="hesap-dugme-metin">Giriş yap / Üye ol</span>
+        <button class="sepet-dugme hesap-dugme" id="hesap-ac" type="button" aria-label="Giriş yap">
+          👤 <span class="metin" id="hesap-dugme-metin">Giriş yap</span>
         </button>
         <button class="sepet-dugme hesap-dugme" id="toptan-ust" type="button" aria-label="Toptan Satış">
           📦 <span class="metin">Toptan Satış</span>
@@ -3320,8 +3320,11 @@ function oturumKaydet(){
   hesapDugmeGuncelle();
 }
 function hesapDugmeGuncelle(){
-  document.getElementById('hesap-dugme-metin').textContent =
-    oturum.kullanici ? oturum.kullanici.ad : 'Giriş yap / Üye ol';
+  // Emre's decision 03.09.2026: guest sees "Giriş yap", logged-in sees "Hesabım".
+  // (Replaced both the old static text and the earlier first-name display.)
+  const metin = oturum.kullanici ? 'Hesabım' : 'Giriş yap';
+  document.getElementById('hesap-dugme-metin').textContent = metin;
+  document.getElementById('hesap-ac').setAttribute('aria-label', metin);
 }
 async function apiIstek(yol, govde, metod){
   return fetch(ODEME_API + yol, {
@@ -3393,6 +3396,9 @@ function hesapCiz(gorunum){
   }else{
     hesabimCiz('siparislerim');
   }
+  // In-page view switches (giris ↔ kayit, post-login) change the H1 without
+  // passing through sayfaGoster — keep the tab title in step (03.09.2026).
+  if(document.body.dataset.sayfa === 'hesap') sekmeBasligi('hesap');
 }
 
 async function girisYap(){
@@ -4830,8 +4836,28 @@ function sayfaGoster(ad){
   const toptanBag = document.querySelector('.kat-toptan');
   if(toptanBag) toptanBag.classList.toggle('aktif', ad === 'toptan');
   const altC = document.getElementById('detay-alt'); if(altC && ad !== 'urun') altC.hidden = true;
-  if(ad !== 'urun') document.title = 'OXEROM';
+  if(ad !== 'urun') sekmeBasligi(ad);
   window.scrollTo({top:0, behavior:'instant'});
+}
+// Browser-tab title follows the page (Emre, 03.09.2026): a customer with several
+// tabs open can tell them apart; back/forward also lands here via yolCoz →
+// sayfaGoster. Product pages write their own title (product name) in detayAc;
+// the home catalog stays plain "OXEROM".
+function sekmeBasligi(ad){
+  const adlar = {
+    sepet: 'Sepetim',
+    takip: 'Siparişim nerede?',
+    promosyon: 'Promosyon & Kurumsal Baskı',
+    toptan: 'Toptan Satış',
+  };
+  let b = adlar[ad] || '';
+  // The account page has several faces (Giriş yap / Üye ol / Hesabım / Yeni şifre
+  // belirle) — its own H1 is always correct, so the tab mirrors it.
+  if(ad === 'hesap'){
+    const h1 = document.getElementById('hesap-baslik');
+    b = h1 ? h1.textContent : 'Hesabım';
+  }
+  document.title = b ? b + ' — OXEROM' : 'OXEROM';
 }
 function katalogaDon(){
   // Ürün/sepet sayfasından katalog'a: arama açıksa adres #ara=... olur, değilse temizlenir
