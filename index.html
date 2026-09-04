@@ -1099,7 +1099,9 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
   overflow:hidden; min-height:2.8em;
   transition:color .2s;
 }
-.urun:hover .urun-ad{ color:var(--nar); }
+/* Sadece gerçek fare üzerindeyken kızarır (03.09.2026 denetimi): dokunmatikte
+   tıklama "yapışkan hover" bırakıyor, son bakılan kartın adı kırmızı kalıyordu. */
+@media (hover:hover){ .urun:hover .urun-ad{ color:var(--nar); } }
 
 /* Not: "atölye notu" kağıtları 22.08.2026'da Emre'nin kararıyla tamamen kaldırıldı. */
 /* wrap ŞART (29.08.2026): 320px telefonda fiyat + üstü çizili eski fiyat kartın
@@ -1343,7 +1345,7 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 .fis-satir .nk{ flex:1 1 auto; border-bottom:1px dotted var(--cizgi-koyu); transform:translateY(-4px); min-width:14px; }
 .fis-satir .sag{ color:var(--sisik); font-size:12.5px; letter-spacing:.02em; flex:none; }
 .fis-satir a{ transition:color .18s; }
-.fis-satir:hover a{ color:var(--nar); }
+@media (hover:hover){ .fis-satir:hover a{ color:var(--nar); } } /* dokunmatikte yapışkan hover kızarması olmasın (03.09.2026) */
 
 .fis-alt{
   margin-top:26px; padding-top:20px; border-top:1px solid var(--cizgi);
@@ -1485,6 +1487,8 @@ html{ scroll-behavior:smooth; }
 }
 .arama-temizle.gorunur{ display:flex; }
 .arama-temizle:hover{ background:var(--panel); color:var(--murekkep); }
+/* Tarayıcının kendi ✕'i gizlenir — kutuda çift ✕ görünüyordu (03.09.2026 denetimi) */
+.arama-girdi::-webkit-search-cancel-button{ -webkit-appearance:none; appearance:none; display:none; }
 .ust-eylem{ display:flex; align-items:center; gap:8px; }
 .sepet-dugme{
   flex:none; display:flex; align-items:center; gap:9px; border:0; background:var(--murekkep); color:var(--kagit);
@@ -1606,11 +1610,15 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .sayac-serit{ font-size:13px; color:#8A4B00; background:#FFF3E4; border:1px solid #F2DCC0; border-radius:10px; padding:8px 12px; margin:0 0 12px; }
 .sayac-serit .geri-sayim{ font-variant-numeric:tabular-nums; }
 .ty-satir{ font-size:11px; color:var(--sisik); display:flex; align-items:center; gap:4px; }
+/* Tek "Sepete ekle" stili (03.09.2026 denetimi): kartlardaki açık bej düğme,
+   öne çıkanlardaki koyu dolgulu stille (.sepet-d) birleştirildi — iki ayrı
+   düğme görünümü siteyi iki elden çıkmış gösteriyordu. */
 .sepet-ekle{
-  border:0; background:var(--panel-2); color:var(--murekkep); padding:9px 10px; border-radius:var(--r-s);
+  border:0; background:var(--murekkep); color:#F2E6DB; padding:9px 10px; border-radius:var(--r-s);
   font-weight:600; font-size:12.5px; cursor:pointer; margin-top:2px;
+  transition:background .22s var(--e-cik);
 }
-.sepet-ekle:hover{ background:var(--cizgi-koyu); }
+.sepet-ekle:hover{ background:var(--nar); }
 .sepet-ekle.eklendi{ background:var(--zeytin); color:#fff; }
 
 /* ---- sayfalama ---- */
@@ -1669,6 +1677,10 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .detay-galeri img{ width:52px; height:52px; object-fit:cover; border-radius:8px; border:2px solid transparent; cursor:pointer; flex:0 0 auto; }
 .detay-galeri img.secili{ border-color:var(--nar); }
 .detay-bolumler{ display:flex; flex-direction:column; border-top:1px solid var(--cizgi); margin-top:4px; }
+/* Açıklama/özellik/yorum bölümleri iki sütunun ALTINA tam genişlik alınır
+   (03.09.2026 denetimi): açıklama sağda uzadıkça sol sütun boş sarkıyordu. */
+.detay > .detay-bolumler{ grid-column:1 / -1; margin-top:0; padding:4px 32px 26px; }
+@media (max-width:640px){ .detay > .detay-bolumler{ padding:4px 20px 22px; } }
 .detay-bolum{ border-bottom:1px solid var(--cizgi); }
 .detay-bolum summary{
   cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between;
@@ -1727,6 +1739,23 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
 .renk-d{ font:inherit; font-size:12.5px; padding:5px 11px; border-radius:999px; border:1px solid var(--cizgi); background:var(--yuzey); color:var(--murekkep); cursor:pointer; }
 .renk-d.secili{ border-color:var(--nar); background:color-mix(in srgb, var(--nar) 10%, transparent); font-weight:700; }
 .renk-diger{ border-style:dashed; }
+/* Katalog kartındaki küçük renk noktaları (03.09.2026): renk seçeneği tıklamadan görünsün */
+.renk-noktalar{ display:flex; gap:4px; align-items:center; margin:2px 0 0; }
+.renk-noktalar i{ width:10px; height:10px; border-radius:50%; border:1px solid rgba(0,0,0,.18); flex:0 0 auto; }
+/* Dosya seçme düğmesi site stilinde (03.09.2026 denetimi): tarayıcının çıplak
+   varsayılanı diğer düğmelerle uyumsuz duruyordu. */
+.talep-form input[type="file"]{ font-size:12.5px; color:var(--soluk); }
+.talep-form input[type="file"]::file-selector-button{
+  font:inherit; font-size:12.5px; font-weight:600; color:var(--murekkep);
+  background:var(--panel-2); border:1px solid var(--cizgi-koyu); border-radius:var(--r-s);
+  padding:8px 14px; margin-right:10px; cursor:pointer;
+}
+.talep-form input[type="file"]::file-selector-button:hover{ background:var(--cizgi-koyu); }
+.talep-form input[type="file"]::-webkit-file-upload-button{
+  font:inherit; font-size:12.5px; font-weight:600; color:var(--murekkep);
+  background:var(--panel-2); border:1px solid var(--cizgi-koyu); border-radius:var(--r-s);
+  padding:8px 14px; margin-right:10px; cursor:pointer;
+}
 #talep-renk-diger{ font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--cizgi); border-radius:8px; background:var(--yuzey); color:var(--murekkep); max-width:260px; }
 .ozellik-tablo{ border-collapse:collapse; width:100%; font-size:12.5px; }
 .ozellik-tablo th{ text-align:left; font-weight:700; color:var(--murekkep); padding:6px 10px 6px 0; width:36%; vertical-align:top; border-bottom:1px solid var(--cizgi); }
@@ -1747,7 +1776,15 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
    sayfalarda aynen durur; iki seçici de aynı işi görür (~ eski tarayıcı yedeği). */
 #sayfa-sepet:not([hidden]) ~ .wa-balon,
 body:has(#sayfa-sepet:not([hidden])) .wa-balon{ display:none; }
+/* Hesap/takip/toptan sayfalarının altında ana sayfanın STL bölümü tekrar
+   etmesin (03.09.2026 denetimi) — dipnot durur, sadece talep bölümü gizlenir. */
+body[data-sayfa="hesap"] #ozel-baski,
+body[data-sayfa="takip"] #ozel-baski,
+body[data-sayfa="toptan"] #ozel-baski{ display:none; }
 @media (max-width:640px){ .wa-balon span{ display:none; } .wa-balon{ padding:12px; right:14px; bottom:14px; } }
+/* Dipnot görünürken balon gizlenir (03.09.2026 denetimi): balon dipnottaki
+   "STL yükle" bağlantısının üstüne biniyordu; dipnotta zaten WhatsApp satırı var. */
+.wa-balon.dipte{ display:none; }
 /* ---- Nozul maskot (23.08.2026): sol kenarda dikey ortada, gözleri ve gövdesiyle
    fareyi izler; fare 3 sn durursa kendi bakınır (telefon da böyle). Tıklayınca
    yol gösteren balon açılır. Görsel Emre'nin ürettiği render (maskot.webp). ---- */
@@ -2452,7 +2489,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
     </div>
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">↩️</span>
-      <div><b>14 gün iade hakkı</b><span>Kullanılmamış, ambalajı bozulmamış ürünlerde. <a href="yasal/iade.html">Koşullar</a></span></div>
+      <div><b>14 gün iade hakkı</b><span>Kullanılmamış, ambalajı bozulmamış ürünlerde. <a href="yasal/iade.html" target="_blank" rel="noopener">Koşullar</a></span></div>
     </div>
     <a class="guven-kart guven-link" href="hakkimizda.html">
       <span class="guven-ikon" aria-hidden="true">🛠️</span>
@@ -2605,7 +2642,6 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
           yoksa sonra da yollayabilirsiniz.</p>
         <ul class="promo-liste">
           <li>Fiyat ürüne ve adede göre değişir</li>
-          <li>Numune yapılabilir</li>
           <li>Faturalı gönderim</li>
         </ul>
       </div>
@@ -2751,9 +2787,11 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       <span class="sag">
         <a href="hakkimizda.html">Hakkımızda</a>
         <a href="sss.html">SSS</a>
-        <a href="yasal/gizlilik.html">Gizlilik</a>
-        <a href="yasal/mesafeli-satis.html">Mesafeli satış</a>
-        <a href="yasal/iade.html">Teslimat ve iade</a>
+        <!-- Yasal sayfalar yeni sekmede (03.09.2026 denetimi): aynı sekmede açılınca
+             "Mağazaya dön" müşteriyi sepetten koparıp açılış perdesine atıyordu. -->
+        <a href="yasal/gizlilik.html" target="_blank" rel="noopener">Gizlilik</a>
+        <a href="yasal/mesafeli-satis.html" target="_blank" rel="noopener">Mesafeli satış</a>
+        <a href="yasal/iade.html" target="_blank" rel="noopener">Teslimat ve iade</a>
       </span>
     </div>
   </div>
@@ -2897,8 +2935,21 @@ function urunRengi(u){
   const esit = a=>liste.find(r=>r.toLocaleLowerCase('tr') === String(a||'').toLocaleLowerCase('tr'));
   const elle = esit(u.renk);
   if(elle) return elle;
+  // Başlık taraması TAM AD eşleşmesi yapar (03.09.2026 denetimi): parça eşleşmesi
+  // "Sarı-Siyah" başlıklı üründe "Siyah"ı ücretsiz seçiyordu. Uzun ad önce denenir;
+  // eşleşmenin önünde/arkasında harf ya da tire varsa (birleşik renk adının parçası)
+  // sayılmaz. Kural: ürünün KENDİ rengi ücretsiz — kendi rengi bileşik adlıysa
+  // panelde "Rengi" kutusundan seçilmeli (u.renk), başlıktan tahmin edilmez.
   const t = String(u.t || '').toLocaleLowerCase('tr');
-  for(const r of liste) if(t.includes(r.toLocaleLowerCase('tr'))) return r;
+  const harfMi = c=>!!c && /[0-9a-zçğıöşüâîû-]/.test(c);
+  for(const r of liste.slice().sort((a,b)=>b.length-a.length)){
+    const k = r.toLocaleLowerCase('tr');
+    let i = t.indexOf(k);
+    while(i !== -1){
+      if(!harfMi(t[i-1]) && !harfMi(t[i+k.length])) return r;
+      i = t.indexOf(k, i+1);
+    }
+  }
   return liste[0] || '';
 }
 // Sepet satırının birim fiyatı: ürün fiyatı + (standart dışı renk seçildiyse renk farkı)
@@ -2961,6 +3012,10 @@ function duyuruYaz(){
   if(kl) kl.textContent = bayiOrani() ? '(alıcıya ait — karşı ödemeli)'
     : BEDAVA_ESIK > 0 ? '(' + fiyatFmt(BEDAVA_ESIK).replace(',00','') + ' üzeri bedava)' : '(sabit)';
 }
+// Kargo vaadi kendini tazeler (03.09.2026 denetimi): açık kalan sekme 18:00'ı ya da
+// gün dönümünü geçince "Yarın Kargoda" bayatlayıp yanlış vaade dönüşüyordu.
+// kargoGunu() pazarı zaten atlar — cumartesi "Pazartesi Kargoda" yazar.
+setInterval(duyuruYaz, 60000);
 // Onaylı toptan bayi tüm ürünlerde ek indirim görür (Emre'nin kararı: %25, tek oran).
 // Rakam motordan gelir; onay yoksa 0 döner, yani bekleyen başvuru bayi fiyatı GÖRMEZ.
 function bayiOrani(){
@@ -3074,6 +3129,7 @@ function sepetCiz(){
     const bosKupon = document.getElementById('kupon-satir'); if(bosKupon) bosKupon.hidden = true;
     const bosKamp = document.getElementById('kampanya-satir'); if(bosKamp) bosKamp.hidden = true;
     SEPET_ARA_TOPLAM = 0;
+    bedavaCubukCiz(0); // boş sepette çubuk bayat kalmasın
     siparisBolgeCiz();
     return;
   }
@@ -3181,11 +3237,13 @@ function sepetOnerileriCiz(keys){
   kutu.querySelectorAll('.urun').forEach(el=>{ el.addEventListener('click', ()=> detayAc(parseInt(el.dataset.id))); });
   kutu.querySelectorAll('.sepet-ekle').forEach(btn=>{ btn.addEventListener('click', e=>{ e.stopPropagation(); const id=parseInt(btn.dataset.id); const x=URUNLER.find(y=>y.id===id); if(x&&x.kisisel){ detayAc(id); return; } sepeteEkle(id,1); }); });
 }
-// "Ücretsiz kargoya X TL kaldı" çubuğu — asgari sepet geçildikten sonra, eşiğe kadar
+// "Ücretsiz kargoya X TL kaldı" çubuğu — dolu sepette hep görünür (03.09.2026
+// denetimi: eskiden asgari 250 geçilmeden çıkmıyordu, müşteri bedava kargo
+// eşiğini sepette hiç görmüyordu).
 function bedavaCubukCiz(toplam){
   const el = document.getElementById('bedava-cubuk'); if(!el) return;
   // Dealer mode: cargo is the buyer's — the free-cargo progress bar makes no sense
-  if(bayiOrani() || !(BEDAVA_ESIK > 0) || toplam < MIN_SEPET){ el.hidden = true; return; }
+  if(bayiOrani() || !(BEDAVA_ESIK > 0) || !(toplam > 0)){ el.hidden = true; return; }
   el.hidden = false;
   if(toplam >= BEDAVA_ESIK){ el.innerHTML = '<b>🎉 Kargo bedava!</b>'; return; }
   const kalan = BEDAVA_ESIK - toplam, yuzde = Math.min(100, Math.round(toplam / BEDAVA_ESIK * 100));
@@ -4191,13 +4249,22 @@ function markaSeridiCiz(){
   });
 }
 
+// Aksan duyarsız arama (03.09.2026 denetimi): "cakmak" da "çakmak"ı bulsun —
+// telefon/İngilizce klavyede ç-ş-ğ-ı-ö-ü yazmayan müşteri ürünü "yok" sanıyordu.
+// Her harf tek karaktere iner, uzunluk değişmez (vurgulama aynı konumu kullanabilir).
+function aramaDuz(s){
+  return String(s||'').toLocaleLowerCase('tr-TR')
+    .replace(/ç/g,'c').replace(/ş/g,'s').replace(/ğ/g,'g')
+    .replace(/ı/g,'i').replace(/î/g,'i').replace(/ö/g,'o')
+    .replace(/ü/g,'u').replace(/û/g,'u').replace(/â/g,'a');
+}
 function filtreliListe(){
   const q = state.q.trim();
   let l = URUNLER;
   if(q){
     // arama her zaman TÜM sitede arar — seçili kategori aramayı daraltmaz
-    const qq = q.toLocaleLowerCase('tr-TR');
-    l = l.filter(x=>x.t.toLocaleLowerCase('tr-TR').includes(qq) || x.cat.toLocaleLowerCase('tr-TR').includes(qq));
+    const qq = aramaDuz(q);
+    l = l.filter(x=>aramaDuz(x.t).includes(qq) || aramaDuz(x.cat).includes(qq));
   } else if(state.instagram){
     // Instagram'da paylaşılanlar (#instagram): panelde basılan paylaşım damgasına
     // göre, en son paylaşılan en üstte — bio linkinden gelen müşteri için (21.08.2026)
@@ -4231,6 +4298,26 @@ function filtreliListe(){
   return l;
 }
 
+// Kart üstünde küçük renk noktaları (03.09.2026 denetimi): ürünün renk seçenekleri
+// tıklamadan görünsün. Tanınmayan renk adı nokta ÜRETMEZ (uydurma renk basılmaz);
+// "Sarı-Siyah" gibi bileşik adlar iki yarım daire olarak çizilir.
+const RENK_KODU = { siyah:'#26221F', beyaz:'#F3EFE9', 'kırmızı':'#9C2F33', kirmizi:'#9C2F33',
+  gri:'#8A857F', mavi:'#2B4C7E', 'yeşil':'#2F6B45', yesil:'#2F6B45', 'sarı':'#D8A72C', sari:'#D8A72C',
+  turuncu:'#C96A20', mor:'#5C3B7E', pembe:'#C26A8C', lacivert:'#1F2A44', kahverengi:'#5C4433',
+  bej:'#D9C6A5', 'altın':'#B9922F', 'gümüş':'#B9B4AE', 'şeffaf':'#DCD8D2', seffaf:'#DCD8D2' };
+function renkKodu(ad){
+  const par = String(ad||'').toLocaleLowerCase('tr').split(/[-\/]/).map(x=>x.trim());
+  const k = par.map(x=>RENK_KODU[x]).filter(Boolean);
+  if(!k.length) return null;
+  return k.length === 1 ? k[0] : `linear-gradient(90deg, ${k[0]} 50%, ${k[1]} 50%)`;
+}
+function renkNoktalariHtml(u){
+  if(!RENK_ACIK || u.kisisel) return '';
+  const n = urunRenkListesi(u).map(r=>({ r, k: renkKodu(r) })).filter(x=>x.k).slice(0, 6);
+  if(n.length < 2) return '';
+  return `<div class="renk-noktalar" aria-label="Renk seçenekleri: ${escHtml(n.map(x=>x.r).join(', '))}">`
+    + n.map(x=>`<i style="background:${x.k}" title="${escHtml(x.r)}"></i>`).join('') + '</div>';
+}
 function urunKarti(u){
   const rozetIc = (u.new ? '<span class="urun-rozet">Yeni</span>' : '')
     + (u.kisisel ? '<span class="urun-rozet ozel">✎ Kişiye Özel</span>' : '');
@@ -4251,6 +4338,7 @@ function urunKarti(u){
       <h3 class="urun-ad">${escHtml(u.t)}</h3>
       ${yildiz}
       <div class="urun-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s></div>
+      ${renkNoktalariHtml(u)}
       ${ty}
       <button class="sepet-ekle" type="button" data-id="${u.id}">Sepete ekle</button>
     </div>
@@ -4380,6 +4468,19 @@ function hediyeSeridiCiz(){
 
 // ---- ürün detay ----
 let KAPALI_URUNLER = [];
+// Açık ürünün kategori sekmesi + arama kutusu temizliği (03.09.2026 denetimi):
+// doğrudan linkle ya da aramadan açılan üründe üst menü izi ve eski arama
+// kelimesi yanlış kalıyordu. state.q korunur — "Alışverişe dön" aramayı geri getirir.
+let DETAY_GRUP = '';
+function detayUstBarDuzelt(u){
+  DETAY_GRUP = u.kisisel ? 'kisisel' : (u.g || '');
+  const g = document.getElementById('arama');
+  if(g && g.value){
+    g.value = '';
+    const tz = document.getElementById('arama-temizle'); if(tz) tz.classList.remove('gorunur');
+  }
+  if(typeof aramaOneriKapat === 'function') aramaOneriKapat();
+}
 // Satışı kapalı ürün sayfası: telefon bırakılır, stok gelince Emre WhatsApp'tan yazar
 function kapaliDetayAc(u){
   document.getElementById('detay-govde').innerHTML = `
@@ -4413,6 +4514,7 @@ function kapaliDetayAc(u){
     }
   };
   benzerleriCiz(u);
+  detayUstBarDuzelt(u);
   sayfaGoster('urun');
   document.title = u.t + ' — OXEROM';
   const alt = document.getElementById('detay-alt'); if(alt) alt.hidden = true;
@@ -4477,7 +4579,7 @@ function detayAc(id){
       <div class="detay-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
         <span class="indirim-rozet">%${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} indirim</span></div>
       <div class="fiyat-sayac">⏳ Bugünkü indirimli fiyat gece <b>00:00</b>'a kadar geçerli — kalan <b class="geri-sayim num">--:--:--</b></div>
-      <div class="detay-kargo">📦 ${kargoCumlesi()}</div>
+      <div class="detay-kargo">📦 ${kargoCumlesi()}${bayiOrani() ? '' : ` · Kargo ${fiyatFmt(KARGO_UCRET)}${BEDAVA_ESIK > 0 ? ` — ${fiyatFmt(BEDAVA_ESIK)} üzeri bedava` : ''}`}</div>
       <button class="favori-dugme detay-favori ${favoriMi(u.id)?'dolu':''}" type="button" data-favori="${u.id}">${favoriMi(u.id)?'♥ Favorilerimde':'♡ Favorilerime ekle'}</button>
       <div class="paylas">
         <span class="paylas-etiket">Paylaş:</span>
@@ -4499,7 +4601,10 @@ function detayAc(id){
       <p class="detay-guven">🖨️ Yıllardır kendi aile atölyemizde basıyoruz — tasarımı, baskısı ve paketi bize ait.
         <a href="hakkimizda.html">Bizi tanıyın</a></p>
       ${ty}
-      <div class="detay-bolumler">
+    </div>
+    <!-- Açıklama/özellik/yorum bölümleri iki sütunun altında TAM genişlik
+         (03.09.2026 denetimi): sağ sütunda uzadıkça sol sütun boş sarkıyordu. -->
+    <div class="detay-bolumler">
         <details class="detay-bolum" open>
           <summary>Ürün açıklaması</summary>
           <div class="detay-bolum-icerik" id="detay-aciklama">Yükleniyor…</div>
@@ -4525,7 +4630,6 @@ function detayAc(id){
           <summary>Yorumlar <span class="yorum-sayi" id="detay-yorum-sayi"></span></summary>
           <div class="detay-bolum-icerik" id="detay-yorumlar">Yükleniyor…</div>
         </details>
-      </div>
     </div>`;
   urunAciklamaYukle(u.id);
   galeriYukle(u.id);
@@ -4711,6 +4815,7 @@ function detayAc(id){
       document.getElementById('detay-sepet-ekle').insertAdjacentElement('afterend', git);
     }
   };
+  detayUstBarDuzelt(u);
   sayfaGoster('urun');
   document.title = u.t + ' — OXEROM';
   // alt çubuk (telefon): aynı düğmeyi tetikler — renk/yazı/onay kontrolleri tek yerde kalsın
@@ -4810,6 +4915,11 @@ async function ozellikleriYukle(u){
 // ═══════════ SAYFA YÖNLENDİRİCİ ═══════════
 // Üç tam sayfa görünüm: katalog (varsayılan) · ürün (#u123) · sepet (#sepet).
 // Adres çubuğu her zaman doğru sayfayı söyler; geri tuşu ve paylaşılan link çalışır.
+// Perde açılışı bir kez oynar (03.09.2026 denetimi): yasal sayfadaki "Mağazaya dön"
+// gibi site İÇİNDEN gelen bir dönüşte müşteri perdeyi baştan kaydırmak zorunda
+// kalmasın. Dışarıdan gelen ilk ziyarette perde aynen oynar.
+let PERDE_ATLA = false;
+try{ PERDE_ATLA = !!document.referrer && new URL(document.referrer).origin === location.origin; }catch(_){ }
 function sayfaGoster(ad){
   // Maskot sepet sayfasında gizlenir (26.08.2026): dar ekranlarda sol alta indiği
   // için öneri kartlarının ve Sepete ekle düğmesinin üstüne biniyordu — CSS
@@ -4817,7 +4927,7 @@ function sayfaGoster(ad){
   document.body.dataset.sayfa = ad;
   // Perde açılışı sadece katalogda; ürün/sepet sayfası perdesiz, üstten başlar
   const perde = document.querySelector('.sahneDis');
-  if(perde) perde.hidden = ad !== 'katalog';
+  if(perde) perde.hidden = ad !== 'katalog' || PERDE_ATLA;
   document.getElementById('sayfa-katalog').hidden = ad !== 'katalog';
   document.getElementById('sayfa-urun').hidden    = ad !== 'urun';
   document.getElementById('sayfa-sepet').hidden   = ad !== 'sepet';
@@ -4830,7 +4940,11 @@ function sayfaGoster(ad){
   if(promoBag){
     promoBag.classList.toggle('aktif', ad === 'promosyon');
     document.querySelectorAll('.kat-bag[data-grup]').forEach(x=>{
-      x.classList.toggle('aktif', ad !== 'promosyon' && ad !== 'toptan' && x.dataset.grup === state.grup);
+      // Ürün sayfasında ürünün KENDİ kategorisi işaretli durur (03.09.2026 denetimi):
+      // son gezilen kategori (state.grup) bayat kalıyordu.
+      x.classList.toggle('aktif', ad === 'urun'
+        ? x.dataset.grup === DETAY_GRUP
+        : ad !== 'promosyon' && ad !== 'toptan' && x.dataset.grup === state.grup);
     });
   }
   const toptanBag = document.querySelector('.kat-toptan');
@@ -4866,6 +4980,13 @@ function katalogaDon(){
     if(location.hash !== '#ara=' + encodeURIComponent(q)) history.pushState(null, '', '#ara=' + encodeURIComponent(q));
   }else if(location.hash && location.hash !== '#katalog'){
     history.pushState(null, '', location.pathname + location.search);
+  }
+  // Ürün sayfasında temizlenen arama kutusu katalogda geri gelir (03.09.2026):
+  // sonuç listesi state.q ile süzülü — kutu da aynı kelimeyi göstermeli.
+  const ag = document.getElementById('arama');
+  if(ag && ag.value !== q){
+    ag.value = q;
+    const tz = document.getElementById('arama-temizle'); if(tz) tz.classList.toggle('gorunur', !!q);
   }
   sayfaGoster('katalog');
   document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
@@ -5092,6 +5213,10 @@ async function yorumlariYukle(id){
     const tumPuan = yorumlar.concat(tyYorum);
     const ort = tumPuan.reduce((t,y)=>t+y.puan,0) / tumPuan.length;
     if(sayiEl) sayiEl.textContent = `(${hepsi}) ${yildizlar(Math.round(ort))}`;
+    // Yorumu olan üründe bölüm kapalı gelmesin (03.09.2026 denetimi) — gerçek
+    // yorum en güçlü satış aracı, müşteri açmadan fark etmiyordu.
+    const bolum = document.getElementById('detay-yorum-bolum');
+    if(bolum) bolum.open = true;
     icerik = yorumlar.map(y=>`
       <div class="yorum">
         <div class="yorum-bas"><b>${escHtml(y.ad)}</b><span class="yorum-puan">${yildizlar(y.puan)}</span></div>
@@ -5189,12 +5314,12 @@ function aramaOneriKapat(){ aramaOneri.hidden = true; aramaOneri.innerHTML = '';
 function aramaOneriCiz(){
   const q = aramaGirdi.value.trim();
   if(q.length < 2 || document.activeElement !== aramaGirdi){ aramaOneriKapat(); return; }
-  const qq = q.toLocaleLowerCase('tr-TR');
-  const urunler = URUNLER.filter(x=>x.t.toLocaleLowerCase('tr-TR').includes(qq)).slice(0, 6);
-  const gruplar = GRUPLAR.filter(g=>g.name.toLocaleLowerCase('tr-TR').includes(qq)).slice(0, 3);
-  const markalar = [...new Set(URUNLER.filter(x=>x.m && x.m.toLocaleLowerCase('tr-TR').includes(qq)).map(x=>x.m))].slice(0, 3);
+  const qq = aramaDuz(q); // aksan duyarsız (03.09.2026) — filtreliListe ile aynı kural
+  const urunler = URUNLER.filter(x=>aramaDuz(x.t).includes(qq)).slice(0, 6);
+  const gruplar = GRUPLAR.filter(g=>aramaDuz(g.name).includes(qq)).slice(0, 3);
+  const markalar = [...new Set(URUNLER.filter(x=>x.m && aramaDuz(x.m).includes(qq)).map(x=>x.m))].slice(0, 3);
   if(!urunler.length && !gruplar.length && !markalar.length){ aramaOneriKapat(); return; }
-  const vurgula = t=>{ const i = t.toLocaleLowerCase('tr-TR').indexOf(qq); return i < 0 ? escHtml(t) : escHtml(t.slice(0,i)) + '<mark>' + escHtml(t.slice(i, i+q.length)) + '</mark>' + escHtml(t.slice(i+q.length)); };
+  const vurgula = t=>{ const i = aramaDuz(t).indexOf(qq); return i < 0 ? escHtml(t) : escHtml(t.slice(0,i)) + '<mark>' + escHtml(t.slice(i, i+q.length)) + '</mark>' + escHtml(t.slice(i+q.length)); };
   aramaOneri.innerHTML =
     (gruplar.length || markalar.length ? '<div class="oneri-grup">' +
       gruplar.map(g=>`<button type="button" class="oneri-etiket" data-grup="${escHtml(g.slug)}">📂 ${vurgula(g.name)}</button>`).join('') +
@@ -5228,8 +5353,14 @@ aramaTemizle.addEventListener('click', ()=>{
 function fisKategorilerCiz(){
   const el = document.getElementById('fis-kategoriler');
   if(!el) return;
-  el.innerHTML = GRUPLAR.map(g=>
-    `<li class="fis-satir"><a href="#katalog">${escHtml(g.name)}</a><span class="nk"></span><span class="sag num">${g.n}</span></li>`
+  // Kişiye Özel Ürünler de listede (03.09.2026 denetimi) — grup değil süzgeç
+  // olduğu için GRUPLAR'da yoktu. Bağlar #kategori=... açar: tıklayan gerçekten
+  // o kategoriye gider (eskiden hepsi sadece kataloğa kaydırıyordu).
+  const kisiselN = URUNLER.filter(u=>u.kisisel).length;
+  const satirlar = GRUPLAR.map(g=>({ slug: g.slug, ad: g.name, n: g.n }));
+  if(kisiselN) satirlar.push({ slug: 'kisisel', ad: 'Kişiye Özel Ürünler', n: kisiselN });
+  el.innerHTML = satirlar.map(s=>
+    `<li class="fis-satir"><a href="#kategori=${escHtml(s.slug)}">${escHtml(s.ad)}</a><span class="nk"></span><span class="sag num">${s.n}</span></li>`
   ).join('');
 }
 
@@ -5785,6 +5916,12 @@ document.getElementById('favori-ac').addEventListener('click', ()=>{
   state.koleksiyon = '';
   state.instagram = false;
   state.sayfa = 1;
+  // Arama açıkken düğme "bozuk" görünüyordu (03.09.2026 denetimi): arama süzgeci
+  // favori süzgecini eziyordu — favoriler açılırken arama kapatılır.
+  state.q = '';
+  aramaGirdi.value = '';
+  aramaTemizle.classList.remove('gorunur');
+  aramaOneriKapat();
   cizHepsi();
   if(document.getElementById('sayfa-katalog').hidden) katalogaDon();
   document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
@@ -5889,6 +6026,19 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   document.getElementById('izgara').innerHTML =
     '<p style="padding:40px;color:#6E6058">Ürünler yüklenemedi — lütfen sayfayı yenileyin.</p>';
 });
+
+// ---- WhatsApp balonu dipnota binmesin (03.09.2026 denetimi): dipnot ekrana
+//      girince balon gizlenir — "STL yükle" satırı açıkta kalır, WhatsApp'a
+//      ulaşmak isteyen dipnottaki satırı zaten görür. ----
+(function(){
+  const balon = document.querySelector('.wa-balon');
+  const dip = document.querySelector('footer.dip');
+  if(!balon || !dip || !('IntersectionObserver' in window)) return;
+  // rootMargin: dipnot alttan ~110px içeri girince (balonun kapladığı bölge) tetiklenir
+  new IntersectionObserver(girisler=>{
+    girisler.forEach(g=> balon.classList.toggle('dipte', g.isIntersecting));
+  }, { rootMargin: '0px 0px -110px 0px' }).observe(dip);
+})();
 
 // ---- Nozul maskot: TEK işi gözleri ve gövdesiyle fareyi izlemek (Emre, 23.08.2026).
 //      Tıklama/balon bilerek yok. Fare 3 sn durursa (ve telefonda) kendi bakınır. ----
