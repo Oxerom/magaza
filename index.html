@@ -1006,6 +1006,26 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 .serit-yatay::-webkit-scrollbar{ height:6px; }
 .serit-yatay::-webkit-scrollbar-thumb{ background:var(--cizgi-koyu); border-radius:3px; }
 .serit-yatay .urun{ flex:0 0 228px; scroll-snap-align:start; }
+/* Kaydırma ipucu (05.09.2026 derin tur): sağdaki kart yarım kesik duruyor ama
+   müşteri yana kaydırılabildiğini anlamıyordu. Sağ kenarda hafif geçiş + küçük ok;
+   şeridin sonuna gelince ya da kaydıracak bir şey yoksa ikisi de söner.
+   Sarmalayıcıyı JS kurar (seritIpucuKur) — HTML'e iki ayrı yere elle yazılmaz. */
+.serit-sarma{ position:relative; }
+.serit-sarma::after{
+  content:""; position:absolute; top:0; right:0; bottom:14px; width:66px; pointer-events:none;
+  background:linear-gradient(90deg, rgba(252,248,244,0) 0%, rgba(252,248,244,.90) 62%, var(--kagit) 100%);
+  opacity:1; transition:opacity .25s ease;
+}
+.serit-ok{
+  position:absolute; right:8px; top:50%; margin-top:-23px; width:34px; height:34px;
+  display:flex; align-items:center; justify-content:center; padding:0;
+  border:1px solid var(--cizgi); border-radius:100px; background:var(--yuzey);
+  color:var(--soluk); font-size:21px; line-height:1; cursor:pointer;
+  box-shadow:0 3px 10px rgba(0,0,0,.10); opacity:1;
+  transition:opacity .25s ease, color .2s ease, border-color .2s ease;
+}
+.serit-ok:hover{ color:var(--nar); border-color:var(--nar); }
+.serit-sarma.sonda::after, .serit-sarma.sonda .serit-ok{ opacity:0; pointer-events:none; }
 
 /* ---- katalog yerleşimi: sol yapışkan menü + geniş ızgara (20.08.2026) ---- */
 .kap-genis{ max-width:1500px; }
@@ -2006,6 +2026,9 @@ body[data-sayfa="sepet"] .maskot-kap{ display:none; }
 /* Şeritteki promosyon düğmesi: kategori değil, ayrı bir kapı — o yüzden farklı duruyor */
 .kat-promo{ color:var(--nar) !important; font-weight:700; }
 .kat-promo::before{ content:"✦"; margin-right:6px; font-size:11px; vertical-align:1px; }
+/* Ücretli renk seçilince fiyatın altına düşen küçük açıklama (05.09.2026) */
+.renk-fark-not{ font-size:12.5px; color:var(--soluk); margin:6px 0 0; }
+.renk-fark-not[hidden]{ display:none; }
 .benzer-baslik{ font-size:17px; margin:0 0 14px; }
 .benzer-izgara .urun{ animation:none; }
 .alt-cubuk{ display:none; }
@@ -2862,8 +2885,7 @@ function sepeteEkle(id, adet, not, renk){
   renk = (renk || '').trim();
   // Ürünün kendi rengi seçiliyse fiyat farkı yok ve siparişe renk notu düşülmez;
   // müşteri başka renk seçtiyse +RENK_FARK TL/adet (Emre, 17.08.2026).
-  const kendiRenk = urunRengi(u);
-  const fark = !!(renk && renk.toLocaleLowerCase('tr') !== kendiRenk.toLocaleLowerCase('tr'));
+  const fark = renkFarkliMi(u, renk);
   if(!fark) renk = '';
   // kişiye özel üründe her ekleme kendi notuyla ayrı satır olur — aksi halde ikinci
   // eklenen ürünün notu birincininkinin üstüne yazıp onu silerdi. Farklı renk de ayrı satır.
@@ -2963,6 +2985,16 @@ function urunRengi(u){
   }
   return liste[0] || '';
 }
+// Selected colour surcharge — THE one source (05.09.2026). Both the product page's
+// displayed price and the line that lands in the cart go through here; the 02.09
+// coupon lesson (never leave two separate calculation paths) applies to colour too.
+function renkFarkliMi(u, renk){
+  const secilen = String(renk || '').trim();
+  if(!secilen) return false;
+  return secilen.toLocaleLowerCase('tr') !== urunRengi(u).toLocaleLowerCase('tr');
+}
+// Ürün sayfasındaki birim fiyat: ürün fiyatı + (ücretli renk seçildiyse renk farkı)
+function renkliBirimFiyat(u, renk){ return satisFiyati(u) + (renkFarkliMi(u, renk) ? RENK_FARK : 0); }
 // Sepet satırının birim fiyatı: ürün fiyatı + (standart dışı renk seçildiyse renk farkı)
 function satirBirimFiyat(u, satir){ return satisFiyati(u) + ((satir && satir.fark) ? RENK_FARK : 0); }
 // Emre'ye giden satır notu: renk (standart dışı veya varsayılan olmayan) + kişiye özel yazı
@@ -4587,8 +4619,9 @@ function detayAc(id){
     <div class="detay-govde">
       <span class="urun-kat">${escHtml(grupAdi(u.g))}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h2>${escHtml(u.t)}</h2>
-      <div class="detay-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
+      <div class="detay-fiyat num"><span id="detay-fiyat-tutar">${fiyatFmt(satisFiyati(u))}</span> <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
         <span class="indirim-rozet">%${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} indirim</span></div>
+      <p class="renk-fark-not" id="detay-renk-not" hidden></p>
       <div class="fiyat-sayac">⏳ Bugünkü indirimli fiyat gece <b>00:00</b>'a kadar geçerli — kalan <b class="geri-sayim num">--:--:--</b></div>
       <div class="detay-kargo">📦 ${kargoCumlesi()}${bayiOrani() ? '' : ` · Kargo ${fiyatFmt(KARGO_UCRET)}${BEDAVA_ESIK > 0 ? ` — ${fiyatFmt(BEDAVA_ESIK)} üzeri bedava` : ''}`}</div>
       <button class="favori-dugme detay-favori ${favoriMi(u.id)?'dolu':''}" type="button" data-favori="${u.id}">${favoriMi(u.id)?'♥ Favorilerimde':'♡ Favorilerime ekle'}</button>
@@ -4688,16 +4721,35 @@ function detayAc(id){
   // Renk seçimi — ürünün kendi rengi seçili doğar
   let seciliRenk = uRenk;
   const renkKutu = document.getElementById('detay-renkler');
+  // Colour changes the price ON THE PAGE, instantly (05.09.2026 deep tour: the customer
+  // only saw the +10 in the cart). Top price AND the phone's bottom bar are written from
+  // renkliBirimFiyat() — the same function the cart line uses, so screen == charged.
+  function detayFiyatYaz(){
+    const secili = renkKutu ? seciliRenk : '';
+    const birim = renkliBirimFiyat(u, secili);
+    const ust = document.getElementById('detay-fiyat-tutar');
+    if(ust) ust.textContent = fiyatFmt(birim);
+    const altFiyat = document.getElementById('detay-alt-fiyat');
+    if(altFiyat) altFiyat.textContent = fiyatFmt(birim);
+    const not = document.getElementById('detay-renk-not');
+    if(not){
+      const fark = renkFarkliMi(u, secili);
+      not.hidden = !fark;
+      if(fark) not.textContent = secili + ' rengi seçildi — renk farkı +' + fiyatFmt(RENK_FARK) + ' fiyata eklendi.';
+    }
+  }
   if(renkKutu){
     renkKutu.querySelectorAll('.renk-d').forEach(b=>{
       b.onclick = ()=>{
         renkKutu.querySelectorAll('.renk-d').forEach(x=>x.classList.remove('secili'));
         b.classList.add('secili');
         seciliRenk = b.dataset.renk;
+        detayFiyatYaz();
         if(typeof onizlemeCiz === 'function') onizlemeCiz();
       };
     });
   }
+  detayFiyatYaz();
   // ---- canlı yazı önizlemesi (Emre, 17.08.2026) ----
   // Müşteri yazıyı yazarken ürün üstünde nasıl duracağını görsün diye. Pazaryerinde
   // en çok vakit alan iş "yazı ne olacak" yazışması; sitede baştan çözülüyor.
@@ -4833,8 +4885,8 @@ function detayAc(id){
   const alt = document.getElementById('detay-alt');
   if(alt){
     alt.hidden = false;
-    document.getElementById('detay-alt-fiyat').textContent = fiyatFmt(satisFiyati(u));
     document.getElementById('detay-alt-eski').textContent = fiyatFmt(u.p);
+    detayFiyatYaz();   // seçili renk dahil — üstteki fiyatla aynı hesap
     const altBtn = document.getElementById('detay-alt-ekle');
     altBtn.textContent = 'Sepete ekle';
     altBtn.onclick = ()=>{
@@ -5412,6 +5464,34 @@ function cokSatanBagla(){
     }
   });
   seritBagla(serit);
+}
+
+// ---- Yatay şeritlerde kaydırma ipucu (05.09.2026 derin tur önerisi) ----
+// Her .serit-yatay bir .serit-sarma içine alınır; sağ kenara geçiş + ok konur.
+// Şerit sonuna gelince ya da hiç kaydırma yoksa ipucu söner. Dokunmatikte de
+// çalışır (ok basılınca bir ekran kaydırır). İkinci kez çağrılırsa tekrar sarmaz.
+function seritIpucuKur(){
+  document.querySelectorAll('.serit-yatay').forEach(s=>{
+    if(!s.parentElement || s.parentElement.classList.contains('serit-sarma')) return;
+    const sarma = document.createElement('div');
+    sarma.className = 'serit-sarma';
+    s.parentNode.insertBefore(sarma, s);
+    sarma.appendChild(s);
+    const ok = document.createElement('button');
+    ok.type = 'button'; ok.className = 'serit-ok';
+    ok.setAttribute('aria-label', 'Sağa kaydır');
+    ok.innerHTML = '<span aria-hidden="true">›</span>';
+    ok.addEventListener('click', ()=> s.scrollBy({ left: Math.max(220, Math.round(s.clientWidth * 0.8)), behavior:'smooth' }));
+    sarma.appendChild(ok);
+    const tazele = ()=>{
+      const kalan = s.scrollWidth - s.clientWidth - s.scrollLeft;
+      sarma.classList.toggle('sonda', kalan < 8);
+    };
+    s.addEventListener('scroll', tazele, { passive:true });
+    window.addEventListener('resize', tazele);
+    if(window.ResizeObserver) new ResizeObserver(tazele).observe(s);
+    tazele();
+  });
 }
 
 // ---- "Instagram'da Paylaştıklarımız" şeridi: panelde 📷 ile işaretlenenler, en yeni başta ----
@@ -6020,6 +6100,7 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   fisKategorilerCiz();
   cokSatanBagla();
   igSeritCiz();
+  seritIpucuKur();
   pazarYorumlari(0); // yorum özetlerini indir, kartlardaki yıldızları doldur
   // Paylaşılan ürün linkiyle (#u123) gelindiyse o ürünü aç
   yolCoz();
