@@ -1555,6 +1555,40 @@ html{ scroll-behavior:smooth; }
   .guven-kart{ padding:12px 14px; }
 }
 
+/* ---- site geneli yorum ozeti (06.09.2026 derin turu, 2. oneri) ----
+   Sosyal kanit: ana sayfada tek bakista "kac yorum, kac yildiz". Rakam
+   yorumlar.json'dan SAYILIR, elle yazilmaz; 10'dan az yorumda blok hic gorunmez.
+   [hidden] tuzagi: display:inline-flex hidden'i ezer, ayri kural sart. */
+.vitrin-yorum{
+  display:inline-flex; align-items:center; gap:9px; align-self:flex-start;
+  margin-top:1px; padding:8px 14px; border-radius:var(--r-s);
+  border:1px solid rgba(243,231,218,.22); background:rgba(243,231,218,.07);
+}
+.vitrin-yorum[hidden]{ display:none; }
+.vitrin-yorum .vy-yildiz{ color:#E8B571; font-size:14.5px; letter-spacing:.08em; line-height:1; }
+.vitrin-yorum b{ color:#F3E7DA; font-size:14px; font-weight:700; }
+.vitrin-yorum span.vy-alt{ color:#BCAA9C; font-size:12.5px; }
+@media (max-width:660px){
+  .vitrin-yorum{ padding:7px 11px; gap:7px; }
+  .vitrin-yorum span.vy-alt{ font-size:11.5px; }
+}
+
+/* ---- olcu semasi (06.09.2026 derin turu, 3. oneri) ----
+   SADECE aciklamasinda gercek olcu YAZAN urunde cizilir (olculer.json).
+   Olcu asla uydurulmaz; verisi olmayan urunde kutu hic olusmaz.
+   Trendyol'un "Boyut/Yukseklik/Genislik" nitelikleri kategori kovasi oldugu
+   icin (Keman Aski Aparati = 100x100 cm) bilerek kullanilmiyor. */
+.detay-olcu{
+  margin:8px 0 2px; padding:12px 14px; background:var(--panel);
+  border:1px solid var(--cizgi); border-radius:var(--r-m);
+}
+.detay-olcu[hidden]{ display:none; }
+.detay-olcu .ol-bas{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; font-size:13.5px; }
+.detay-olcu .ol-bas b{ font-size:13.5px; }
+.detay-olcu .ol-deger{ font-weight:700; font-variant-numeric:tabular-nums; }
+.detay-olcu svg{ display:block; width:100%; height:auto; margin-top:9px; }
+.detay-olcu .ol-not{ font-size:11.5px; color:var(--soluk); margin:7px 0 0; line-height:1.45; }
+
 .marka-serit{
   display:none; flex-direction:column; gap:10px; margin:-4px 0 18px;
   padding:14px; background:var(--panel); border-radius:var(--r-m); border:1px solid var(--cizgi);
@@ -2368,6 +2402,9 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
             </a>
           </div>
+          <!-- Site geneli yorum ozeti (06.09.2026): rakam yorumlar.json'dan
+               sayilir, yorum azsa blok hic gorunmez. -->
+          <div class="vitrin-yorum" id="vitrin-yorum" hidden></div>
         </div>
         <div class="tabla-foto"><div class="foto-izgara">
           <img src="https://cdn.dsmcdn.com/ty1942/prod/QC_PREP/20260503/17/61238213-8fa1-346a-977f-1912caa82a92/1_org_zoom.jpg" alt="Askılı Kedi Raf Dekoru" loading="lazy">
@@ -4624,6 +4661,7 @@ function detayAc(id){
       <p class="renk-fark-not" id="detay-renk-not" hidden></p>
       <div class="fiyat-sayac">⏳ Bugünkü indirimli fiyat gece <b>00:00</b>'a kadar geçerli — kalan <b class="geri-sayim num">--:--:--</b></div>
       <div class="detay-kargo">📦 ${kargoCumlesi()}${bayiOrani() ? '' : ` · Kargo ${fiyatFmt(KARGO_UCRET)}${BEDAVA_ESIK > 0 ? ` — ${fiyatFmt(BEDAVA_ESIK)} üzeri bedava` : ''}`}</div>
+      <div class="detay-olcu" id="detay-olcu" hidden></div>
       <button class="favori-dugme detay-favori ${favoriMi(u.id)?'dolu':''}" type="button" data-favori="${u.id}">${favoriMi(u.id)?'♥ Favorilerimde':'♡ Favorilerime ekle'}</button>
       <div class="paylas">
         <span class="paylas-etiket">Paylaş:</span>
@@ -4680,6 +4718,7 @@ function detayAc(id){
   yorumlariYukle(u.id);
   ozellikleriYukle(u);
   videoYukle(u);
+  olcuYukle(u);
   benzerleriCiz(u);
 
   // Ürünün kendi linki: paylaşılabilir #u<id> adresi (Instagram/WhatsApp'a atılabilir)
@@ -5206,6 +5245,55 @@ async function urunAciklamaYukle(id){
 function yildizlar(puan){
   return '★'.repeat(puan) + '☆'.repeat(5-puan);
 }
+// ---- ölçü şeması (06.09.2026 derin turu) ----
+// olculer.json SADECE açıklamasında gerçek ölçü YAZAN ürünleri taşır
+// (trendyol\site-olcu-uret.py üretir). Verisi olmayan üründe hiçbir şey çizilmez;
+// ölçü tahmin edilmez, uydurulmaz.
+let OLCULER = null;
+function olcuYaz(x){
+  return (Math.round(x * 100) / 100).toString().replace('.', ',');
+}
+async function olcuYukle(u){
+  const kutu = document.getElementById('detay-olcu'); if(!kutu) return;
+  kutu.hidden = true; kutu.innerHTML = '';
+  if(!OLCULER){
+    try{ const r = await fetch('olculer.json'); OLCULER = r.ok ? await r.json() : {}; }
+    catch(e){ OLCULER = {}; }
+  }
+  if(document.getElementById('detay-olcu') !== kutu) return; // başka ürüne geçildi
+  const o = OLCULER[String(u.id)];
+  if(!o || !o.metin || !(o.enUzun > 0)) return;              // ölçü yoksa kutu yok
+
+  const KART = 8.5;                       // kredi kartının uzun kenarı — herkesin bildiği kıyas
+  const mx = Math.max(o.enUzun, KART);
+  const G  = 300, px = G / mx;
+  const w1 = Math.max(2, Math.round(o.enUzun * px));
+  const w2 = Math.max(2, Math.round(KART * px));
+  const adim = mx > 40 ? 10 : (mx > 16 ? 5 : (mx > 7 ? 2 : 1));
+  let cetvel = '';
+  for(let c = 0; c <= Math.floor(mx + 0.001); c += adim){
+    const x = Math.round(c * px);
+    cetvel += `<line x1="${x}" y1="64" x2="${x}" y2="70" stroke="var(--cizgi-koyu)" stroke-width="1"/>`
+            + `<text x="${x}" y="81" font-size="9" fill="var(--soluk)" text-anchor="${c === 0 ? 'start' : 'middle'}">${c}</text>`;
+  }
+  const enUzunYazi = olcuYaz(o.enUzun) + ' cm';
+  kutu.hidden = false;
+  kutu.innerHTML = `<div class="ol-bas"><b>📏 Ürün ölçüleri</b>
+      <span class="ol-deger">${escHtml(o.metin)}</span></div>
+    <svg viewBox="0 0 300 86" role="img"
+         aria-label="Ölçekli çizim: ürünün en uzun kenarı ${escHtml(enUzunYazi)}, kıyas için kredi kartı 8,5 cm">
+      <text x="0" y="9" font-size="10.5" fill="var(--soluk)">Ürünün en uzun kenarı — ${escHtml(enUzunYazi)}</text>
+      <rect x="0" y="13" width="${w1}" height="11" rx="3" fill="var(--nar)"/>
+      <text x="0" y="41" font-size="10.5" fill="var(--soluk)">Kıyas: kredi kartı — 8,5 cm</text>
+      <rect x="0" y="45" width="${w2}" height="11" rx="3" fill="var(--cizgi-koyu)"/>
+      <line x1="0" y1="64" x2="300" y2="64" stroke="var(--cizgi-koyu)" stroke-width="1"/>
+      ${cetvel}
+      <text x="300" y="81" font-size="9" fill="var(--soluk)" text-anchor="end">cm</text>
+    </svg>
+    <p class="ol-not">Çizim ölçeklidir. Ölçüler ürün açıklamasında yazan gerçek değerlerdir;
+      elde bastığımız için ±2 mm sapabilir.</p>`;
+}
+
 // ---- ürün videosu ----
 let VIDEOLAR = null;
 async function videoYukle(u){
@@ -6130,6 +6218,44 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
   new IntersectionObserver(girisler=>{
     girisler.forEach(g=> balon.classList.toggle('dipte', g.isIntersecting));
   }, { rootMargin: '0px 0px -110px 0px' }).observe(dip);
+})();
+
+// ---- Site geneli yorum özeti (06.09.2026 derin turu, 2. öneri) ----
+// Ana sayfada tek sosyal kanıt rakamı. Yorumlar yorumlar.json'dan SAYILIR —
+// hiçbir rakam elle yazılmaz. 10'dan az yorum varsa blok hiç görünmez
+// ("0 yorum" gösterilmez). Ortalama: her yorum 5 yıldız değilse 4,9'un üstüne
+// yuvarlanmaz — 4,97'yi "5,0" diye göstermek müşteriyi yanıltır.
+// Yan fayda: dosya burada indiği için ürün kartlarındaki yıldızlar da
+// müşteri hiç ürün açmadan dolar (eskiden ilk ürün açılınca geliyordu).
+(function(){
+  const kutu = document.getElementById('vitrin-yorum');
+  if(!kutu) return;
+  const EN_AZ = 10;
+  fetch('yorumlar.json').then(r => r.ok ? r.json() : null).then(veri => {
+    if(!veri) return;
+    if(!TY_YORUM){ TY_YORUM = veri; yorumOzetiCikar(); }
+    let n = 0, toplam = 0, hepsiBes = true;
+    for(const liste of Object.values(veri)){
+      for(const y of (liste || [])){
+        const p = +y.puan;
+        if(!(p >= 1 && p <= 5)) continue;
+        n++; toplam += p;
+        if(p !== 5) hepsiBes = false;
+      }
+    }
+    if(n < EN_AZ) return;                       // az yorum -> blok hiç görünmez
+    const ort = toplam / n;
+    const gosterilen = hepsiBes ? 5 : Math.min(Math.round(ort * 10) / 10, 4.9);
+    // Yıldız her zaman AŞAĞI yuvarlanır: 4,9 için 5 dolu yıldız çizmek,
+    // rakam doğru olsa bile göze abartılı gelir.
+    const dolu = Math.floor(gosterilen);
+    const yildiz = ('★'.repeat(dolu) + '☆☆☆☆☆').slice(0, 5);
+    kutu.innerHTML = `<span class="vy-yildiz" aria-hidden="true">${yildiz}</span>`
+      + `<b>${gosterilen.toFixed(1).replace('.', ',')} / 5</b>`
+      + `<span class="vy-alt">${n} müşteri yorumu</span>`;
+    kutu.setAttribute('aria-label', `Müşteri değerlendirmesi 5 üzerinden ${gosterilen.toFixed(1).replace('.', ',')}, ${n} yorum`);
+    kutu.hidden = false;
+  }).catch(()=>{});
 })();
 
 // ---- Nozul maskot: TEK işi gözleri ve gövdesiyle fareyi izlemek (Emre, 23.08.2026).
