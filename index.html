@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OXEROM</title>
+<link rel="icon" href="favicon.ico" sizes="48x48 32x32 16x16">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="description" content="Kendi atölyemizde ürettiğimiz 3D baskı ürünler, kişiye özel baskılar ve hediyelikler — üreticiden, aracısız fiyatla.">
 <!-- Google Search Console mülk doğrulaması (Emre, 22.08.2026) — SİLME: silinirse doğrulama düşer -->
 <meta name="google-site-verification" content="iRvq0FM9fE_7ZXof0E3xJ4io4lABwMyh-inAlbBVHkA" />
@@ -154,15 +156,18 @@
     box-shadow:inset -60px 0 70px -25px rgba(0,0,0,.6)}
   .v26perde.sol{left:0; transform:scaleX(-1)}
   .v26perde.sag{right:0}
-  .v26site{position:absolute; inset:0; background:var(--bg); opacity:0; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:22px; z-index:8; color:var(--ink); text-align:center; padding:20px}
+  .v26site{position:absolute; inset:0; opacity:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:22px; z-index:8; color:var(--murekkep); text-align:center; padding:20px;
+    pointer-events:none}
+  .v26site svg{width:clamp(64px,9vw,104px); height:auto}
+  .v26site.acik{pointer-events:auto}
   .v26site nav{position:absolute; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between;
     padding:16px 5vw; font-size:13px; color:var(--muted)}
-  .v26site nav .v26navlogo{height:22px; color:var(--ink)}
+  .v26site nav .v26navlogo{height:22px; color:var(--murekkep)}
   .v26site nav .v26navlink{display:flex; gap:22px}
   .v26site h3{font-size:clamp(24px,4vw,38px); margin:0; max-width:18ch}
-  .v26site p{color:var(--muted); margin:0; max-width:44ch; font-size:14.5px}
-  .v26site button{margin-top:6px; background:var(--ink); color:var(--bg); border:none; border-radius:8px;
+  .v26site p{color:var(--soluk); margin:0; max-width:44ch; font-size:14.5px}
+  .v26site button{margin-top:6px; background:var(--murekkep); color:var(--kagit); cursor:pointer; border:none; border-radius:8px;
     padding:12px 26px; font-size:14px; font-weight:600; letter-spacing:.02em}
   @supports (animation-timeline: view()){
     .v26logo{animation:v26logoFade linear both; animation-timeline:--v26; animation-range:11.63% 88.37%; }
@@ -198,7 +203,7 @@
   @keyframes v26vazoBuyu{0%{clip-path:inset(60% 0 0 0)} 90%,100%{clip-path:inset(0% 0 0 0)}}
   @keyframes v26headX{0%{left:48.3%} 100%{left:50.1%}}
   @keyframes v26flasGoster{0%,76%{opacity:0} 88%,100%{opacity:1}}
-  @keyframes v26siteGoster{0%,90%{opacity:0; transform:scale(1.06)} 97%,100%{opacity:1; transform:scale(1)}}
+  @keyframes v26siteGoster{0%,88%{opacity:0; transform:scale(1.06)} 94%,100%{opacity:1; transform:scale(1)}}
 
 
 /* anasayfa */
@@ -2320,6 +2325,14 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         </div>
       </div>
       <div class="v26flas"></div>
+      <!-- Sahne sonu (07.09.2026 derin tur): flaş tam açıldıktan sonra sahne bitene kadar
+           ~90vh boş krem ekran kalıyordu — .v26site CSS'te vardı, işaretlemesi yoktu. -->
+      <div class="v26site">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur" fill="currentColor"/></svg>
+        <h3>Aile atölyemizde üretiyoruz</h3>
+        <p>Kendi atölyemizde ürettiğimiz 3D baskı ürünler, kişiye özel baskılar ve hediyelikler. Üreticiden, aracısız fiyatla.</p>
+        <button type="button" onclick="perdeyiGec()">Ürünlere geç</button>
+      </div>
       <div class="v26perde sol"></div>
       <div class="v26perde sag"></div>
       </div>
@@ -5020,6 +5033,23 @@ async function ozellikleriYukle(u){
 // Perde açılışı bir kez oynar (03.09.2026 denetimi): yasal sayfadaki "Mağazaya dön"
 // gibi site İÇİNDEN gelen bir dönüşte müşteri perdeyi baştan kaydırmak zorunda
 // kalmasın. Dışarıdan gelen ilk ziyarette perde aynen oynar.
+// Sahne sonundaki "Ürünlere geç" düğmesi: perdenin bittiği yere kaydırır (07.09.2026).
+function perdeyiGec(){
+  const dis = document.querySelector('.sahneDis'); if(!dis) return;
+  window.scrollTo({top: dis.offsetTop + dis.offsetHeight, behavior:'smooth'});
+}
+// Katman flaştan sonra görünür; görünürken tıklama alsın, öncesinde sahnenin üstünü kapatmasın.
+(function(){
+  const dis = document.querySelector('.v26dis'), kat = document.querySelector('.v26site'); if(!dis || !kat) return;
+  let bekle = false;
+  function bak(){ bekle = false; if(dis.hidden) return;
+    const vh = window.innerHeight, boy = dis.offsetHeight; if(!boy) return;
+    // CSS animation-range ile aynı ölçek: sahnenin ALTI ekranın altına gelince animasyon biter (boy - vh)
+    const p = (window.scrollY - dis.offsetTop) / Math.max(1, boy - vh);   // 0 sahne başı, 1 animasyon sonu
+    kat.classList.toggle('acik', p >= .88 && p <= 1.02); }
+  window.addEventListener('scroll', ()=>{ if(!bekle){ bekle = true; requestAnimationFrame(bak); } }, { passive:true });
+  bak();
+})();
 let PERDE_ATLA = false;
 try{ PERDE_ATLA = !!document.referrer && new URL(document.referrer).origin === location.origin; }catch(_){ }
 function sayfaGoster(ad){
@@ -5633,7 +5663,7 @@ function igSeritCiz(){
     }
     if(el.vazo) el.vazo.style.clipPath = `inset(${60 - ara(p, 0, .90) * 60}% 0 0 0)`;
     if(el.flas) el.flas.style.opacity = ara(p, .76, .88);
-    if(el.site){ const g = ara(p, .90, .97); el.site.style.opacity = g; el.site.style.transform = `scale(${1.06 - g * .06})`; }
+    if(el.site){ const g = ara(p, .88, .94); el.site.style.opacity = g; el.site.style.transform = `scale(${1.06 - g * .06})`; }
   }
   let bekleyen = false;
   function guncelle(){
