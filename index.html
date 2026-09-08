@@ -4405,7 +4405,7 @@ function renkKodu(ad){
   return k.length === 1 ? k[0] : `linear-gradient(90deg, ${k[0]} 50%, ${k[1]} 50%)`;
 }
 function renkNoktalariHtml(u){
-  if(!RENK_ACIK || u.kisisel) return '';
+  if(!RENK_ACIK || u.kisisel || u.renksiz) return '';
   const n = urunRenkListesi(u).map(r=>({ r, k: renkKodu(r) })).filter(x=>x.k).slice(0, 6);
   if(n.length < 2) return '';
   return `<div class="renk-noktalar" aria-label="Renk seçenekleri: ${escHtml(n.map(x=>x.r).join(', '))}">`
@@ -4645,7 +4645,9 @@ function detayAc(id){
   // (pleksi, lazer kesim, metal) hangi renkte üretiliyorsa o renkte gider — seçenek yok.
   // Ürünün kendi rengi ücretsiz, listedeki diğer renkler +RENK_FARK TL/adet. Serbest renk yazma yok.
   const uRenk = urunRengi(u);
-  const renkAlani = (RENK_ACIK && !u.kisisel && uRenk) ? `
+  // u.renksiz (08.09.2026, Emre: "kupa sadece altın rengi var"): panelden işaretlenen üründe renk
+  // seçimi hiç gösterilmez — seçici, kart noktaları ve özellik satırı üçü de bu anahtara bakar.
+  const renkAlani = (RENK_ACIK && !u.kisisel && !u.renksiz && uRenk) ? `
       <div class="detay-renk">
         <label>Renk <span class="opsiyonel">(${escHtml(uRenk)} ücretsiz · diğer renkler +${RENK_FARK} TL/adet)</span></label>
         <div class="renk-secenek" id="detay-renkler">
@@ -5025,7 +5027,7 @@ async function ozellikleriYukle(u){
   }else{
     satirlar.push(['Üretim', 'Kayseri, Türkiye — sipariş üzerine üretilir']);
   }
-  if(RENK_ACIK && !u.kisisel){
+  if(RENK_ACIK && !u.kisisel && !u.renksiz){
     const ur = urunRengi(u);
     satirlar.push(['Renk', ur + ' (ürünün kendi rengi, ücretsiz) · ' +
       urunRenkListesi(u).filter(r=>r !== ur).join(', ') + ' +' + fiyatFmt(RENK_FARK) + '/adet']);
