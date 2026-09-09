@@ -3220,12 +3220,15 @@ function sepetCiz(){
     // box, the error/success message and the discount row must not survive.
     kuponSifirla();
     const bosKupon = document.getElementById('kupon-satir'); if(bosKupon) bosKupon.hidden = true;
+    // Boş sepette indirim kodu kutusu da gizli (09.09.2026 derin tur): kodun uygulanacağı ürün yok.
+    const bosKutu = document.querySelector('.kupon-kutu'); if(bosKutu) bosKutu.hidden = true;
     const bosKamp = document.getElementById('kampanya-satir'); if(bosKamp) bosKamp.hidden = true;
     SEPET_ARA_TOPLAM = 0;
     bedavaCubukCiz(0); // boş sepette çubuk bayat kalmasın
     siparisBolgeCiz();
     return;
   }
+  const doluKutu = document.querySelector('.kupon-kutu'); if(doluKutu) doluKutu.hidden = false;
   let toplam = 0;
   liste.innerHTML = keys.map(key=>{
     const satir = sepet[key];
@@ -3967,7 +3970,7 @@ function siparisBolgeCiz(zorla){
           <option value="__yeni">+ Yeni adres gir</option>
         </select>` : ''}
       <textarea id="ts-adres-yeni" rows="2" placeholder="Açık teslimat adresi (mahalle, sokak, no, ilçe/il)"
-        ${adresler.length ? 'style="display:none"' : ''}></textarea>
+        ${adresler.length ? 'style="display:none"' : ''}>${adresler.length ? '' : escHtml(mzKayit.adres||'')}</textarea>
       <label class="onay-satir kucuk" id="ts-kaydet-satir" ${(uyeli && !adresler.length) ? '' : 'style="display:none"'}>
         <input type="checkbox" id="ts-adres-kaydet" ${uyeli ? 'checked' : ''}><span>Bu adresi adres defterime kaydet</span></label>
 
@@ -4027,6 +4030,17 @@ function siparisBolgeCiz(zorla){
   const waBtn = document.getElementById('sepet-tamamla-btn');
   if(waBtn) waBtn.onclick = siparisiOnaylaWhatsapp;
   siparisFormunuUygula(); // asgari tutarın altına inip çıkınca yazılanlar geri gelsin
+  // Yazarken cihaz hafızasına (09.09.2026 derin tur: sayfa yenilenince teslimat adresi siliniyordu;
+  // ad/telefon/e-posta zaten ilk siparişten sonra hatırlanıyordu — şimdi taslak da tutulur).
+  const taslakAlanlar = { 'mz-ad':'ad', 'mz-soyad':'soyad', 'mz-telefon':'telefon', 'mz-eposta':'eposta', 'ts-adres-yeni':'adres' };
+  Object.entries(taslakAlanlar).forEach(([id, anahtar])=>{
+    const el = document.getElementById(id); if(!el) return;
+    el.addEventListener('input', ()=>{
+      let k = {}; try{ k = JSON.parse(localStorage.getItem('oxerom_misafir') || '{}') || {}; }catch(_){ k = {}; }
+      k[anahtar] = el.value.slice(0, 400);
+      try{ localStorage.setItem('oxerom_misafir', JSON.stringify(k)); }catch(_){}
+    });
+  });
 }
 
 function siparisHata(mesaj){
@@ -4073,7 +4087,8 @@ function siparisVerileriniTopla(){
       siparisHata('E-posta adresi geçerli görünmüyor — kontrol edin.'); return null;
     }
     // remember for next time so the same info is never asked twice on this device
-    try{ localStorage.setItem('oxerom_misafir', JSON.stringify(misafir)); }catch(_){}
+    // (adres de kalır — 09.09.2026; teslimatAdres aşağıda hesaplanır, buradaki taslak değeri yeter)
+    try{ const ta = document.getElementById('ts-adres-yeni'); localStorage.setItem('oxerom_misafir', JSON.stringify({ ...misafir, adres: ta ? ta.value.trim().slice(0, 400) : '' })); }catch(_){}
   }
 
   const adresSec = document.getElementById('ts-adres-sec');
