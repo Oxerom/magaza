@@ -2192,6 +2192,16 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 #ft-bireysel, #ft-kurumsal{ display:flex; flex-direction:column; gap:8px; }
 #ft-kurumsal .satir-2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .hesap-form{ padding-top:4px; }
+/* Şifre göster/gizle gözü — her type=password kutusuna JS (sifreGozEkle) sarar (10.09.2026) */
+.sifre-sar{ position:relative; display:block; width:100%; min-width:0; }
+.sifre-sar input{ display:block; width:100%; margin:0; padding-right:40px; }
+.sifre-degistir .sifre-sar{ margin-bottom:8px; }
+.sifre-goz{ position:absolute; right:5px; top:50%; transform:translateY(-50%); width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:0; background:none; color:var(--soluk); cursor:pointer; border-radius:6px; padding:0; }
+.sifre-goz:hover{ color:var(--murekkep); }
+.sifre-goz svg{ width:18px; height:18px; }
+.sifre-goz .goz-kapali{ display:none; }
+.sifre-goz.acik .goz-acik{ display:none; }
+.sifre-goz.acik .goz-kapali{ display:block; }
 .hesap-gecis{ font-size:12.5px; color:var(--soluk); margin:2px 0 0; }
 .hesap-gecis a{ color:var(--nar); }
 .hesap-sekmeler{ display:flex; gap:4px; margin-bottom:14px; border-bottom:1px solid var(--cizgi); }
@@ -6354,6 +6364,43 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
     }, 2400 + Math.random()*3500);
   })();
 })();
+
+/* Şifre kutularına göz ikonu + telefon kutularına otomatik boşluk (derin tur 10.09.2026).
+   Formların çoğu sonradan çizildiği (innerHTML) için MutationObserver ile her yeni kutu yakalanır. */
+const GOZ_SVG = '<svg class="goz-acik" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>'
+  + '<svg class="goz-kapali" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
+function sifreGozEkle(kok){
+  (kok || document).querySelectorAll('input[type="password"]:not([data-goz])').forEach(inp=>{
+    inp.dataset.goz = '1';
+    const sar = document.createElement('span'); sar.className = 'sifre-sar';
+    inp.parentNode.insertBefore(sar, inp); sar.appendChild(inp);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sifre-goz'; b.tabIndex = -1;
+    b.setAttribute('aria-label', 'Şifreyi göster'); b.title = 'Şifreyi göster'; b.innerHTML = GOZ_SVG;
+    b.addEventListener('click', ()=>{
+      const acik = inp.type === 'text';
+      inp.type = acik ? 'password' : 'text';
+      b.classList.toggle('acik', !acik);
+      b.title = acik ? 'Şifreyi göster' : 'Şifreyi gizle'; b.setAttribute('aria-label', b.title);
+      inp.focus();
+    });
+    sar.appendChild(b);
+  });
+}
+function telefonBicimle(v){
+  let r = String(v || '').replace(/\D/g, '');
+  if(r.startsWith('90') && r.length > 10) r = '0' + r.slice(2); // +90 555… → 0555…
+  if(r.length === 10 && r[0] === '5') r = '0' + r;               // 555… → 0555…
+  r = r.slice(0, 11);
+  return [r.slice(0,4), r.slice(4,7), r.slice(7,9), r.slice(9,11)].filter(Boolean).join(' ');
+}
+function telefonBicimBagla(kok){
+  (kok || document).querySelectorAll('input[type="tel"]:not([data-bicim])').forEach(inp=>{
+    inp.dataset.bicim = '1';
+    inp.addEventListener('input', ()=>{ const y = telefonBicimle(inp.value); if(y !== inp.value) inp.value = y; });
+  });
+}
+sifreGozEkle(); telefonBicimBagla();
+new MutationObserver(()=>{ sifreGozEkle(); telefonBicimBagla(); }).observe(document.body, { childList:true, subtree:true });
 </script>
 </body>
 </html>
