@@ -1004,7 +1004,7 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 
 /* ---- yatay kart şeridi: en çok satanlar vb. ---- */
 .serit-yatay{
-  display:flex; gap:18px; overflow-x:auto; padding:4px 4px 12px;
+  display:flex; gap:18px; overflow-x:auto; padding:4px 96px 12px 4px; /* sağ boşluk: sabit WhatsApp balonu son kartın düğmesine binmesin (11.09.2026) */
   scroll-snap-type:x proximity;
   scrollbar-width:thin; scrollbar-color:var(--cizgi-koyu) transparent;
 }
@@ -1711,7 +1711,9 @@ main{ padding:22px 0 70px; scroll-margin-top:150px; }
    object-fit:contain da 650px'lik sütunda solda-sağda 125'er piksel boş bant
    bırakıyordu; oran sabitlenince fotoğraf kutuyu tam doldurur, her üründe aynı
    çerçeve çıkar. Farklı orandaki bir fotoğraf gelirse contain ortalar. */
-.detay-gorsel > img{ width:100%; aspect-ratio:2/3; object-fit:contain; object-position:center; display:block; }
+/* 11.09.2026: 2:3 sabit kutu yatay/kare fotoğrafta altta boş bant bırakıyordu (derin tur); kutu
+   artık fotoğrafın kendi boyu kadar, 2:3 fotoğrafta sonuç eskisiyle aynı. */
+.detay-gorsel > img{ width:100%; height:auto; display:block; }
 .detay-gorsel{ align-self:start; }
 .detay-govde{ padding:34px 32px; display:flex; flex-direction:column; gap:14px; }
 .detay-govde .urun-kat{ font-size:11.5px; }
@@ -2339,8 +2341,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
            ~90vh boş krem ekran kalıyordu — .v26site CSS'te vardı, işaretlemesi yoktu. -->
       <div class="v26site">
         <svg viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur" fill="currentColor"/></svg>
-        <h3>Aile atölyemizde üretiyoruz</h3>
-        <p>Kendi atölyemizde ürettiğimiz 3D baskı ürünler, kişiye özel baskılar ve hediyelikler. Üreticiden, aracısız fiyatla.</p>
+        <h3>1.000'den fazla ürün</h3>
+        <p>Kişiye özel plakalar, 3D baskı hediyelikler, araç ve ev aksesuarları.</p>
         <button type="button" onclick="perdeyiGec()">Ürünlere geç</button>
       </div>
       <div class="v26perde sol"></div>
