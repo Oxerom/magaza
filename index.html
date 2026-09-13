@@ -5202,6 +5202,9 @@ function acikUrunId(){
 }
 function urunAdresiYaz(id){
   if(location.pathname === '/u/' + id && !location.hash) return;
+  // Eski biçimle (#u<id>) gelinen kayıt: yeni kayıt açma, adresi yerinde düzelt —
+  // yoksa geri tuşu aynı ürüne döner (yutulur)
+  if(location.hash === '#u' + id){ history.replaceState({urun: id}, '', '/u/' + id); return; }
   history.pushState({urun: id}, '', '/u/' + id);
 }
 function yolCoz(){
