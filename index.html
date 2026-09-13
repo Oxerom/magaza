@@ -9,6 +9,18 @@
 <meta name="description" content="Kendi atölyemizde ürettiğimiz 3D baskı ürünler, kişiye özel baskılar ve hediyelikler — üreticiden, aracısız fiyatla.">
 <!-- Google Search Console mülk doğrulaması (Emre, 22.08.2026) — SİLME: silinirse doğrulama düşer -->
 <meta name="google-site-verification" content="iRvq0FM9fE_7ZXof0E3xJ4io4lABwMyh-inAlbBVHkA" />
+<!-- og:bas — paylaşım kartı (WhatsApp/Instagram/Facebook linki yapıştırınca çıkan kutu, 13.09.2026).
+     Ürün sayfalarında (/u/<id>) motor bu bloğu ürünün kendi fotoğrafı ve adıyla değiştirir. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OXEROM">
+<meta property="og:title" content="OXEROM — kendi atölyemizden 3D baskı ürünler">
+<meta property="og:description" content="Kendi atölyemizde ürettiğimiz 3D baskı ürünler, kişiye özel baskılar ve hediyelikler — üreticiden, aracısız fiyatla.">
+<meta property="og:image" content="https://oxerom.com.tr/varlik/paylasim.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://oxerom.com.tr/">
+<meta name="twitter:card" content="summary_large_image">
+<!-- og:son -->
 <style>
 
 @font-face {
@@ -2871,7 +2883,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
             <li class="fis-satir"><a href="https://instagram.com/emre_erden__" target="_blank" rel="noopener noreferrer">Instagram</a><span class="nk"></span><span class="sag">@emre_erden__</span></li>
             <li class="fis-satir"><a href="https://wa.me/905514823223" target="_blank" rel="noopener noreferrer">WhatsApp</a><span class="nk"></span><span class="sag">0551 482 32 23</span></li>
             <li class="fis-satir"><a href="mailto:oxerom9@gmail.com">E-posta</a><span class="nk"></span><span class="sag">oxerom9@gmail.com</span></li>
-            <li class="fis-satir"><a href="#takip" onclick="history.pushState({takip:true},'','#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a><span class="nk"></span><span class="sag">takip</span></li>
+            <li class="fis-satir"><a href="#takip" onclick="history.pushState({takip:true},'','/#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a><span class="nk"></span><span class="sag">takip</span></li>
             <li class="fis-satir"><a href="hakkimizda.html">Atölye</a><span class="nk"></span><span class="sag">Kayseri, Türkiye</span></li>
             <li class="fis-satir"><a href="sss.html">Sık sorulan sorular</a><span class="nk"></span><span class="sag">SSS</span></li>
             <li class="fis-satir"><a href="#promosyon" onclick="promosyonAc(); return false;">Promosyon ve kurumsal baskı</a><span class="nk"></span><span class="sag">toplu sipariş</span></li>
@@ -3509,7 +3521,7 @@ async function apiIstek(yol, govde, metod){
 
 function hesapAc(gorunum){
   hesapCiz(gorunum || (oturum.kullanici ? 'hesabim' : 'giris'));
-  if(location.hash !== '#hesap') history.pushState({hesap:true}, '', '#hesap');
+  if(location.hash !== '#hesap') history.pushState({hesap:true}, '', '/#hesap');
   sayfaGoster('hesap');
 }
 function hesapKapat(){ katalogaDon(); }
@@ -3529,7 +3541,7 @@ function hesapCiz(gorunum){
           <p class="hesap-gecis" id="g-unuttum">Şifrenizi mi unuttunuz?
             <a href="#" onclick="sifremiUnuttum(); return false;">Sıfırlama linki gönder</a></p>
           <button class="sepet-tamamla" type="button" id="g-dugme">Giriş yap</button>
-          <p class="hesap-gecis">Üye olmadan sipariş verdiyseniz: <a href="#takip" onclick="history.pushState({takip:true},'','#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a></p>
+          <p class="hesap-gecis">Üye olmadan sipariş verdiyseniz: <a href="#takip" onclick="history.pushState({takip:true},'','/#takip'); sayfaGoster('takip'); return false;">Siparişim nerede?</a></p>
         </div>
         <div class="uye-kutu">
           <h2>Üye değil misiniz?</h2>
@@ -3645,7 +3657,7 @@ function sifreYenileAc(token){
       oturumKaydet();
       bayiSeridiCiz(); cizHepsi(); favorileriEsitle();
       govde.innerHTML = '<p class="sepet-not">✓ Şifreniz değiştirildi ve giriş yapıldı. Hesabınıza yönlendiriliyorsunuz…</p>';
-      history.replaceState(null, '', '#hesap');
+      history.replaceState(null, '', '/#hesap');
       setTimeout(()=>hesapCiz('hesabim'), 1500);
     }catch(e){
       btn.textContent = 'Şifreyi değiştir';
@@ -4321,7 +4333,7 @@ function katBaglarCiz(){
       document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
       // Adres çubuğu kategoriyi söylesin — Emre linki kopyalayıp paylaşabilsin
       const yeniHash = a.dataset.grup === 'tum' ? '#katalog' : '#kategori=' + a.dataset.grup;
-      if(location.hash !== yeniHash) history.pushState(null, '', yeniHash);
+      if(location.hash !== yeniHash) history.pushState(null, '', '/' + yeniHash);
     });
   });
 }
@@ -4647,7 +4659,7 @@ function detayAc(id){
   let u = URUNLER.find(x=>x.id===id);
   if(!u){
     u = KAPALI_URUNLER.find(x=>x.id===id);
-    if(u){ kapaliDetayAc(u); if(location.hash !== '#u' + u.id) history.pushState({urun:u.id}, '', '#u' + u.id); }
+    if(u){ kapaliDetayAc(u); urunAdresiYaz(u.id); }
     return;
   }
   const ty = '';
@@ -4768,10 +4780,9 @@ function detayAc(id){
   olcuYukle(u);
   benzerleriCiz(u);
 
-  // Ürünün kendi linki: paylaşılabilir #u<id> adresi (Instagram/WhatsApp'a atılabilir)
-  if(location.hash !== '#u' + u.id){
-    history.pushState({urun: u.id}, '', '#u' + u.id);
-  }
+  // Ürünün kendi linki: paylaşılabilir /u/<id> adresi (13.09.2026: adres çubuğundan
+  // kopyalanan link de WhatsApp'ta fotoğraflı kart çıkarır — motor bu yolu karşılar)
+  urunAdresiYaz(u.id);
   const linkBtn = document.getElementById('detay-linki');
   // Paylaşım adresi /u/<id>: WhatsApp/Instagram/Facebook bu adresten fotoğraf + ad okur
   // (api motorundaki önizleme sayfası), insan anında ürün sayfasına yönlenir.
@@ -5150,9 +5161,9 @@ function katalogaDon(){
   // Ürün/sepet sayfasından katalog'a: arama açıksa adres #ara=... olur, değilse temizlenir
   const q = (state.q || '').trim();
   if(q){
-    if(location.hash !== '#ara=' + encodeURIComponent(q)) history.pushState(null, '', '#ara=' + encodeURIComponent(q));
-  }else if(location.hash && location.hash !== '#katalog'){
-    history.pushState(null, '', location.pathname + location.search);
+    if(location.hash !== '#ara=' + encodeURIComponent(q)) history.pushState(null, '', '/#ara=' + encodeURIComponent(q));
+  }else if((location.hash || location.pathname.startsWith('/u/')) && location.hash !== '#katalog'){
+    history.pushState(null, '', '/');
   }
   // Ürün sayfasında temizlenen arama kutusu katalogda geri gelir (03.09.2026):
   // sonuç listesi state.q ile süzülü — kutu da aynı kelimeyi göstermeli.
@@ -5165,7 +5176,7 @@ function katalogaDon(){
   document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
 }
 function sepeteGit(){
-  if(location.hash !== '#sepet') history.pushState({sepet:true}, '', '#sepet');
+  if(location.hash !== '#sepet') history.pushState({sepet:true}, '', '/#sepet');
   sepetCiz();
   sayfaGoster('sepet');
 }
@@ -5179,8 +5190,28 @@ function instagramAc(){
   sayfaGoster('katalog');
   document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'});
 }
+// Ürün adresi /u/<id> (13.09.2026 denetimi): adres çubuğundan kopyalanan link de
+// WhatsApp/Instagram'da fotoğraflı kart çıkarır. /u/ yolunu ödeme motoru karşılar:
+// bu sayfanın aynısını ürünün başlığı/açıklaması/og etiketleriyle verir. Diğer sayfalar
+// /#... olarak kalır; #u<id> eski linkleri de çalışmaya devam eder.
+function acikUrunId(){
+  const h = location.hash.match(/^#u(\d+)$/);
+  if(h) return parseInt(h[1]);
+  const y = location.pathname.match(/^\/u\/(\d+)\/?$/);
+  return y ? parseInt(y[1]) : 0;
+}
+function urunAdresiYaz(id){
+  if(location.pathname === '/u/' + id && !location.hash) return;
+  history.pushState({urun: id}, '', '/u/' + id);
+}
 function yolCoz(){
-  const h = location.hash;
+  let h = location.hash;
+  const yolU = location.pathname.match(/^\/u\/(\d+)\/?$/);
+  if(yolU && !h) h = '#u' + yolU[1];
+  else if(yolU && h){
+    // /u/123#sepet gibi karışık adres: yol sadeleşir, hash ne diyorsa o açılır
+    history.replaceState(history.state, '', /^#u\d+$/.test(h) ? '/u/' + h.slice(2) : '/' + h);
+  }
   const es = h.match(/^#u(\d+)$/);
   if(es){ detayAc(parseInt(es[1])); return; }
   // #ara=... — arama adres çubuğunda taşınır (Emre, 22.08.2026): link paylaşılabilir,
@@ -5515,8 +5546,8 @@ const aramaTemizle = document.getElementById('arama-temizle');
 function aramaAdresiGuncelle(){
   const q = (state.q || '').trim();
   const h = location.hash;
-  if(h && !h.startsWith('#ara') && h !== '#katalog') return;
-  history.replaceState(null, '', q ? '#ara=' + encodeURIComponent(q) : location.pathname + location.search);
+  if(location.pathname.startsWith('/u/') || (h && !h.startsWith('#ara') && h !== '#katalog')) return;
+  history.replaceState(null, '', q ? '/#ara=' + encodeURIComponent(q) : '/');
 }
 let aramaZamanlayici;
 aramaGirdi.addEventListener('input', ()=>{
@@ -5782,12 +5813,12 @@ const PROMO_ORNEK = [
   [956574700,  'Baskılı magnet'],
 ];
 function promosyonAc(){
-  if(location.hash !== '#promosyon') history.pushState({promosyon:true}, '', '#promosyon');
+  if(location.hash !== '#promosyon') history.pushState({promosyon:true}, '', '/#promosyon');
   promosyonCiz();
   sayfaGoster('promosyon');
 }
 function toptanAc(){
-  if(location.hash !== '#toptan') history.pushState({toptan:true}, '', '#toptan');
+  if(location.hash !== '#toptan') history.pushState({toptan:true}, '', '/#toptan');
   // Zaten giriş yapmışsa şifre/KVKK istenmez (üyeliği var), e-postası hazır yazılır
   const f = document.getElementById('toptan-form');
   const girisKutu = document.getElementById('toptan-giris-kutu');
@@ -6175,7 +6206,7 @@ document.getElementById('favori-ac').addEventListener('click', ()=>{
   cizHepsi();
   if(document.getElementById('sayfa-katalog').hidden) katalogaDon();
   document.getElementById('katalog').scrollIntoView({behavior:'smooth', block:'start'});
-  if(location.hash !== '#kategori=favori') history.pushState(null, '', '#kategori=favori');
+  if(location.hash !== '#kategori=favori') history.pushState(null, '', '/#kategori=favori');
 });
 favoriSayisiYaz();
 // Giriş yapınca hesaptaki favorilerle cihazdaki birleşir — hiçbir taraf kaybolmasın
@@ -6270,8 +6301,8 @@ fetch('urunler.json').then(r=>r.json()).then(veri=>{
     v.markalar.forEach(m=>{ ARACLAR[m.ad] = m; });
     if(state.grup === 'arac') markaSeridiCiz();
     // Paylaşılan linkle doğrudan ürün sayfası açıldıysa araç verisi geç geldi — şeridi/tabloyu tazele
-    const es = location.hash.match(/^#u(\d+)$/);
-    if(es){ const u = URUNLER.find(x=>x.id===parseInt(es[1])); if(u){ benzerleriCiz(u); ozellikleriYukle(u); } }
+    const es = acikUrunId();
+    if(es){ const u = URUNLER.find(x=>x.id===es); if(u){ benzerleriCiz(u); ozellikleriYukle(u); } }
   }).catch(()=>{});
 }).catch(()=>{
   document.getElementById('izgara').innerHTML =
