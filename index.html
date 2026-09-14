@@ -3158,6 +3158,9 @@ function satisFiyati(u){
 // Price WITHOUT the dealer discount — this is what gets SENT to the engine:
 // the engine applies the dealer discount itself and does not trust browser prices.
 // Sending the already-discounted price made the discount apply twice (caught 24.08.2026).
+// Ürünün indirim yüzdesi. 0 ise (panelden elle eklenen ürün, 14.09.2026) üstü çizili fiyat,
+// "%X indirim" rozeti ve "indirimli fiyat 00:00'a kadar" sayacı GÖSTERİLMEZ — olmayan indirim yazılmaz.
+function indirimYuzde(u){ return (u.indirim != null) ? +u.indirim : INDIRIM*100; }
 function satisFiyatiBayisiz(u){
   const oran = (u.indirim != null) ? (+u.indirim) / 100 : INDIRIM;
   return Math.round(u.p * (1 - oran) * 100) / 100;
@@ -4480,7 +4483,7 @@ function urunKarti(u){
       <span class="urun-kat">${escHtml(u.g_ad || '')}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h3 class="urun-ad">${escHtml(u.t)}</h3>
       ${yildiz}
-      <div class="urun-fiyat num">${fiyatFmt(satisFiyati(u))} <s class="eski-fiyat">${fiyatFmt(u.p)}</s></div>
+      <div class="urun-fiyat num">${fiyatFmt(satisFiyati(u))}${indirimYuzde(u) > 0 ? ` <s class="eski-fiyat">${fiyatFmt(u.p)}</s>` : ''}</div>
       ${renkNoktalariHtml(u)}
       ${ty}
       <button class="sepet-ekle" type="button" data-id="${u.id}">Sepete ekle</button>
@@ -4721,11 +4724,11 @@ function detayAc(id){
     <div class="detay-govde">
       <span class="urun-kat">${escHtml(grupAdi(u.g))}${u.m ? ' · ' + escHtml(u.m) : ''}</span>
       <h2>${escHtml(u.t)}</h2>
-      <div class="detay-fiyat num"><span id="detay-fiyat-tutar">${fiyatFmt(satisFiyati(u))}</span> <s class="eski-fiyat">${fiyatFmt(u.p)}</s>
-        <span class="indirim-rozet">%${Math.round((u.indirim != null) ? +u.indirim : INDIRIM*100)} indirim</span></div>
+      <div class="detay-fiyat num"><span id="detay-fiyat-tutar">${fiyatFmt(satisFiyati(u))}</span>${indirimYuzde(u) > 0 ? ` <s class="eski-fiyat">${fiyatFmt(u.p)}</s>` : ''}
+        ${indirimYuzde(u) > 0 ? `<span class="indirim-rozet">%${Math.round(indirimYuzde(u))} indirim</span>` : ''}</div>
       <p class="renk-fark-not" id="detay-renk-not" hidden></p>
       <p class="renk-fark-not" id="detay-toplam-not" hidden></p>
-      <div class="fiyat-sayac">⏳ Bugünkü indirimli fiyat gece <b>00:00</b>'a kadar geçerli — kalan <b class="geri-sayim num">--:--:--</b></div>
+      ${indirimYuzde(u) > 0 ? `<div class="fiyat-sayac">⏳ Bugünkü indirimli fiyat gece <b>00:00</b>'a kadar geçerli — kalan <b class="geri-sayim num">--:--:--</b></div>` : ''}
       <div class="detay-kargo">📦 ${kargoCumlesi()}${bayiOrani() ? '' : ` · Kargo ${fiyatFmt(KARGO_UCRET)}${BEDAVA_ESIK > 0 ? ` — ${fiyatFmt(BEDAVA_ESIK)} üzeri bedava` : ''}`}</div>
       <div class="detay-olcu" id="detay-olcu" hidden></div>
       <button class="favori-dugme detay-favori ${favoriMi(u.id)?'dolu':''}" type="button" data-favori="${u.id}">${favoriMi(u.id)?'♥ Favorilerimde':'♡ Favorilerime ekle'}</button>
@@ -4993,7 +4996,7 @@ function detayAc(id){
   const alt = document.getElementById('detay-alt');
   if(alt){
     alt.hidden = false;
-    document.getElementById('detay-alt-eski').textContent = fiyatFmt(u.p);
+    document.getElementById('detay-alt-eski').textContent = indirimYuzde(u) > 0 ? fiyatFmt(u.p) : '';
     detayFiyatYaz();   // seçili renk dahil — üstteki fiyatla aynı hesap
     const altBtn = document.getElementById('detay-alt-ekle');
     altBtn.textContent = 'Sepete ekle';
