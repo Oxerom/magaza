@@ -150,6 +150,12 @@
   .v26ipucu i{font-style:normal; font-size:22px; line-height:1; animation:v26ipucuZipla 1.6s ease-in-out infinite}
   @keyframes v26ipucuZipla{0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)}}
   @media (prefers-reduced-motion: reduce){ .v26ipucu i{animation:none} }
+  /* Perdeyi atlama bağlantısı (14.09.2026 denetimi): sabırsız ziyaretçi 5.000 px kaydırmadan
+     mağazaya insin. Logo katmanıyla birlikte ilk %10'da söner. */
+  .v26gec{margin-top:6px; min-height:44px; display:inline-flex; align-items:center; padding:8px 18px;
+    border:1px solid rgba(242,232,218,.55); border-radius:999px; color:#f2e8da; text-decoration:none;
+    font-size:clamp(12px,1.5vw,14px); letter-spacing:.08em; opacity:.9}
+  .v26gec:hover{background:rgba(242,232,218,.12)}
   .v26stage{position:absolute; inset:0; display:flex; align-items:center; justify-content:center}
   .v26zoom{position:relative; transform-origin:50.5% 47.5%; transform:scale(1)}
   .v26fotoSarma{position:relative; width:min(98vw,calc(98vh * 2.3036))}
@@ -2340,6 +2346,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <svg viewBox="0 0 120 120"><use href="#lg-muhur" fill="currentColor"/></svg>
         <b>OXEROM</b>
         <span class="v26ipucu">Mağazaya girmek için aşağı kaydırın<i>⌄</i></span>
+        <a class="v26gec" href="#katalog" onclick="document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'}); return false;">Mağazaya geç</a>
       </div>
       <div class="v26stage">
         <div class="v26zoom">
