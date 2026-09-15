@@ -2346,7 +2346,8 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
         <svg viewBox="0 0 120 120"><use href="#lg-muhur" fill="currentColor"/></svg>
         <b>OXEROM</b>
         <span class="v26ipucu">Mağazaya girmek için aşağı kaydırın<i>⌄</i></span>
-        <a class="v26gec" href="#katalog" onclick="document.getElementById('katalog').scrollIntoView({behavior:'instant', block:'start'}); return false;">Mağazaya geç</a>
+        <!-- Emre 15.09.2026: sayfanın başına (250 TL Minimum Sipariş şeridi) iner, ürün listesine değil -->
+        <a class="v26gec" href="#katalog" onclick="document.querySelector('.duyuru').scrollIntoView({behavior:'instant', block:'start'}); return false;">Mağazaya geç</a>
       </div>
       <div class="v26stage">
         <div class="v26zoom">
@@ -2477,7 +2478,9 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   </div>
 </section>
 
-<section class="bolum" id="cok-satan">
+<!-- Emre 15.09.2026: "En çok satanlar" yerine Instagram şeridi görünür. Bölüm SİLİNMEDİ, gizli:
+     boş sepet önerileri (#cok-satan kartları) buradan okunuyor. -->
+<section class="bolum" id="cok-satan" hidden>
   <div class="kap">
     <div class="bolum-bas">
       <div>
@@ -5113,7 +5116,10 @@ function perdeyiGec(){
   bak();
 })();
 let PERDE_ATLA = false;
-try{ PERDE_ATLA = !!document.referrer && new URL(document.referrer).origin === location.origin; }catch(_){ }
+// Sadece yasal sayfalardan (*.html) dönüşte atlanır (Emre 15.09.2026: "perde gözükmüyor" —
+// eskiden site içindeki HER sayfadan gelişte, örn. oxerom.com.tr/instagram, perde hiç çıkmıyordu).
+try{ const r = document.referrer && new URL(document.referrer);
+     PERDE_ATLA = !!r && r.origin === location.origin && /\.html$/i.test(r.pathname); }catch(_){ }
 function sayfaGoster(ad){
   // Maskot sepet sayfasında gizlenir (26.08.2026): dar ekranlarda sol alta indiği
   // için öneri kartlarının ve Sepete ekle düğmesinin üstüne biniyordu — CSS
