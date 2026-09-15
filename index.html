@@ -1561,6 +1561,8 @@ html{ scroll-behavior:smooth; }
 /* ---- marka filtresi (araç kategorisi içinde) ---- */
 /* ---- güven şeridi (vitrin altı, belirgin) ---- */
 .guven{ margin:26px 0 6px; }
+/* Panel "Sayfa düzeni"nde gizlenen ana sayfa bölümü (15.09.2026) — JS hidden=false yapsa da görünmez */
+[data-dz-gizli]{ display:none !important; }
 .guven-izgara{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 .guven-kart{
   display:flex; align-items:flex-start; gap:12px; padding:16px 18px;
@@ -2429,7 +2431,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 </nav>
 
 <div id="sayfa-katalog">
-<section class="vitrin">
+<section class="vitrin" id="vitrin">
   <div class="kap">
     <div class="tabla">
       <span class="nisan sol-ust" aria-hidden="true"></span>
@@ -2603,7 +2605,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 </section>
 
 <!-- ============ güven şeridi ============ -->
-<section class="guven" aria-label="Alışveriş güvenceleri">
+<section class="guven" id="guven" aria-label="Alışveriş güvenceleri">
   <div class="kap guven-izgara">
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">📦</span>
@@ -3038,6 +3040,29 @@ function ayarlariUygula(a){
   KAMPANYA = (a.kampanya === 'ikinci' || a.kampanya === '3al2') ? a.kampanya : 'yok';
   if(Number.isFinite(+a.kampanya_yuzde) && +a.kampanya_yuzde > 0) KAMPANYA_YUZDE = +a.kampanya_yuzde;
   duyuruYaz();
+}
+// Sayfa düzeni (Emre 15.09.2026): panelin "Sayfa düzeni" sekmesinden gelir (ayarlar.duzen).
+// bolumler: ana sayfa bölümlerinin sırası · gizli_bolumler · kategoriler: kategori şeridi sırası.
+// Ürün, Instagram ve hediye sırası ayrı alan değil: panel dizilerin kendisini sıralar.
+let DUZEN = {};
+function duzenUygula(a){
+  DUZEN = (a && a.duzen && typeof a.duzen === 'object') ? a.duzen : {};
+  const kap = document.getElementById('sayfa-katalog');
+  const gizli = Array.isArray(DUZEN.gizli_bolumler) ? DUZEN.gizli_bolumler : [];
+  ['vitrin','ig-bolum','guven'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.toggleAttribute('data-dz-gizli', gizli.includes(id));
+  });
+  (Array.isArray(DUZEN.bolumler) ? DUZEN.bolumler : []).forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && kap && el.parentElement === kap) kap.appendChild(el);
+  });
+}
+// Kategori şeridi sırası: listede yeri yazılı olan önce, yeni açılan kategori eski sırasıyla sona
+function duzenSirala(liste, kimlik){
+  const s = Array.isArray(DUZEN.kategoriler) ? DUZEN.kategoriler : [];
+  if(!s.length) return liste;
+  const yer = x=>{ const i = s.indexOf(kimlik(x)); return i < 0 ? 1e6 : i; };
+  return liste.map((x,i)=>({x,i})).sort((a,b)=>(yer(a.x)-yer(b.x)) || (a.i-b.i)).map(o=>o.x);
 }
 // Ürünün KENDİ rengi (Emre, 17.08.2026): fotoğraftaki renk ücretsiz, diğerleri +RENK_FARK.
 // Sıra: panelde elle seçilen renk > başlıkta geçen renk > listenin ilk rengi.
@@ -4320,16 +4345,19 @@ function katBaglarCiz(){
   // Kategori bağlantıları paylaşılabilir (22.08.2026, Emre): href gerçek adres
   // taşır (#kategori=...), sağ tık > bağlantıyı kopyala da çalışır.
   let html = `<a class="kat-bag ${state.grup==='tum'?'aktif':''}" href="#katalog" data-grup="tum">Tümü <span class="n num">${toplam}</span></a>`;
+  // "Tümü" hep başta; geri kalanın sırası panelin Sayfa düzeni sekmesinden (15.09.2026)
+  const parcalar = [];
   if(kisiselSayi){
-    html += `<a class="kat-bag ${state.grup==='kisisel'?'aktif':''}" href="#kategori=kisisel" data-grup="kisisel">Kişiye Özel Ürünler <span class="n num">${kisiselSayi}</span></a>`;
+    parcalar.push(['kisisel', `<a class="kat-bag ${state.grup==='kisisel'?'aktif':''}" href="#kategori=kisisel" data-grup="kisisel">Kişiye Özel Ürünler <span class="n num">${kisiselSayi}</span></a>`]);
   }
   GRUPLAR.forEach(g=>{
-    html += `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#kategori=${g.slug}" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`;
+    parcalar.push([g.slug, `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#kategori=${g.slug}" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`]);
   });
   // Favorites open from the top-bar heart only (22.08.2026, Emre) — the strip
   // button made "Promosyon & Kurumsal" overflow, so it was removed for good.
   // Promosyon bir ürün grubu değil, ayrı bir kapı: kendi sayfasını açar
-  html += `<a class="kat-bag kat-promo" href="#promosyon" onclick="promosyonAc(); return false;">Promosyon &amp; Kurumsal</a>`;
+  parcalar.push(['promosyon', `<a class="kat-bag kat-promo" href="#promosyon" onclick="promosyonAc(); return false;">Promosyon &amp; Kurumsal</a>`]);
+  html += duzenSirala(parcalar, p=>p[0]).map(p=>p[1]).join('');
   // Toptan Satış şeritte DEĞİL, üst barda durur (Emre, 24.08.2026 akşam)
   document.getElementById('kat-baglar').innerHTML = html;
   document.querySelectorAll('.kat-bag[data-grup]').forEach(a=>{
@@ -6298,10 +6326,11 @@ fetch('/urunler.json').then(r=>r.json()).then(veri=>{
   // bilerek gizledikleri (gizli) burada da YOK — onlar gerçekten görünmez.
   KAPALI_URUNLER = veri.urunler.filter(u=>u.gizli_ty && !u.gizli);
   ayarlariUygula(veri.ayarlar);
+  duzenUygula(veri.ayarlar);
   const gSay = {};
   URUNLER.forEach(u=>{ gSay[u.g]=(gSay[u.g]||0)+1; });
-  GRUPLAR = veri.gruplar.map(g=>({slug:g.slug, name:g.name, n:gSay[g.slug]||0}))
-    .filter(g=>g.n>0).sort((a,b)=>b.n-a.n);
+  GRUPLAR = duzenSirala(veri.gruplar.map(g=>({slug:g.slug, name:g.name, n:gSay[g.slug]||0}))
+    .filter(g=>g.n>0).sort((a,b)=>b.n-a.n), g=>g.slug);
   const mSay = {};
   URUNLER.filter(u=>u.g==='arac'&&u.m).forEach(u=>{ mSay[u.m]=(mSay[u.m]||0)+1; });
   MARKALAR = Object.entries(mSay).map(([ad,n])=>({ad,n})).sort((a,b)=>b.n-a.n);
