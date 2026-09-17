@@ -1926,6 +1926,8 @@ body[data-sayfa="sepet"] .maskot-kap{ display:none; }
 .talep-ok{ color:var(--zeytin, #5B6B3C); font-weight:700; font-size:13.5px; margin:0; }
 /* ---- toptan satış başvurusu ---- */
 .talep-form .onay-satir{ flex-direction:row; font-weight:400; }
+/* [hidden] tuzağı (17.09.2026): display:flex gizli satırı eziyordu — oturum açıkken şifre/KVKK/giriş kutusu görünüyordu */
+.talep-form label[hidden], .toptan-giris[hidden]{ display:none; }
 .talep-form .onay-satir input{ width:auto; padding:0; margin-top:2px; }
 .toptan-giris{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
   background:var(--panel); border:1.5px solid var(--cizgi-koyu); border-radius:var(--r-m);
@@ -3874,7 +3876,11 @@ async function hesabimCiz(sekme){
         baslik: document.getElementById('a-baslik').value.trim() || 'Adres',
         metin,
       });
-      if(res.ok){ oturum.kullanici.adresler = await res.json(); oturumKaydet(); hesabimCiz('adreslerim'); }
+      if(res.ok){
+        oturum.kullanici.adresler = await res.json(); oturumKaydet(); await hesabimCiz('adreslerim');
+        const b = document.getElementById('a-ekle');
+        if(b){ b.textContent = 'Adres eklendi ✓'; setTimeout(()=>{ const x=document.getElementById('a-ekle'); if(x) x.textContent='Adres ekle'; }, 2000); }
+      }
       else{ const v = await res.json().catch(()=>({})); hataEl.textContent = v.hata || 'Eklenemedi.'; hataEl.classList.add('gorunur'); }
     };
   }else{
