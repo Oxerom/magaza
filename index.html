@@ -358,11 +358,17 @@ h1,h2,h3,blockquote{ text-wrap:balance; }
 /* ============ 2. üst bar ============ */
 /* header + kategori şeridi birlikte sabitlenir, bkz. .ust-sabit */
 .ust-sabit{ position:sticky; top:0; z-index:60; }
+/* Otomatik kaydırma (scrollIntoView, odak, #çapa) hedefi sabit şeridin ALTINDA bırakmasın
+   (23.09.2026 derin tur): --ust-yuk şeridin ölçülen yüksekliği, ResizeObserver tazeler. */
+html{ scroll-padding-top:calc(var(--ust-yuk, 118px) + 12px); }
 /* Telefonda aşağı kaydırınca kategori şeridi katlanır, yukarı kaydırınca döner.
    (Duyuru ve hediye şeridi artık yapışkan blokta değil — kendiliğinden kayarlar.) */
 @media (max-width:640px){
   .ust-sabit .kat-serit{ transition:max-height .25s ease, opacity .2s ease; max-height:120px; overflow:hidden; }
-  .ust-sabit.katla .kat-serit{ max-height:0; opacity:0; border:0; }
+  /* Katlıyken tıklama ALMAZ (19.09.2026): max-height:0 + opacity:0 görünmez yapıyor ama
+     bağlar kutularını koruyordu; altındaki hediye şeridi yukarı kayınca parmak/otomasyon
+     kategoriye değil "Anneler Günü" koleksiyonuna basıyordu. */
+  .ust-sabit.katla .kat-serit{ max-height:0; opacity:0; border:0; pointer-events:none; }
 }
 .ust{
   position:relative;
@@ -2196,7 +2202,9 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 }
 .siparis-form .satir-2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .siparis-form input:focus, .siparis-form textarea:focus{ outline:2px solid var(--nar); outline-offset:1px; }
-.siparis-form input.hata, .siparis-form textarea.hata{ border-color:var(--nar); }
+.siparis-form input.hata, .siparis-form textarea.hata{ border-color:var(--nar); box-shadow:0 0 0 2px rgba(196,72,54,.18); }
+.siparis-form .onay-satir.hata{ color:var(--nar); }
+.siparis-form .onay-satir.hata input{ outline:2px solid var(--nar); outline-offset:1px; }
 .siparis-hata{ display:none; font-size:12px; color:var(--nar); margin:0; }
 .siparis-hata.gorunur{ display:block; }
 .sepet-not{ font-size:11.5px; color:var(--sisik); }
@@ -2257,6 +2265,9 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 .hs-adres{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
   border:1px solid var(--cizgi); border-radius:var(--r-s); padding:10px 12px; margin-bottom:8px; font-size:12.5px; }
 .hs-adres span{ color:var(--soluk); }
+/* Adres "sil" dokunma alani 22x19 px idi (19.09.2026 derin tur): telefonda ilk
+   dokunus isabet etmiyor, musteri iki kez basmak zorunda kaliyordu. Parmak olcusu. */
+.hs-adres .sepet-sil{ flex:none; min-width:44px; min-height:44px; padding:0 8px; font-size:12.5px; }
 .sifre-degistir{ font-size:12.5px; }
 .sifre-degistir summary{ cursor:pointer; color:var(--soluk); margin-bottom:8px; }
 .sifre-degistir input{ width:100%; margin-bottom:8px; border:1px solid var(--cizgi-koyu);
@@ -2311,10 +2322,10 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
       </g>
     </mask>
     <symbol id="lg-muhur" viewBox="0 0 120 120">
-      <circle cx="60" cy="60" r="52" fill="currentColor" mask="url(/#oxm)"/>
+      <circle cx="60" cy="60" r="52" fill="currentColor" mask="url(#oxm)"/>
     </symbol>
     <symbol id="lg-yatay" viewBox="0 0 535.2 120">
-      <circle cx="60" cy="60" r="52" fill="currentColor" mask="url(/#oxm)"/>
+      <circle cx="60" cy="60" r="52" fill="currentColor" mask="url(#oxm)"/>
       <g transform="translate(156.28,26.16) scale(0.677)" fill="none" stroke="currentColor"
          stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="40" cy="50" r="40"/>
@@ -2371,7 +2382,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
            ~90vh boş krem ekran kalıyordu — .v26site CSS'te vardı, işaretlemesi yoktu. -->
       <div class="v26site">
         <svg viewBox="0 0 120 120" aria-hidden="true"><use href="#lg-muhur" fill="currentColor"/></svg>
-        <h3>1.000'den fazla ürün</h3>
+        <h3 id="perde-urun-sayisi">1.400'den fazla ürün</h3>
         <p>Kişiye özel plakalar, 3D baskı hediyelikler, araç ve ev aksesuarları.</p>
         <button type="button" onclick="perdeyiGec()">Ürünlere geç</button>
       </div>
@@ -2394,12 +2405,12 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
 <div class="ust-sabit">
   <header class="ust">
     <div class="kap ust-govde">
-      <a class="logo" href="#" aria-label="OXEROM ana sayfa" onclick="katalogaDon(); window.scrollTo({top:0, behavior:'smooth'}); return false;">
+      <a class="logo" href="#" aria-label="OXEROM ana sayfa" onclick="anaSayfayaDon(); return false;">
         <svg viewBox="0 0 535.2 120" role="img" aria-hidden="true"><use href="#lg-yatay"/></svg>
       </a>
       <div class="arama-sarmal">
         <label class="gizli" for="arama">Ürün ara</label>
-        <input class="arama-girdi" id="arama" type="search" placeholder="1000'den fazla ürün içinde ara…" autocomplete="off">
+        <input class="arama-girdi" id="arama" type="search" placeholder="1.400'den fazla ürün içinde ara…" autocomplete="off">
         <button class="arama-temizle" id="arama-temizle" type="button" aria-label="Aramayı temizle">✕</button>
         <div class="arama-oneri" id="arama-oneri" hidden></div>
       </div>
@@ -4163,7 +4174,20 @@ function siparisVerileriniTopla(){
       return null;
     }
   }
-  // Misafirse önce iletişim bilgileri (ad + telefon zorunlu)
+  // Eksik alanların HEPSİ tek seferde (23.09.2026 derin tur): her eksik kırmızı
+  // çerçeve alır, tek mesajda listelenir; müşteri üç kez "Kartla Öde"ye basmaz.
+  // Alan düzeltilince (input/change) kırmızısı kendiliğinden kalkar.
+  const eksik = [];
+  const isaretle = (id, ad)=>{
+    const el = document.getElementById(id); if(!el) return;
+    const hedef = el.type === 'checkbox' ? el.closest('.onay-satir') || el : el;
+    hedef.classList.add('hata');
+    el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', ()=> hedef.classList.remove('hata'), { once:true });
+    if(ad) eksik.push(ad);
+  };
+  document.querySelectorAll('.siparis-form .hata').forEach(el=> el.classList.remove('hata'));
+
+  // Misafirse önce iletişim bilgileri (ad + telefon + e-posta zorunlu)
   let misafir = null;
   if(!oturum.token){
     misafir = {
@@ -4172,15 +4196,10 @@ function siparisVerileriniTopla(){
       telefon: document.getElementById('mz-telefon').value.trim(),
       eposta: document.getElementById('mz-eposta').value.trim(),
     };
-    if(!misafir.ad || !misafir.telefon || !misafir.eposta){
-      siparisHata('Ad, telefon ve e-posta girin — sipariş bildirimi ve makbuz için gerekli.'); return null;
-    }
-    if(!/^\S+@\S+\.\S+$/.test(misafir.eposta)){
-      siparisHata('E-posta adresi geçerli görünmüyor — kontrol edin.'); return null;
-    }
-    // remember for next time so the same info is never asked twice on this device
-    // (adres de kalır — 09.09.2026; teslimatAdres aşağıda hesaplanır, buradaki taslak değeri yeter)
-    try{ const ta = document.getElementById('ts-adres-yeni'); localStorage.setItem('oxerom_misafir', JSON.stringify({ ...misafir, adres: ta ? ta.value.trim().slice(0, 400) : '' })); }catch(_){}
+    if(!misafir.ad) isaretle('mz-ad', 'ad');
+    if(!misafir.telefon) isaretle('mz-telefon', 'telefon');
+    if(!misafir.eposta) isaretle('mz-eposta', 'e-posta');
+    else if(!/^\S+@\S+\.\S+$/.test(misafir.eposta)) isaretle('mz-eposta', 'geçerli bir e-posta');
   }
 
   const adresSec = document.getElementById('ts-adres-sec');
@@ -4193,7 +4212,7 @@ function siparisVerileriniTopla(){
     kaydet = document.getElementById('ts-adres-kaydet').checked;
     baslik = 'Adresim';
   }
-  if(!teslimatAdres){ siparisHata('Teslimat adresi girin.'); return null; }
+  if(!teslimatAdres) isaretle('ts-adres-yeni', 'teslimat adresi');
 
   const kurumsal = document.querySelector('input[name="ft-tip"]:checked').value === 'kurumsal';
   const fatura = { tip: kurumsal ? 'kurumsal' : 'bireysel', ayniAdres: document.getElementById('ft-ayni').checked };
@@ -4201,20 +4220,30 @@ function siparisVerileriniTopla(){
     fatura.unvan = document.getElementById('ft-unvan').value.trim();
     fatura.vergiDairesi = document.getElementById('ft-vd').value.trim();
     fatura.vkn = document.getElementById('ft-vkn').value.trim();
-    if(!fatura.unvan || !fatura.vergiDairesi || !fatura.vkn){
-      siparisHata('Kurumsal fatura için unvan, vergi dairesi ve vergi no gerekli.'); return null;
-    }
+    if(!fatura.unvan) isaretle('ft-unvan', 'firma unvanı');
+    if(!fatura.vergiDairesi) isaretle('ft-vd', 'vergi dairesi');
+    if(!fatura.vkn) isaretle('ft-vkn', 'vergi no');
   }else{
     fatura.tckn = document.getElementById('ft-tckn').value.trim();
   }
   if(!fatura.ayniAdres){
     fatura.adres = document.getElementById('ft-adres').value.trim();
-    if(!fatura.adres){ siparisHata('Fatura adresi girin (veya "aynı" seçeneğini işaretleyin).'); return null; }
+    if(!fatura.adres) isaretle('ft-adres', 'fatura adresi');
   }
 
-  if(!document.getElementById('sz-onay').checked){
-    siparisHata('Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi onaylanmadan sipariş verilemez.');
+  if(!document.getElementById('sz-onay').checked) isaretle('sz-onay', 'sözleşme onayı');
+
+  if(eksik.length){
+    siparisHata((eksik.length === 1 ? 'Eksik: ' : 'Eksikler: ') + eksik.join(', ') + '. Kırmızı işaretli alanları doldurun.');
+    const ilk = document.querySelector('.siparis-form .hata');
+    if(ilk) ilk.scrollIntoView({ behavior:'smooth', block:'center' });
     return null;
+  }
+
+  if(misafir){
+    // remember for next time so the same info is never asked twice on this device
+    // (adres de kalır — 09.09.2026)
+    try{ localStorage.setItem('oxerom_misafir', JSON.stringify({ ...misafir, adres: teslimatAdres.slice(0, 400) })); }catch(_){}
   }
   document.getElementById('siparis-hata').classList.remove('gorunur');
   return { teslimat: { adres: teslimatAdres, kaydet, baslik }, fatura, sozlesmeOnay: true,
@@ -4363,6 +4392,17 @@ async function siparisiOnaylaKartla(){
 
 function escHtml(s){
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// "1.400'den fazla ürün" yazısı katalog büyüdükçe kendiliğinden tazelenir (21.09.2026
+// derin tur): görünür ürün sayısı en yakın alt yüzlüğe yuvarlanır, elle güncelleme yok.
+// Yüzlüğe yuvarlandığı için ek hep "'den" (…yüzden / …binden) — dil hatası çıkmaz.
+function urunSayisiYaz(){
+  const n = Math.floor(URUNLER.length / 100) * 100;
+  if(n < 100) return;
+  const yazi = n.toLocaleString('tr-TR') + '\'den fazla ürün';
+  const b = document.getElementById('perde-urun-sayisi'); if(b) b.textContent = yazi;
+  const a = document.getElementById('arama'); if(a) a.placeholder = yazi + ' içinde ara…';
 }
 
 function katBaglarCiz(){
@@ -5153,8 +5193,20 @@ async function ozellikleriYukle(u){
 // gibi site İÇİNDEN gelen bir dönüşte müşteri perdeyi baştan kaydırmak zorunda
 // kalmasın. Dışarıdan gelen ilk ziyarette perde aynen oynar.
 // Sahne sonundaki "Ürünlere geç" düğmesi: perdenin bittiği yere kaydırır (07.09.2026).
+// Perde bir ziyarette BİR KEZ oynar (21.09.2026 derin tur): müşteri perdeyi geçip
+// alışverişe başladıktan sonra üstteki logoya basınca perde baştan açılıyor, onu
+// gereksiz yere bekletiyordu. İşaret sekmenin oturumunda durur — yeni sekme ya da
+// yeni ziyaret perdeyi yine görür, 15.09.2026'daki "perde gözükmüyor" durumu geri gelmez.
+let PERDE_GORULDU = false;
+try{ PERDE_GORULDU = sessionStorage.getItem('perdeGoruldu') === '1'; }catch(_){ }
+function perdeGoruldu(){
+  if(PERDE_GORULDU) return;
+  PERDE_GORULDU = true;
+  try{ sessionStorage.setItem('perdeGoruldu', '1'); }catch(_){ }
+}
 function perdeyiGec(){
   const dis = document.querySelector('.sahneDis'); if(!dis) return;
+  perdeGoruldu();
   window.scrollTo({top: dis.offsetTop + dis.offsetHeight, behavior:'smooth'});
 }
 // Katman flaştan sonra görünür; görünürken tıklama alsın, öncesinde sahnenin üstünü kapatmasın.
@@ -5165,7 +5217,8 @@ function perdeyiGec(){
     const vh = window.innerHeight, boy = dis.offsetHeight; if(!boy) return;
     // CSS animation-range ile aynı ölçek: sahnenin ALTI ekranın altına gelince animasyon biter (boy - vh)
     const p = (window.scrollY - dis.offsetTop) / Math.max(1, boy - vh);   // 0 sahne başı, 1 animasyon sonu
-    kat.classList.toggle('acik', p >= .88 && p <= 1.02); }
+    kat.classList.toggle('acik', p >= .88 && p <= 1.02);
+    if(p >= 1) perdeGoruldu(); }   // perdeyi bir kez geçen müşteri bir daha karşılaşmaz
   window.addEventListener('scroll', ()=>{ if(!bekle){ bekle = true; requestAnimationFrame(bak); } }, { passive:true });
   bak();
 })();
@@ -5181,7 +5234,7 @@ function sayfaGoster(ad){
   document.body.dataset.sayfa = ad;
   // Perde açılışı sadece katalogda; ürün/sepet sayfası perdesiz, üstten başlar
   const perde = document.querySelector('.sahneDis');
-  if(perde) perde.hidden = ad !== 'katalog' || PERDE_ATLA;
+  if(perde) perde.hidden = ad !== 'katalog' || PERDE_ATLA || PERDE_GORULDU;
   document.getElementById('sayfa-katalog').hidden = ad !== 'katalog';
   document.getElementById('sayfa-urun').hidden    = ad !== 'urun';
   document.getElementById('sayfa-sepet').hidden   = ad !== 'sepet';
@@ -5226,6 +5279,20 @@ function sekmeBasligi(ad){
     b = h1 ? h1.textContent : 'Hesabım';
   }
   document.title = b ? b + ' — OXEROM' : 'OXEROM';
+}
+// Üstteki logo = "ana sayfaya dön" (21.09.2026 derin tur): perdeyi baştan açmaz ve
+// açık kategoriyi/aramayı da bırakmaz — müşteri gerçekten tüm ürünlerin başına döner.
+// Ürün/sepet sayfasındaki "geri" yolları katalogaDon kullanmaya devam eder: oralarda
+// müşterinin baktığı kategoride kalması doğru.
+function anaSayfayaDon(){
+  perdeGoruldu();
+  state.grup = 'tum'; state.marka = 'tum'; state.model = 'tum';
+  state.koleksiyon = ''; state.instagram = false; state.q = ''; state.sayfa = 1;
+  const g = document.getElementById('arama');
+  if(g){ g.value = ''; const t = document.getElementById('arama-temizle'); if(t) t.classList.remove('gorunur'); }
+  cizHepsi();
+  katalogaDon();
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 function katalogaDon(){
   // Ürün/sepet sayfasından katalog'a: arama açıksa adres #ara=... olur, değilse temizlenir
@@ -5326,6 +5393,18 @@ function yolCoz(){
   if(h === '#promosyon'){ promosyonCiz(); sayfaGoster('promosyon'); return; }
   if(h === '#toptan'){ toptanAc(); return; }
   if(h === '#instagram'){ instagramAc(); return; }
+  // Geri/İleri tuşuyla "/" ya da "#katalog" adresine dönüldü (21.09.2026 derin tur):
+  // adres "Tüm ürünler"i söylüyorsa ekran da tüm ürünleri göstersin. Eskiden son
+  // seçilen kategori ekranda kalıyordu — müşteri Geri'ye basıp hiçbir şey olmayınca
+  // siteyi bozuk sanıyordu. Zaten "Tümü"deysek hiçbir şey yeniden çizilmez.
+  if(h === '' || h === '#katalog'){
+    if(state.grup !== 'tum' || state.marka !== 'tum' || state.model !== 'tum'
+       || state.koleksiyon || state.instagram){
+      state.grup = 'tum'; state.marka = 'tum'; state.model = 'tum';
+      state.koleksiyon = ''; state.instagram = false; state.sayfa = 1;
+      cizHepsi();
+    }
+  }
   sayfaGoster('katalog');
   if(!h && state.q){
     // Geri tuşuyla aramasız adrese dönüldü — kutuyu ve süzgeci de temizle
@@ -5860,6 +5939,15 @@ function igSeritCiz(){
   document.getElementById('takip-tel').addEventListener('keydown', e=>{ if(e.key==='Enter') sorgula(); });
 })();
 
+// ---- sabit üst şeridin yüksekliği → --ust-yuk (html scroll-padding-top bunu okur) ----
+(function(){
+  const ust = document.querySelector('.ust-sabit'); if(!ust) return;
+  const olc = ()=> document.documentElement.style.setProperty('--ust-yuk', ust.offsetHeight + 'px');
+  if(window.ResizeObserver) new ResizeObserver(olc).observe(ust);
+  window.addEventListener('resize', olc);
+  olc();
+})();
+
 // ---- telefonda üst bloğu katla (aşağı kaydırınca), yukarı kaydırınca aç ----
 (function(){
   const ust = document.querySelector('.ust-sabit'); if(!ust) return;
@@ -6360,6 +6448,7 @@ fetch('/urunler.json').then(r=>r.json()).then(veri=>{
   const mSay = {};
   URUNLER.filter(u=>u.g==='arac'&&u.m).forEach(u=>{ mSay[u.m]=(mSay[u.m]||0)+1; });
   MARKALAR = Object.entries(mSay).map(([ad,n])=>({ad,n})).sort((a,b)=>b.n-a.n);
+  urunSayisiYaz();
   cizHepsi();
   fisKategorilerCiz();
   cokSatanBagla();
