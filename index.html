@@ -1596,7 +1596,11 @@ html{ scroll-behavior:smooth; }
   border:1px solid rgba(243,231,218,.22); background:rgba(243,231,218,.07);
 }
 .vitrin-yorum[hidden]{ display:none; }
-.vitrin-yorum .vy-yildiz{ color:#E8B571; font-size:14.5px; letter-spacing:.08em; line-height:1; }
+.vitrin-yorum .vy-yildiz{ color:#E8B571; font-size:14.5px; letter-spacing:.08em; line-height:1; position:relative; display:inline-block; white-space:nowrap; }
+/* Oransal yıldız dolumu (26.09.2026): altta 5 boş yıldız, üstte genişliği puana göre
+   kesilmiş 5 dolu yıldız. Aynı yazı tipi ve aralık — iki katman üst üste oturur. */
+.vitrin-yorum .vy-bos{ display:inline-block; }
+.vitrin-yorum .vy-dolu{ position:absolute; left:0; top:0; overflow:hidden; white-space:nowrap; }
 .vitrin-yorum b{ color:#F3E7DA; font-size:14px; font-weight:700; }
 .vitrin-yorum span.vy-alt{ color:#BCAA9C; font-size:12.5px; }
 @media (max-width:660px){
@@ -2624,7 +2628,7 @@ a.sepet-satir-ad:hover{ color:var(--nar); text-decoration:underline; }
   <div class="kap guven-izgara">
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">📦</span>
-      <div><b>Ertesi gün kargoda</b><span id="guven-kargo">18:00'a kadar verilen siparişler ertesi gün yola çıkar (pazar hariç).</span></div>
+      <div><b>Ertesi gün kargoda</b><span id="guven-kargo">18:00'a kadar verilen siparişler ertesi gün yola çıkar (cumartesi dahil, pazar hariç).</span></div>
     </div>
     <div class="guven-kart">
       <span class="guven-ikon" aria-hidden="true">↩️</span>
@@ -3384,7 +3388,7 @@ function sepetGuvenCiz(){
   kutu.className = 'sepet-guven';
   kutu.innerHTML = `<b>Neden OXEROM?</b>
     <span>🖨️ Aile atölyemizde 3D baskıyla, sipariş üzerine üretilir.</span>
-    <span>📦 Siparişler ertesi gün kargoya verilir (pazar hariç).</span>
+    <span>📦 Siparişler ertesi gün kargoya verilir (cumartesi dahil, pazar hariç).</span>
     ${KART_AKTIF ? '<span>🔒 PayTR güvenli ödeme — kart bilgileriniz sitemizden hiç geçmez.</span>' + odemeRozetHtml() : ''}
     ${(!bayiOrani() && BEDAVA_ESIK > 0) ? `<span>🚚 ${fiyatFmt(BEDAVA_ESIK)} üzeri kargo bedava.</span>` : ''}`;
   liste.appendChild(kutu);
@@ -4104,7 +4108,7 @@ function siparisBolgeCiz(zorla){
     </div>
     ${KART_AKTIF ? `<p class="sepet-not">Kartla ödemede PayTR'nin güvenli ödeme ekranı açılır — kart bilgileriniz
       bizim sitemizden hiç geçmez, taksit seçenekleri orada görünür.</p>` + odemeRozetHtml() : ''}
-    <p class="sepet-not">📦 Siparişler ertesi gün kargoya verilir (pazar hariç).</p>
+    <p class="sepet-not">📦 Siparişler ertesi gün kargoya verilir (cumartesi dahil, pazar hariç).</p>
     <div class="odeme-secenekleri">
       ${KART_AKTIF ? `<button class="sepet-tamamla kart" type="button" id="sepet-kart-btn">Kartla Öde</button>` : ''}
       ${(WA_SIPARIS || !KART_AKTIF) ? `<button class="sepet-tamamla" type="button" id="sepet-tamamla-btn">WhatsApp'tan siparişi onayla</button>` : ''}
@@ -5182,7 +5186,7 @@ async function ozellikleriYukle(u){
       urunRenkListesi(u).filter(r=>r !== ur).join(', ') + ' +' + fiyatFmt(RENK_FARK) + '/adet']);
   }
   satirlar.push(['Kişiye özel', u.kisisel ? 'Evet — üstüne yazı/isim basılır, iade edilemez' : 'Hayır']);
-  satirlar.push(['Kargo', KARGO_SON_SAAT + ':00\'a kadar verilen sipariş ertesi gün kargoda (pazar hariç)']);
+  satirlar.push(['Kargo', KARGO_SON_SAAT + ':00\'a kadar verilen sipariş ertesi gün kargoda (cumartesi dahil, pazar hariç)']);
   kutu.innerHTML = '<table class="ozellik-tablo">' + satirlar.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('') + '</table>';
 }
 
@@ -6511,11 +6515,13 @@ fetch('/urunler.json').then(r=>r.json()).then(veri=>{
     if(n < EN_AZ) return;                       // az yorum -> blok hiç görünmez
     const ort = toplam / n;
     const gosterilen = hepsiBes ? 5 : Math.min(Math.round(ort * 10) / 10, 4.9);
-    // Yıldız her zaman AŞAĞI yuvarlanır: 4,9 için 5 dolu yıldız çizmek,
-    // rakam doğru olsa bile göze abartılı gelir.
-    const dolu = Math.floor(gosterilen);
-    const yildiz = ('★'.repeat(dolu) + '☆☆☆☆☆').slice(0, 5);
-    kutu.innerHTML = `<span class="vy-yildiz" aria-hidden="true">${yildiz}</span>`
+    // Yıldızlar rakamla BİREBİR dolar (26.09.2026 derin turu): 4,9 → 5. yıldızın
+    // %90'ı dolu. Eski "aşağı yuvarla" kuralı 4 dolu 1 boş çiziyordu; üç ayrı tur
+    // bunu "mağazayı olduğundan düşük gösteriyor" diye işaretledi. 5 dolu yıldız
+    // çizilmez — rakam 4,9'a kilitli olduğu için dolum da %100'e ulaşmaz.
+    const yuzde = Math.round(gosterilen / 5 * 1000) / 10;
+    kutu.innerHTML = `<span class="vy-yildiz" aria-hidden="true"><span class="vy-bos">☆☆☆☆☆</span>`
+      + `<span class="vy-dolu" style="width:${yuzde}%">★★★★★</span></span>`
       + `<b>${gosterilen.toFixed(1).replace('.', ',')} / 5</b>`
       + `<span class="vy-alt">${n} müşteri yorumu</span>`;
     kutu.setAttribute('aria-label', `Müşteri değerlendirmesi 5 üzerinden ${gosterilen.toFixed(1).replace('.', ',')}, ${n} yorum`);
