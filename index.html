@@ -524,18 +524,22 @@ html{ scroll-padding-top:calc(var(--ust-yuk, 118px) + 12px); }
 .kat-baglar::-webkit-scrollbar-thumb{ background:var(--cizgi-koyu); border-radius:3px; }
 .kat-bag{
   position:relative;
-  padding:8px 10px; font-size:14px; color:var(--murekkep); white-space:nowrap;
+  /* 29.09.2026: 10px → 6px — 10 başlık 1.290px tutuyordu, şeritte 1.228–1.248px yer var;
+     "Promosyon & Kurumsal" bilgisayarda sağdan kesiliyordu. Şimdi hepsi sığıyor. */
+  padding:8px 6px; font-size:14px; color:var(--murekkep); white-space:nowrap;
   transition:color .18s var(--e-cik);
 }
 /* seçili kategori belli olsun (JS 'aktif' sınıfını basıyordu ama karşılığı yoktu) */
 .kat-bag.aktif{ color:var(--nar); font-weight:600; }
 .kat-bag.aktif::after{ transform:scaleX(1); }
 /* Kategori sayaçları şeritte gizli (20.08.2026): ~280px yer yiyip şeridi ikinci
-   satıra taşırıyordu — Emre "üst ekran çok sarkmış" dedi. Sayı bilgisi düşük değerli. */
+   satıra taşırıyordu — Emre "üst ekran çok sarkmış" dedi. Sayı bilgisi düşük değerli.
+   29.09.2026 yine istendi, ölçüldü: sayılar son iki kategoriyi ekran dışına itiyor —
+   Emre "sayı yok" dedi. Sayı yalnız fareyle üstüne gelince (title) görünür. */
 .kat-bag .n{ display:none; }
 /* alt çizgi ortadan açılır — kalıp değil, çizilmiş his */
 .kat-bag::after{
-  content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px;
+  content:""; position:absolute; left:8px; right:8px; bottom:0; height:2px;
   background:var(--nar); transform:scaleX(0); transform-origin:50% 50%;
   transition:transform .26s var(--e-cik);
 }
@@ -552,9 +556,12 @@ html{ scroll-padding-top:calc(var(--ust-yuk, 118px) + 12px); }
    yana kaydırma kalıyor, sağdaki soluklaşan kenar kaydırılabildiğini gösteriyor. */
 @media (max-width:660px){
   .kat-bag{ padding:12px 14px; font-size:14px; }
+  .kat-bag::after{ left:12px; right:12px; }
 }
+/* Soluk kenar yalnız şerit gerçekten taşıyorsa (katBaglarCiz 'tasiyor' basar) —
+   hepsi sığınca son başlığın üstüne perde inmesin. */
 @media (max-width:1420px){
-  .kat-serit::after{
+  .kat-serit.tasiyor::after{
     content:""; position:absolute; top:0; right:0; bottom:0; width:44px;
     background:linear-gradient(to right, transparent, var(--kagit) 75%);
     pointer-events:none;
@@ -4409,19 +4416,30 @@ function urunSayisiYaz(){
   const a = document.getElementById('arama'); if(a) a.placeholder = yazi + ' içinde ara…';
 }
 
+// Kategori sayısı şeritte görünmez, fareyle üstüne gelince çıkar (Emre, 29.09.2026)
+function urunSayi(n){ return (+n || 0).toLocaleString('tr-TR') + ' ürün'; }
+// Şerit sığmıyorsa sağ kenar soluklaşsın (yana kaydırılabildiği belli olsun); sığıyorsa perde inmesin.
+function katTasmaIzle(){
+  const b = document.getElementById('kat-baglar'), s = b && b.closest('.kat-serit');
+  if(!s) return;
+  const bak = ()=> s.classList.toggle('tasiyor', b.scrollWidth > b.clientWidth + 1);
+  bak();
+  if(!b._izli && window.ResizeObserver){ b._izli = true; new ResizeObserver(bak).observe(b); }
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(bak); // yazı tipi gelince genişlik değişir
+}
 function katBaglarCiz(){
   const toplam = URUNLER.length;
   const kisiselSayi = URUNLER.filter(x=>x.kisisel).length;
   // Kategori bağlantıları paylaşılabilir (22.08.2026, Emre): href gerçek adres
   // taşır (#kategori=...), sağ tık > bağlantıyı kopyala da çalışır.
-  let html = `<a class="kat-bag ${state.grup==='tum'?'aktif':''}" href="#katalog" data-grup="tum">Tümü <span class="n num">${toplam}</span></a>`;
+  let html = `<a class="kat-bag ${state.grup==='tum'?'aktif':''}" href="#katalog" data-grup="tum" title="${urunSayi(toplam)}">Tümü <span class="n num">${toplam}</span></a>`;
   // "Tümü" hep başta; geri kalanın sırası panelin Sayfa düzeni sekmesinden (15.09.2026)
   const parcalar = [];
   if(kisiselSayi){
-    parcalar.push(['kisisel', `<a class="kat-bag ${state.grup==='kisisel'?'aktif':''}" href="#kategori=kisisel" data-grup="kisisel">Kişiye Özel Ürünler <span class="n num">${kisiselSayi}</span></a>`]);
+    parcalar.push(['kisisel', `<a class="kat-bag ${state.grup==='kisisel'?'aktif':''}" href="#kategori=kisisel" data-grup="kisisel" title="${urunSayi(kisiselSayi)}">Kişiye Özel Ürünler <span class="n num">${kisiselSayi}</span></a>`]);
   }
   GRUPLAR.forEach(g=>{
-    parcalar.push([g.slug, `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#kategori=${g.slug}" data-grup="${g.slug}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`]);
+    parcalar.push([g.slug, `<a class="kat-bag ${state.grup===g.slug?'aktif':''}" href="#kategori=${g.slug}" data-grup="${g.slug}" title="${urunSayi(g.n)}">${escHtml(g.name)} <span class="n num">${g.n}</span></a>`]);
   });
   // Favorites open from the top-bar heart only (22.08.2026, Emre) — the strip
   // button made "Promosyon & Kurumsal" overflow, so it was removed for good.
@@ -4430,6 +4448,7 @@ function katBaglarCiz(){
   html += duzenSirala(parcalar, p=>p[0]).map(p=>p[1]).join('');
   // Toptan Satış şeritte DEĞİL, üst barda durur (Emre, 24.08.2026 akşam)
   document.getElementById('kat-baglar').innerHTML = html;
+  katTasmaIzle();
   document.querySelectorAll('.kat-bag[data-grup]').forEach(a=>{
     a.addEventListener('click', e=>{
       e.preventDefault();
