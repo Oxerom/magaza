@@ -4193,7 +4193,12 @@ function siparisVerileriniTopla(){
     const el = document.getElementById(id); if(!el) return;
     const hedef = el.type === 'checkbox' ? el.closest('.onay-satir') || el : el;
     hedef.classList.add('hata');
-    el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', ()=> hedef.classList.remove('hata'), { once:true });
+    el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', ()=>{
+      hedef.classList.remove('hata');
+      // Son kırmızı da kalkınca üstteki "Eksikler: …" özeti kendiliğinden gider (30.09.2026
+      // derin tur) — müşteri ikinci kez "Kartla Öde"ye basmadan mesaj silinir.
+      if(!document.querySelector('.siparis-form .hata')) document.getElementById('siparis-hata').classList.remove('gorunur');
+    }, { once:true });
     if(ad) eksik.push(ad);
   };
   document.querySelectorAll('.siparis-form .hata').forEach(el=> el.classList.remove('hata'));
