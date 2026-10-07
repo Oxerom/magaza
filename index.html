@@ -3974,6 +3974,7 @@ fetch(ODEME_API + '/api/durum').then(async r=>{
 // yazılır — onay kutuları ve fatura tipi dahil. Sayfa yenilenince sıfırlanır
 // (misafir iletişim bilgileri zaten localStorage'dan ayrıca gelir).
 let SIPARIS_FORM_HAFIZA = {};
+let MZ_ONCEKI_DOLU = null; // sayfa açılışında cihazda misafir bilgisi var mıydı
 function siparisFormunuEzberle(){
   const h = SIPARIS_FORM_HAFIZA;
   ['mz-ad','mz-soyad','mz-telefon','mz-eposta','ts-adres-sec','ts-adres-yeni',
@@ -4061,6 +4062,8 @@ function siparisBolgeCiz(zorla){
   // e-mail is asked once, required, and never asked again — fields come prefilled.
   let mzKayit = {};
   try{ mzKayit = JSON.parse(localStorage.getItem('oxerom_misafir') || '{}') || {}; }catch(_){ mzKayit = {}; }
+  // Not yalnız sayfa açıldığında cihazda kayıt varsa çıkar; müşterinin bu ziyarette yazdığı için çıkmaz.
+  if(MZ_ONCEKI_DOLU === null) MZ_ONCEKI_DOLU = !!(mzKayit.ad||mzKayit.soyad||mzKayit.telefon||mzKayit.eposta||mzKayit.adres);
   bolge.innerHTML = `
     ${uyeli ? '' : `
     <p class="sepet-not">Üyeliksiz sipariş verebilirsiniz.
@@ -4069,6 +4072,9 @@ function siparisBolgeCiz(zorla){
       kargonuzu buradan takip edebilirsiniz.</p>
     <div class="siparis-form">
       <span class="siparis-etiket">İletişim</span>
+      ${MZ_ONCEKI_DOLU ? `
+      <p class="sepet-not" id="mz-dolu-not">Bu cihazda daha önce yazılan bilgiler dolduruldu. Sizin değilse
+        <a href="#" id="mz-temizle" style="text-decoration:underline;font-weight:600">temizleyin</a>.</p>` : ''}
       <div class="satir-2">
         <div><input id="mz-ad" type="text" placeholder="Ad" autocomplete="given-name" value="${escHtml(mzKayit.ad||'')}"></div>
         <div><input id="mz-soyad" type="text" placeholder="Soyad" autocomplete="family-name" value="${escHtml(mzKayit.soyad||'')}"></div>
@@ -4083,7 +4089,7 @@ function siparisBolgeCiz(zorla){
           ${adresler.map(a=>`<option value="${escHtml(a.id)}">${escHtml(a.baslik)} — ${escHtml(a.metin.slice(0,40))}${a.metin.length>40?'…':''}</option>`).join('')}
           <option value="__yeni">+ Yeni adres gir</option>
         </select>` : ''}
-      <textarea id="ts-adres-yeni" rows="2" placeholder="Açık teslimat adresi (mahalle, sokak, no, ilçe/il)"
+      <textarea id="ts-adres-yeni" rows="2" placeholder="Açık adres (mahalle, sokak, bina no, daire no, ilçe/il)"
         ${adresler.length ? 'style="display:none"' : ''}>${adresler.length ? '' : escHtml(mzKayit.adres||'')}</textarea>
       <label class="onay-satir kucuk" id="ts-kaydet-satir" ${(uyeli && !adresler.length) ? '' : 'style="display:none"'}>
         <input type="checkbox" id="ts-adres-kaydet" ${uyeli ? 'checked' : ''}><span>Bu adresi adres defterime kaydet</span></label>
@@ -4144,6 +4150,18 @@ function siparisBolgeCiz(zorla){
   const waBtn = document.getElementById('sepet-tamamla-btn');
   if(waBtn) waBtn.onclick = siparisiOnaylaWhatsapp;
   siparisFormunuUygula(); // asgari tutarın altına inip çıkınca yazılanlar geri gelsin
+  // Paylaşılan bilgisayarda başkasının bilgisiyle sipariş verilmesin (07.10.2026 derin tur).
+  const mzTemizle = document.getElementById('mz-temizle');
+  if(mzTemizle) mzTemizle.onclick = e=>{
+    e.preventDefault();
+    try{ localStorage.removeItem('oxerom_misafir'); }catch(_){}
+    MZ_ONCEKI_DOLU = false;
+    ['mz-ad','mz-soyad','mz-telefon','mz-eposta','ts-adres-yeni'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+    document.getElementById('mz-dolu-not').remove();
+    document.getElementById('mz-ad').focus();
+  };
   // Yazarken cihaz hafızasına (09.09.2026 derin tur: sayfa yenilenince teslimat adresi siliniyordu;
   // ad/telefon/e-posta zaten ilk siparişten sonra hatırlanıyordu — şimdi taslak da tutulur).
   const taslakAlanlar = { 'mz-ad':'ad', 'mz-soyad':'soyad', 'mz-telefon':'telefon', 'mz-eposta':'eposta', 'ts-adres-yeni':'adres' };
